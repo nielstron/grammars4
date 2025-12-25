@@ -1,15 +1,15 @@
-import classes.context_free.closure_properties.union
-import classes.context_free.closure_properties.reverse
-import classes.context_free.closure_properties.concatenation
-import classes.context_free.closure_properties.intersection
-import classes.context_free.closure_properties.complement
+import Grammars.Classes.ContextFree.ClosureProperties.Union
+import Grammars.Classes.ContextFree.ClosureProperties.Reverse
+import Grammars.Classes.ContextFree.ClosureProperties.Concatenation
+import Grammars.Classes.ContextFree.ClosureProperties.Intersection
+import Grammars.Classes.ContextFree.ClosureProperties.Complement
 
-import classes.unrestricted.closure_properties.union
-import classes.unrestricted.closure_properties.reverse
-import classes.unrestricted.closure_properties.concatenation
-import classes.unrestricted.closure_properties.star
+import Grammars.Classes.Unrestricted.ClosureProperties.Union
+import Grammars.Classes.Unrestricted.ClosureProperties.Reverse
+import Grammars.Classes.Unrestricted.ClosureProperties.Concatenation
+import Grammars.Classes.Unrestricted.ClosureProperties.Star
 
-import utilities.written_by_others.print_sorries
+import Grammars.Utilities.WrittenByOthers.PrintSorries
 
 
 section context_free

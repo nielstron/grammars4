@@ -5,7 +5,7 @@ package «grammars» where
   -- add package configuration options here
 
 require mathlib from git
-  "https://github.com/leanprover-community/mathlib4" @ "master"
+  "https://github.com/leanprover-community/mathlib4" @ "v4.9.1"
 
 @[default_target]
 lean_lib «Grammars» where
@@ -14,4 +14,4 @@ lean_lib «Grammars» where
 
 lean_lib «GrammarsTest» where
   srcDir := "test"
-  roots := #[`Grammars, `Grammars.Test]
+  roots := #[`Grammars.Test]

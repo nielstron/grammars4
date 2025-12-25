@@ -1,15 +1,15 @@
-import classes.context_free.basics.toolbox
-import classes.context_sensitive.basics.inclusion
+import Grammars.Classes.ContextFree.Basics.Toolbox
+import Grammars.Classes.ContextSensitive.Basics.Inclusion
 
 variables {T : Type}
 
 
 def csg_of_cfg (g : CF_grammar T) : CS_grammar T :=
-CS_grammar.mk g.nt g.initial (list.map (λ r : g.nt × (list (symbol T g.nt)),
+CS_grammar.mk g.nt g.initial (List.map (λ r : g.nt × (List (symbol T g.nt)),
   csrule.mk [] r.fst [] r.snd) g.rules)
 
 def grammar_of_cfg (g : CF_grammar T) : grammar T :=
-grammar.mk g.nt g.initial (list.map (λ r : g.nt × (list (symbol T g.nt)),
+grammar.mk g.nt g.initial (List.map (λ r : g.nt × (List (symbol T g.nt)),
   grule.mk [] r.fst [] r.snd) g.rules)
 
 lemma grammar_of_cfg_well_defined (g : CF_grammar T) :
@@ -18,17 +18,17 @@ begin
   unfold grammar_of_cfg,
   delta csg_of_cfg,
   delta grammar_of_csg,
-  simp only [list.map_map, eq_self_iff_true, heq_iff_eq, true_and],
+  simp only [List.map_map, eq_self_iff_true, heq_iff_eq, true_and],
   ext1,
-  rw [list.nth_map, list.nth_map],
+  rw [List.nth_map, List.nth_map],
   apply congr_fun,
   ext1,
   cases x,
   {
     refl,
   },
-  apply congr_arg option.some,
-  simp [list.append_nil],
+  apply congr_arg Option.some,
+  simp [List.append_nil],
 end
 
 lemma grammar_of_csg_of_cfg :
@@ -45,13 +45,13 @@ begin
   unfold CS_language,
   ext1 w,
   change
-    CF_derives g [symbol.nonterminal g.initial] (list.map symbol.terminal w) =
-    CS_derives (csg_of_cfg g) [symbol.nonterminal (csg_of_cfg g).initial] (list.map symbol.terminal w),
+    CF_derives g [symbol.nonterminal g.initial] (List.map symbol.terminal w) =
+    CS_derives (csg_of_cfg g) [symbol.nonterminal (csg_of_cfg g).initial] (List.map symbol.terminal w),
   rw eq_iff_iff,
   split,
   {
     have indu :
-      ∀ v : list (symbol T g.nt),
+      ∀ v : List (symbol T g.nt),
         CF_derives g [symbol.nonterminal g.initial] v →
           CS_derives (csg_of_cfg g) [symbol.nonterminal (csg_of_cfg g).initial] v,
     {
@@ -73,7 +73,7 @@ begin
       use csrule.mk [] r.fst [] r.snd,
       split,
       {
-        rw list.mem_map,
+        rw List.mem_map,
         use r,
         split,
         {
@@ -88,16 +88,16 @@ begin
       split;
       {
         dsimp only,
-        rw list.append_nil,
-        rw list.append_nil,
+        rw List.append_nil,
+        rw List.append_nil,
         assumption,
       },
     },
-    exact indu (list.map symbol.terminal w),
+    exact indu (List.map symbol.terminal w),
   },
   {
     have indu :
-      ∀ v : list (symbol T g.nt),
+      ∀ v : List (symbol T g.nt),
         CS_derives (csg_of_cfg g) [symbol.nonterminal g.initial] v →
           CF_derives g [symbol.nonterminal (csg_of_cfg g).initial] v,
     {
@@ -123,22 +123,22 @@ begin
       },
       use u,
       use w,
-      have cl_empty : r.context_left = list.nil,
+      have cl_empty : r.context_left = List.nil,
       {
         finish,
       },
-      have cr_empty : r.context_right = list.nil,
+      have cr_empty : r.context_right = List.nil,
       {
         finish,
       },
       rw [cl_empty, cr_empty] at *,
       repeat {
-        rw list.append_nil at *,
+        rw List.append_nil at *,
       },
       split;
       assumption,
     },
-    exact indu (list.map symbol.terminal w),
+    exact indu (List.map symbol.terminal w),
   },
 end
 
@@ -150,7 +150,7 @@ begin
   rw CS_language_eq_grammar_language,
 end
 
-theorem CF_subclass_CS {L : language T} :
+theorem CF_subclass_CS {L : Language T} :
   is_CF L → is_CS L :=
 begin
   rintro ⟨g, eq_L⟩,
@@ -159,6 +159,6 @@ begin
   rw CF_language_eq_CS_language,
 end
 
-theorem CF_subclass_RE {L : language T} :
+theorem CF_subclass_RE {L : Language T} :
   is_CF L → is_RE L :=
 CS_subclass_RE ∘ CF_subclass_CS

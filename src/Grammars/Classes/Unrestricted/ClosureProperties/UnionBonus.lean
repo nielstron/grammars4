@@ -1,24 +1,24 @@
-import classes.context_free.basics.inclusion
-import classes.unrestricted.closure_properties.union
-import utilities.written_by_others.print_sorries
+import Grammars.Classes.ContextFree.Basics.Inclusion
+import Grammars.Classes.Unrestricted.ClosureProperties.Union
+import Grammars.Utilities.WrittenByOthers.PrintSorries
 
 
 variables {T : Type}
 
-private def lift_CF_rule₁ {N₁ : Type} (N₂ : Type) (r : (N₁ × list (symbol T N₁))) :
-  (option (N₁ ⊕ N₂)) × list (symbol T (option (N₁ ⊕ N₂))) :=
-(some (sum.inl r.fst), lift_string_ (option.some ∘ sum.inl) r.snd)
+private def lift_CF_rule₁ {N₁ : Type} (N₂ : Type) (r : (N₁ × List (symbol T N₁))) :
+  (Option (N₁ ⊕ N₂)) × List (symbol T (Option (N₁ ⊕ N₂))) :=
+(some (sum.inl r.fst), lift_string_ (Option.some ∘ sum.inl) r.snd)
 
-private def lift_CF_rule₂ (N₁ : Type) {N₂ : Type} (r : (N₂ × list (symbol T N₂))) :
-  (option (N₁ ⊕ N₂)) × list (symbol T (option (N₁ ⊕ N₂))) :=
-(some (sum.inr r.fst), lift_string_ (option.some ∘ sum.inr) r.snd)
+private def lift_CF_rule₂ (N₁ : Type) {N₂ : Type} (r : (N₂ × List (symbol T N₂))) :
+  (Option (N₁ ⊕ N₂)) × List (symbol T (Option (N₁ ⊕ N₂))) :=
+(some (sum.inr r.fst), lift_string_ (Option.some ∘ sum.inr) r.snd)
 
 private def union_CF_grammar (g₁ g₂ : CF_grammar T) : CF_grammar T :=
-CF_grammar.mk (option (g₁.nt ⊕ g₂.nt)) none (
+CF_grammar.mk (Option (g₁.nt ⊕ g₂.nt)) none (
   (none, [symbol.nonterminal (some (sum.inl (g₁.initial)))]) :: (
   (none, [symbol.nonterminal (some (sum.inr (g₂.initial)))]) :: (
-  (list.map (lift_CF_rule₁ g₂.nt) g₁.rules) ++
-  (list.map (lift_CF_rule₂ g₁.nt) g₂.rules))))
+  (List.map (lift_CF_rule₁ g₂.nt) g₁.rules) ++
+  (List.map (lift_CF_rule₂ g₁.nt) g₂.rules))))
 
 private lemma union_CF_grammar_same_language (g₁ g₂ : CF_grammar T) :
   CF_language (union_CF_grammar g₁ g₂) = grammar_language (union_grammar (grammar_of_cfg g₁) (grammar_of_cfg g₂)) :=
@@ -26,10 +26,10 @@ begin
   rw CF_language_eq_grammar_language,
   congr,
   unfold union_CF_grammar grammar_of_cfg union_grammar,
-  dsimp only [list.map],
+  dsimp only [List.map],
   congr,
   repeat {
-    rw list.map_append,
+    rw List.map_append,
   },
   finish,
 end
@@ -38,7 +38,7 @@ end
     This theorem is proved by translation from general grammars.
     Compare to `classes.context_free.closure_properties.union.lean`
     which uses a direct proof for context-free grammars. -/
-private theorem bonus_CF_of_CF_u_CF (L₁ : language T) (L₂ : language T) :
+private theorem bonus_CF_of_CF_u_CF (L₁ : Language T) (L₂ : Language T) :
   is_CF L₁  ∧  is_CF L₂   →   is_CF (L₁ + L₂)   :=
 begin
   rintro ⟨⟨g₁, eq_L₁⟩, ⟨g₂, eq_L₂⟩⟩,
@@ -48,7 +48,7 @@ begin
   use union_CF_grammar g₁ g₂,
   rw union_CF_grammar_same_language,
 
-  apply set.eq_of_subset_of_subset,
+  apply Set.eq_of_subSetOf_subset,
   {
     intros w hyp,
     rw [←eq_L₁, ←eq_L₂],

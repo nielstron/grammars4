@@ -1,41 +1,41 @@
-import classes.unrestricted.basics.definition
+import Grammars.Classes.Unrestricted.Basics.Definition
 
 variables {T : Type} {g : grammar T}
 
 
-/-- The relation `grammar_derives` is reflexive. -/
-lemma grammar_deri_self {w : list (symbol T g.nt)} :
+/-- The Relation `grammar_derives` is reflexive. -/
+lemma grammar_deri_self {w : List (symbol T g.nt)} :
   grammar_derives g w w :=
-relation.refl_trans_gen.refl
+Relation.refl_trans_gen.refl
 
-lemma grammar_deri_of_tran {v w : list (symbol T g.nt)} :
+lemma grammar_deri_of_tran {v w : List (symbol T g.nt)} :
   grammar_transforms g v w → grammar_derives g v w :=
-relation.refl_trans_gen.single
+Relation.refl_trans_gen.single
 
-/-- The relation `grammar_derives` is transitive. -/
-lemma grammar_deri_of_deri_deri {u v w : list (symbol T g.nt)}
+/-- The Relation `grammar_derives` is transitive. -/
+lemma grammar_deri_of_deri_deri {u v w : List (symbol T g.nt)}
     (huv : grammar_derives g u v) (hvw : grammar_derives g v w) :
   grammar_derives g u w :=
-relation.refl_trans_gen.trans huv hvw
+Relation.refl_trans_gen.trans huv hvw
 
-lemma grammar_deri_of_deri_tran {u v w : list (symbol T g.nt)}
+lemma grammar_deri_of_deri_tran {u v w : List (symbol T g.nt)}
     (huv : grammar_derives g u v) (hvw : grammar_transforms g v w) :
   grammar_derives g u w :=
 grammar_deri_of_deri_deri huv (grammar_deri_of_tran hvw)
 
-lemma grammar_deri_of_tran_deri {u v w : list (symbol T g.nt)}
+lemma grammar_deri_of_tran_deri {u v w : List (symbol T g.nt)}
     (huv : grammar_transforms g u v) (hvw : grammar_derives g v w) :
   grammar_derives g u w :=
 grammar_deri_of_deri_deri (grammar_deri_of_tran huv) hvw
 
-lemma grammar_tran_or_id_of_deri {u w : list (symbol T g.nt)} (ass : grammar_derives g u w) :
+lemma grammar_tran_or_id_of_deri {u w : List (symbol T g.nt)} (ass : grammar_derives g u w) :
   (u = w) ∨
-  (∃ v : list (symbol T g.nt), (grammar_transforms g u v) ∧ (grammar_derives g v w)) :=
-relation.refl_trans_gen.cases_head ass
+  (∃ v : List (symbol T g.nt), (grammar_transforms g u v) ∧ (grammar_derives g v w)) :=
+Relation.refl_trans_gen.cases_head ass
 
 
-lemma grammar_deri_with_prefix {w₁ w₂ : list (symbol T g.nt)}
-    (pᵣ : list (symbol T g.nt))
+lemma grammar_deri_with_prefix {w₁ w₂ : List (symbol T g.nt)}
+    (pᵣ : List (symbol T g.nt))
     (ass : grammar_derives g w₁ w₂) :
   grammar_derives g (pᵣ ++ w₁) (pᵣ ++ w₂) :=
 begin
@@ -58,11 +58,11 @@ begin
   rw h_bef,
   rw h_aft,
   split;
-  simp only [list.append_assoc],
+  simp only [List.append_assoc],
 end
 
-lemma grammar_deri_with_postfix {w₁ w₂ : list (symbol T g.nt)}
-    (pₒ : list (symbol T g.nt))
+lemma grammar_deri_with_postfix {w₁ w₂ : List (symbol T g.nt)}
+    (pₒ : List (symbol T g.nt))
     (ass : grammar_derives g w₁ w₂) :
   grammar_derives g (w₁ ++ pₒ) (w₂ ++ pₒ) :=
 begin
@@ -85,13 +85,13 @@ begin
   rw h_bef,
   rw h_aft,
   split;
-  simp only [list.append_assoc],
+  simp only [List.append_assoc],
 end
 
 
-def as_terminal {N : Type} : symbol T N → option T
+def as_terminal {N : Type} : symbol T N → Option T
 | (symbol.terminal t)    := some t
 | (symbol.nonterminal _) := none
 
-def all_used_terminals (g : grammar T) : list T :=
-list.filter_map as_terminal (list.join (list.map grule.output_string g.rules))
+def all_used_terminals (g : grammar T) : List T :=
+List.filter_map as_terminal (List.join (List.map grule.output_string g.rules))

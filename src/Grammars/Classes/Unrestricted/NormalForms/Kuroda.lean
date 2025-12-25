@@ -1,4 +1,4 @@
-import classes.unrestricted.basics.definition
+import Grammars.Classes.Unrestricted.Basics.Definition
 
 
 /-- Transformation rule for a grammar in the Kuroda normal form. -/
@@ -13,7 +13,7 @@ inductive kuroda_rule (T : Type) (N : Type)
 structure kuroda_grammar (T : Type) :=
 (nt : Type)
 (initial : nt)
-(rules : list (kuroda_rule T nt))
+(rules : List (kuroda_rule T nt))
 
 
 def grule_of_kuroda_rule {T : Type} {N : Type} : kuroda_rule T N → grule T N
@@ -23,9 +23,9 @@ def grule_of_kuroda_rule {T : Type} {N : Type} : kuroda_rule T N → grule T N
 | (kuroda_rule.one_nil A)       := grule.mk [] A [] []
 
 def grammar_of_kuroda_grammar {T : Type} (k : kuroda_grammar T) : grammar T :=
-grammar.mk k.nt k.initial (list.map grule_of_kuroda_rule k.rules)
+grammar.mk k.nt k.initial (List.map grule_of_kuroda_rule k.rules)
 
 
-theorem kuroda_grammar_always_exists {T : Type} (L : language T) :
+theorem kuroda_grammar_always_exists {T : Type} (L : Language T) :
   is_RE L  →  ∃ k : kuroda_grammar T, grammar_language (grammar_of_kuroda_grammar k) = L  :=
 sorry

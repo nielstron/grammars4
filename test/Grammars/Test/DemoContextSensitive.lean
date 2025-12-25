@@ -1,5 +1,5 @@
-import classes.context_sensitive.basics.toolbox
-import utilities.list_utils
+import Grammars.Classes.ContextSensitive.Basics.Toolbox
+import Grammars.Utilities.ListUtils
 
 
 inductive Te

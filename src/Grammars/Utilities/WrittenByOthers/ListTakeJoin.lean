@@ -1,9 +1,9 @@
 -- Written by Patrick Johnson and released into the public domain at:
 -- https://github.com/user7230724/lean-projects/blob/master/src/list_take_join/main.lean
 
-import tactic
+import Mathlib/Tactic
 
-namespace list
+namespace List
 
 variables {α : Type*}
 
@@ -39,51 +39,51 @@ begin
       { exact h₂ k hk }}},
 end
 
-private lemma list.take_eq_take {l : list α} {m n : ℕ} :
+private lemma List.take_eq_take {l : List α} {m n : ℕ} :
   l.take m = l.take n ↔ min m l.length = min n l.length :=
 begin
   induction l with x l ih generalizing m n,
   { simp },
-  { simp_rw list.length_cons, split; intro h,
+  { simp_rw List.length_cons, split; intro h,
     { cases n, { simp at h, subst h },
       cases m, { simp at h, cases h },
-      simp only [list.take, eq_self_iff_true, true_and] at h,
+      simp only [List.take, eq_self_iff_true, true_and] at h,
       simpa [nat.min_succ_succ] using ih.mp h },
     { cases n, { simp at h, subst h },
       cases m, { simp [nat.min_succ_succ] at h, cases h },
       simp_rw nat.min_succ_succ at h, simpa using ih.mpr h }},
 end
 
-private lemma list.take_add {l : list α} {m n : ℕ} :
+private lemma List.take_add {l : List α} {m n : ℕ} :
   l.take (m + n) = l.take m ++ (l.drop m).take n :=
 begin
   convert_to
-    list.take (m + n) (list.take m l ++ list.drop m l) =
-    list.take m l ++ list.take n (list.drop m l),
-  { rw list.take_append_drop },
-  rw [list.take_append_eq_append_take, list.take_all_of_le,
-    list.append_right_inj], swap,
+    List.take (m + n) (List.take m l ++ List.drop m l) =
+    List.take m l ++ List.take n (List.drop m l),
+  { rw List.take_append_drop },
+  rw [List.take_append_eq_append_take, List.take_all_of_le,
+    List.append_right_inj], swap,
   { transitivity m,
-    { apply list.length_take_le },
+    { apply List.length_take_le },
     { simp }},
-  simp only [list.take_eq_take, list.length_take, list.length_drop],
+  simp only [List.take_eq_take, List.length_take, List.length_drop],
   generalize : l.length = k, by_cases h : m ≤ k,
   { simp [min_eq_left_iff.mpr h] },
   { push_neg at h, simp [nat.sub_eq_zero_of_le (le_of_lt h)] },
 end
 
-private lemma list.take_one_drop_eq_of_lt_length {l : list α} {n : ℕ}
+private lemma List.take_one_drop_eq_of_lt_length {l : List α} {n : ℕ}
   (h : n < l.length) : (l.drop n).take 1 = [l.nth_le n h] :=
 begin
   induction l with x l ih generalizing n,
   { cases h },
   { by_cases h₁ : l = [],
-    { subst h₁, rw list.nth_le_singleton, simp at h, subst h, simp },
-    have h₂ := h, rw [list.length_cons, nat.lt_succ_iff, le_iff_eq_or_lt] at h₂,
-    cases n, { simp }, rw [list.drop, list.nth_le], apply ih },
+    { subst h₁, rw List.nth_le_singleton, simp at h, subst h, simp },
+    have h₂ := h, rw [List.length_cons, nat.lt_succ_iff, le_iff_eq_or_lt] at h₂,
+    cases n, { simp }, rw [List.drop, List.nth_le], apply ih },
 end
 
-lemma take_join_of_lt {L : list (list α)} {n : ℕ} (notall : n < L.join.length) :
+lemma take_join_of_lt {L : List (List α)} {n : ℕ} (notall : n < L.join.length) :
   ∃ m k : ℕ, ∃ mlt : m < L.length, k < (L.nth_le m mlt).length ∧
     L.join.take n = (L.take m).join ++ (L.nth_le m mlt).take k :=
 begin
@@ -97,7 +97,7 @@ begin
   have hP0 : P 0, { rw hP, simp },
   have hPX : ∀ (r : ℕ), X ≤ r → ¬P r,
   { rintro r hr, rw hP, push_neg, convert notall, rw hX at hr,
-    rw [hN, list.take_all_of_le hr] },
+    rw [hN, List.take_all_of_le hr] },
   obtain ⟨hm₁, hm₂⟩ := nat_get_max_spec ⟨0, hP0⟩ ⟨X, hPX⟩, rw ←hm at hm₁ hm₂,
   have hm₃ : ¬P m.succ := hm₂ _ (nat.lt_succ_self m),
   refine ⟨m, k, _, _, _⟩,
@@ -107,20 +107,20 @@ begin
     replace hk := congr_arg (λ (x : ℕ), x + (L.take m).join.length) hk,
     dsimp at hk, rw nat.sub_add_cancel hm₁ at hk, rw ←hk at hm₃,
     contrapose! hm₃, rw [add_comm, ←add_assoc], convert le_self_add,
-    simp [nat.succ_eq_add_one, list.take_add, list.join_append, list.length_append],
-    rw [list.take_one_drop_eq_of_lt_length, map_singleton, sum_singleton] },
-  conv { to_lhs, rw [←list.take_append_drop m.succ L, list.join_append] },
+    simp [nat.succ_eq_add_one, List.take_add, List.join_append, List.length_append],
+    rw [List.take_one_drop_eq_of_lt_length, map_singleton, sum_singleton] },
+  conv { to_lhs, rw [←List.take_append_drop m.succ L, List.join_append] },
   have hn₁ : (L.take m).join.length ≤ n, { rwa hP at hm₁ },
   have hn₂ : n < (L.take m.succ).join.length,
   { rw hP at hm₃, push_neg at hm₃, exact hm₃ },
-  rw list.take_append_of_le_length (le_of_lt hn₂),
+  rw List.take_append_of_le_length (le_of_lt hn₂),
   change m.succ with m + 1, have hmX : m < X,
   { by_contra' hx, exact hPX m hx hm₁ },
-  rw [list.take_add, list.join_append, list.take_one_drop_eq_of_lt_length,
-    list.join, list.join, list.append_nil], swap, { rwa ←hX },
-  have : n = (list.take m L).join.length + k,
+  rw [List.take_add, List.join_append, List.take_one_drop_eq_of_lt_length,
+    List.join, List.join, List.append_nil], swap, { rwa ←hX },
+  have : n = (List.take m L).join.length + k,
   { rw hk, exact (nat.add_sub_of_le hn₁).symm },
-  subst this, rw list.take_append,
+  subst this, rw List.take_append,
 end
 
-end list
+end List

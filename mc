@@ -1,2 +1,0 @@
-leanproject clean
-./mk

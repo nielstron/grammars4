@@ -1,9 +1,9 @@
-import classes.context_free.closure_properties.union
-import classes.context_free.closure_properties.intersection
+import Grammars.Classes.ContextFree.ClosureProperties.Union
+import Grammars.Classes.ContextFree.ClosureProperties.Intersection
 
 
 /-- The class of context-free languages isn't closed under complement. -/
-theorem nnyCF_of_complement_CF : ¬ (∀ T : Type, ∀ L : language T,
+theorem nnyCF_of_complement_CF : ¬ (∀ T : Type, ∀ L : Language T,
     is_CF L  →  is_CF (Lᶜ)
 ) :=
 begin
@@ -16,5 +16,5 @@ begin
   have contra := h (L₁ᶜ + L₂ᶜ) hu,
   apply hyp_neg,
   -- golfed by Eric Wieser
-  rwa [language.add_def, set.compl_union, compl_compl, compl_compl] at contra,
+  rwa [Language.add_def, Set.compl_union, compl_compl, compl_compl] at contra,
 end

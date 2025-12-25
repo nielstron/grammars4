@@ -1,5 +1,5 @@
-import classes.unrestricted.basics.toolbox
-import utilities.list_utils
+import Grammars.Classes.Unrestricted.Basics.Toolbox
+import Grammars.Utilities.ListUtils
 
 
 section functions_lift_sink
@@ -10,15 +10,15 @@ def lift_symbol_ (lift_N : N₀ → N) : symbol T N₀ → symbol T N
 | (symbol.terminal t)    := symbol.terminal t
 | (symbol.nonterminal n) := symbol.nonterminal (lift_N n)
 
-def sink_symbol_ (sink_N : N → option N₀) : symbol T N → option (symbol T N₀)
+def sink_symbol_ (sink_N : N → Option N₀) : symbol T N → Option (symbol T N₀)
 | (symbol.terminal t)    := some (symbol.terminal t)
-| (symbol.nonterminal n) := option.map symbol.nonterminal (sink_N n)
+| (symbol.nonterminal n) := Option.map symbol.nonterminal (sink_N n)
 
-def lift_string_ (lift_N : N₀ → N) : list (symbol T N₀) → list (symbol T N) :=
-list.map (lift_symbol_ lift_N)
+def lift_string_ (lift_N : N₀ → N) : List (symbol T N₀) → List (symbol T N) :=
+List.map (lift_symbol_ lift_N)
 
-def sink_string_ (sink_N : N → option N₀) : list (symbol T N) → list (symbol T N₀) :=
-list.filter_map (sink_symbol_ sink_N)
+def sink_string_ (sink_N : N → Option N₀) : List (symbol T N) → List (symbol T N₀) :=
+List.filter_map (sink_symbol_ sink_N)
 
 def lift_rule_ (lift_N : N₀ → N) : grule T N₀ → grule T N :=
 λ r : grule T N₀, grule.mk
@@ -35,7 +35,7 @@ section lifting_conditions
 structure lifted_grammar_ (T : Type) :=
 (g₀ g : grammar T)
 (lift_nt : g₀.nt → g.nt)
-(sink_nt : g.nt → option g₀.nt)
+(sink_nt : g.nt → Option g₀.nt)
 (lift_inj : function.injective lift_nt)
 (sink_inj : ∀ x y, sink_nt x = sink_nt y →
   x = y  ∨  sink_nt x = none
@@ -53,12 +53,12 @@ structure lifted_grammar_ (T : Type) :=
 private lemma lifted_grammar_inverse {T : Type} (lg : lifted_grammar_ T) :
   ∀ x : lg.g.nt,
     (∃ n₀, lg.sink_nt x = some n₀) →
-      option.map lg.lift_nt (lg.sink_nt x) = x :=
+      Option.map lg.lift_nt (lg.sink_nt x) = x :=
 begin
   intros x hyp,
   cases hyp with valu ass,
   rw ass,
-  rw option.map_some',
+  rw Option.map_some',
   apply congr_arg,
   symmetry,
   by_contradiction,
@@ -69,7 +69,7 @@ begin
     exact h case_valu,
   },
   rw ass at case_none,
-  exact option.no_confusion case_none,
+  exact Option.no_confusion case_none,
 end
 
 end lifting_conditions
@@ -79,7 +79,7 @@ section translating_derivations
 
 variables {T : Type}
 
-private lemma lift_tran_ {lg : lifted_grammar_ T} {w₁ w₂ : list (symbol T lg.g₀.nt)}
+private lemma lift_tran_ {lg : lifted_grammar_ T} {w₁ w₂ : List (symbol T lg.g₀.nt)}
     (hyp : grammar_transforms lg.g₀ w₁ w₂) :
   grammar_transforms lg.g (lift_string_ lg.lift_nt w₁) (lift_string_ lg.lift_nt w₂) :=
 begin
@@ -95,19 +95,19 @@ begin
   {
     have lift_bef := congr_arg (lift_string_ lg.lift_nt) bef,
     unfold lift_string_ at *,
-    rw list.map_append_append at lift_bef,
-    rw list.map_append_append at lift_bef,
+    rw List.map_append_append at lift_bef,
+    rw List.map_append_append at lift_bef,
     exact lift_bef,
   },
   {
     have lift_aft := congr_arg (lift_string_ lg.lift_nt) aft,
     unfold lift_string_ at *,
-    rw list.map_append_append at lift_aft,
+    rw List.map_append_append at lift_aft,
     exact lift_aft,
   },
 end
 
-lemma lift_deri_ (lg : lifted_grammar_ T) {w₁ w₂ : list (symbol T lg.g₀.nt)}
+lemma lift_deri_ (lg : lifted_grammar_ T) {w₁ w₂ : List (symbol T lg.g₀.nt)}
     (hyp : grammar_derives lg.g₀ w₁ w₂) :
   grammar_derives lg.g (lift_string_ lg.lift_nt w₁) (lift_string_ lg.lift_nt w₂) :=
 begin
@@ -127,10 +127,10 @@ def good_letter_ {lg : lifted_grammar_ T} : symbol T lg.g.nt → Prop
 | (symbol.terminal t)    := true
 | (symbol.nonterminal n) := (∃ n₀ : lg.g₀.nt, lg.sink_nt n = n₀)
 
-def good_string_ {lg : lifted_grammar_ T} (s : list (symbol T lg.g.nt)) :=
+def good_string_ {lg : lifted_grammar_ T} (s : List (symbol T lg.g.nt)) :=
 ∀ a ∈ s, good_letter_ a
 
-private lemma sink_tran_ {lg : lifted_grammar_ T} {w₁ w₂ : list (symbol T lg.g.nt)}
+private lemma sink_tran_ {lg : lifted_grammar_ T} {w₁ w₂ : List (symbol T lg.g.nt)}
     (hyp : grammar_transforms lg.g w₁ w₂)
     (ok_input : good_string_ w₁) :
   grammar_transforms lg.g₀ (sink_string_ lg.sink_nt w₁) (sink_string_ lg.sink_nt w₂)
@@ -147,18 +147,18 @@ begin
     have good_matched_nonterminal : good_letter_ (symbol.nonterminal r.input_N),
     {
       apply ok_input (symbol.nonterminal r.input_N),
-      apply list.mem_append_left,
-      apply list.mem_append_left,
-      apply list.mem_append_right,
-      rw list.mem_singleton,
+      apply List.mem_append_left,
+      apply List.mem_append_left,
+      apply List.mem_append_right,
+      rw List.mem_singleton,
     },
     change ∃ n₀ : lg.g₀.nt, lg.sink_nt r.input_N = some n₀ at good_matched_nonterminal,
     cases good_matched_nonterminal with n₀ hn₀,
     use n₀,
-    have almost := congr_arg (option.map lg.lift_nt) hn₀,
+    have almost := congr_arg (Option.map lg.lift_nt) hn₀,
     rw lifted_grammar_inverse lg r.input_N ⟨n₀, hn₀⟩ at almost,
-    rw option.map_some' at almost,
-    apply option.some_injective,
+    rw Option.map_some' at almost,
+    apply Option.some_injective,
     exact almost.symm,
   }) with ⟨r₀, pre_in, preimage⟩,
 
@@ -169,8 +169,8 @@ begin
     unfold good_string_ at ok_input ⊢,
     rw ←preimage,
     clear_except ok_input,
-    rw list.forall_mem_append_append at ok_input ⊢,
-    rw list.forall_mem_append_append at ok_input,
+    rw List.forall_mem_append_append at ok_input ⊢,
+    rw List.forall_mem_append_append at ok_input,
     split,
     {
       exact ok_input.1.1,
@@ -188,7 +188,7 @@ begin
     unfold lift_rule_ at a_in_ros,
     dsimp only at a_in_ros,
     unfold lift_string_ at a_in_ros,
-    rw list.mem_map at a_in_ros,
+    rw List.mem_map at a_in_ros,
     rcases a_in_ros with ⟨s, trash, a_from_s⟩,
     rw ←a_from_s,
     cases s,
@@ -210,7 +210,7 @@ begin
   },
   use sink_string_ lg.sink_nt u,
   use sink_string_ lg.sink_nt v,
-  have correct_inverse : sink_symbol_ lg.sink_nt ∘ lift_symbol_ lg.lift_nt = option.some,
+  have correct_inverse : sink_symbol_ lg.sink_nt ∘ lift_symbol_ lg.lift_nt = Option.some,
   {
     ext1,
     cases x,
@@ -221,14 +221,14 @@ begin
     unfold lift_symbol_,
     unfold sink_symbol_,
     rw lg.lift_nt_sink,
-    apply option.map_some',
+    apply Option.map_some',
   },
   split,
   {
     have sink_bef := congr_arg (sink_string_ lg.sink_nt) bef,
     unfold sink_string_ at *,
-    rw list.filter_map_append_append at sink_bef,
-    rw list.filter_map_append_append at sink_bef,
+    rw List.filter_map_append_append at sink_bef,
+    rw List.filter_map_append_append at sink_bef,
     convert sink_bef;
     rw ←preimage;
     unfold lift_rule_;
@@ -236,43 +236,43 @@ begin
     clear_except correct_inverse,
     {
       unfold lift_string_,
-      rw list.filter_map_map,
+      rw List.filter_map_map,
       rw correct_inverse,
-      rw list.filter_map_some,
+      rw List.filter_map_some,
     },
     {
       change
         [symbol.nonterminal r₀.input_N] =
-        list.filter_map (sink_symbol_ lg.sink_nt)
-          (list.map (lift_symbol_ lg.lift_nt) [symbol.nonterminal r₀.input_N]),
-      rw list.filter_map_map,
+        List.filter_map (sink_symbol_ lg.sink_nt)
+          (List.map (lift_symbol_ lg.lift_nt) [symbol.nonterminal r₀.input_N]),
+      rw List.filter_map_map,
       rw correct_inverse,
-      rw list.filter_map_some,
+      rw List.filter_map_some,
     },
     {
       unfold lift_string_,
-      rw list.filter_map_map,
+      rw List.filter_map_map,
       rw correct_inverse,
-      rw list.filter_map_some,
+      rw List.filter_map_some,
     },
   },
   {
     have sink_aft := congr_arg (sink_string_ lg.sink_nt) aft,
     unfold sink_string_ at *,
-    rw list.filter_map_append_append at sink_aft,
+    rw List.filter_map_append_append at sink_aft,
     convert sink_aft,
     rw ←preimage,
     clear_except correct_inverse,
     unfold lift_rule_,
     dsimp only,
     unfold lift_string_,
-    rw list.filter_map_map,
+    rw List.filter_map_map,
     rw correct_inverse,
-    rw list.filter_map_some,
+    rw List.filter_map_some,
   },
 end
 
-private lemma sink_deri_aux {lg : lifted_grammar_ T} {w₁ w₂ : list (symbol T lg.g.nt)}
+private lemma sink_deri_aux {lg : lifted_grammar_ T} {w₁ w₂ : List (symbol T lg.g.nt)}
     (hyp : grammar_derives lg.g w₁ w₂)
     (ok_input : good_string_ w₁) :
   grammar_derives lg.g₀ (sink_string_ lg.sink_nt w₁) (sink_string_ lg.sink_nt w₂)
@@ -303,7 +303,7 @@ begin
   },
 end
 
-lemma sink_deri_ (lg : lifted_grammar_ T) {w₁ w₂ : list (symbol T lg.g.nt)}
+lemma sink_deri_ (lg : lifted_grammar_ T) {w₁ w₂ : List (symbol T lg.g.nt)}
     (hyp : grammar_derives lg.g w₁ w₂)
     (ok_input : good_string_ w₁) :
   grammar_derives lg.g₀ (sink_string_ lg.sink_nt w₁) (sink_string_ lg.sink_nt w₂) :=

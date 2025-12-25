@@ -1,5 +1,5 @@
-import classes.context_free.basics.toolbox
-import utilities.language_operations
+import Grammars.Classes.ContextFree.Basics.Toolbox
+import Grammars.Utilities.LanguageOperations
 
 
 variables {T₁ T₂ N : Type}
@@ -12,37 +12,37 @@ private def sT₁_of_sT₂ (π : equiv T₁ T₂) : (symbol T₂ N) → (symbol 
 | (symbol.terminal t) := symbol.terminal (π.inv_fun t)
 | (symbol.nonterminal n) := symbol.nonterminal n
 
-private def lsT₂_of_lsT₁ (π : equiv T₁ T₂) : list (symbol T₁ N) → list (symbol T₂ N) :=
-list.map (sT₂_of_sT₁ π)
+private def lsT₂_of_lsT₁ (π : equiv T₁ T₂) : List (symbol T₁ N) → List (symbol T₂ N) :=
+List.map (sT₂_of_sT₁ π)
 
-private def lsT₁_of_lsT₂ (π : equiv T₁ T₂) : list (symbol T₂ N) → list (symbol T₁ N) :=
-list.map (sT₁_of_sT₂ π)
+private def lsT₁_of_lsT₂ (π : equiv T₁ T₂) : List (symbol T₂ N) → List (symbol T₁ N) :=
+List.map (sT₁_of_sT₂ π)
 
 /-- The class of context-free languages is closed under bijection between terminal alphabets. -/
-theorem CF_of_bijemap_CF (π : equiv T₁ T₂) (L : language T₁) :
+theorem CF_of_bijemap_CF (π : equiv T₁ T₂) (L : Language T₁) :
   is_CF L  →  is_CF (bijemap_lang L π)  :=
 begin
   rintro ⟨g, hg⟩,
 
-  let g' : CF_grammar T₂ := CF_grammar.mk g.nt g.initial (list.map (
-      λ r : g.nt × (list (symbol T₁ g.nt)), (r.fst, lsT₂_of_lsT₁ π r.snd)
+  let g' : CF_grammar T₂ := CF_grammar.mk g.nt g.initial (List.map (
+      λ r : g.nt × (List (symbol T₁ g.nt)), (r.fst, lsT₂_of_lsT₁ π r.snd)
     ) g.rules),
   use g',
 
-  apply set.eq_of_subset_of_subset,
+  apply Set.eq_of_subSetOf_subset,
   {
     intros w hw,
     unfold bijemap_lang,
-    change list.map π.inv_fun w ∈ L,
+    change List.map π.inv_fun w ∈ L,
     rw ←hg,
 
     unfold CF_language at hw ⊢,
-    rw set.mem_set_of_eq at hw ⊢,
+    rw Set.mem_SetOf_eq at hw ⊢,
     unfold CF_generates at hw ⊢,
     unfold CF_generates_str at hw ⊢,
 
     have deri_of_deri :
-      ∀ v : list (symbol T₂ g'.nt),
+      ∀ v : List (symbol T₂ g'.nt),
         CF_derives g' [symbol.nonterminal g'.initial] v →
           CF_derives g [symbol.nonterminal g.initial] (lsT₁_of_lsT₂ π v),
     {
@@ -63,7 +63,7 @@ begin
       split,
       {
         change (r.fst, lsT₁_of_lsT₂ π r.snd) ∈ g.rules,
-        rw [list.mem_map, prod.exists] at r_in,
+        rw [List.mem_map, prod.exists] at r_in,
         rcases r_in with ⟨a, b, ab_in, ab_eq⟩,
         have a_eq : a = r.fst :=
           (congr_arg prod.fst ab_eq).congr_right.mp rfl,
@@ -74,9 +74,9 @@ begin
         rw ←b_eq,
         unfold lsT₁_of_lsT₂,
         unfold lsT₂_of_lsT₁,
-        rw list.map_map,
+        rw List.map_map,
         ext1,
-        rw list.nth_map,
+        rw List.nth_map,
         cases (b.nth n),
         {
           -- none = none
@@ -98,40 +98,40 @@ begin
       {
         rw bef,
         unfold lsT₁_of_lsT₂,
-        rw list.map_append,
-        rw list.map_append,
+        rw List.map_append,
+        rw List.map_append,
         refl,
       },
       {
         rw aft,
         unfold lsT₁_of_lsT₂,
-        rw list.map_append,
-        rw list.map_append,
+        rw List.map_append,
+        rw List.map_append,
         refl,
       },
     },
-    specialize deri_of_deri (list.map symbol.terminal w) hw,
+    specialize deri_of_deri (List.map symbol.terminal w) hw,
     unfold lsT₁_of_lsT₂ at deri_of_deri,
-    rw list.map_map at *,
+    rw List.map_map at *,
     convert deri_of_deri,
   },
   {
     intros w hw,
     unfold bijemap_lang at hw,
-    change list.map π.inv_fun w ∈ L at hw,
+    change List.map π.inv_fun w ∈ L at hw,
     rw ←hg at hw,
     unfold CF_language at hw,
-    rw set.mem_set_of_eq at hw,
+    rw Set.mem_SetOf_eq at hw,
     unfold CF_generates at hw,
-    rw list.map_map at hw,
+    rw List.map_map at hw,
     unfold CF_generates_str at hw,
 
     unfold CF_language,
-    change CF_generates_str g' (list.map symbol.terminal w),
+    change CF_generates_str g' (List.map symbol.terminal w),
     unfold CF_generates_str,
 
     have deri_of_deri :
-      ∀ v : list (symbol T₁ g.nt),
+      ∀ v : List (symbol T₁ g.nt),
         CF_derives g [symbol.nonterminal g.initial] v →
           CF_derives g' [symbol.nonterminal g'.initial] (lsT₂_of_lsT₁ π v),
     {
@@ -151,7 +151,7 @@ begin
       use r₂,
       split,
       {
-        rw [list.mem_map, prod.exists],
+        rw [List.mem_map, prod.exists],
         use r.fst,
         use r.snd,
         split,
@@ -168,21 +168,21 @@ begin
       {
         rw bef,
         unfold lsT₂_of_lsT₁,
-        rw list.map_append,
-        rw list.map_append,
+        rw List.map_append,
+        rw List.map_append,
         refl,
       },
       {
         rw aft,
         unfold lsT₂_of_lsT₁,
-        rw list.map_append,
-        rw list.map_append,
+        rw List.map_append,
+        rw List.map_append,
         refl,
       },
     },
-    specialize deri_of_deri (list.map (symbol.terminal ∘ π.inv_fun) w) hw,
+    specialize deri_of_deri (List.map (symbol.terminal ∘ π.inv_fun) w) hw,
     rw lsT₂_of_lsT₁ at deri_of_deri,
-    rw list.map_map at deri_of_deri,
+    rw List.map_map at deri_of_deri,
     convert deri_of_deri,
     ext1,
     change symbol.terminal x = sT₂_of_sT₁ π (symbol.terminal (π.inv_fun x)),

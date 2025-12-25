@@ -1,6 +1,6 @@
-import classes.unrestricted.basics.toolbox
-import utilities.list_utils
-import utilities.written_by_others.trim_assoc
+import Grammars.Classes.Unrestricted.Basics.Toolbox
+import Grammars.Utilities.ListUtils
+import Grammars.Utilities.WrittenByOthers.TrimAssoc
 
 
 inductive alphabet
@@ -246,7 +246,7 @@ begin
 end
 
 private lemma steps_L_aLX (m : ℕ) :
-  grammar_derives gr_mul [L, R] (list.repeat a m ++ [L] ++ list.repeat X m ++ [R]) :=
+  grammar_derives gr_mul [L, R] (List.repeat a m ++ [L] ++ List.repeat X m ++ [R]) :=
 begin
   induction m with k ih,
   {
@@ -255,89 +255,89 @@ begin
   apply grammar_deri_of_deri_tran ih,
   use L_aLX,
   split_ile,
-  use [list.repeat a k, list.repeat X k ++ [R]],
+  use [List.repeat a k, List.repeat X k ++ [R]],
   split,
   {
-    simp [L, L_aLX, list.append_nil, list.append_assoc],
+    simp [L, L_aLX, List.append_nil, List.append_assoc],
   },
   {
-    rw list.repeat_succ_eq_append_singleton a,
-    rw list.repeat_succ_eq_singleton_append X,
-    simp [L, L_aLX, list.append_assoc],
+    rw List.repeat_succ_eq_append_singleton a,
+    rw List.repeat_succ_eq_singleton_append X,
+    simp [L, L_aLX, List.append_assoc],
   },
 end
 
 private lemma steps_R_BR (m n : ℕ) :
   grammar_derives gr_mul
-    (list.repeat a m ++ [L] ++ list.repeat X m ++ [R])
-    (list.repeat a m ++ [L] ++ list.repeat X m ++ list.repeat B n ++ [R]) :=
+    (List.repeat a m ++ [L] ++ List.repeat X m ++ [R])
+    (List.repeat a m ++ [L] ++ List.repeat X m ++ List.repeat B n ++ [R]) :=
 begin
   induction n with k ih,
   {
-    rw [list.repeat, list.append_nil],
+    rw [List.repeat, List.append_nil],
     apply grammar_deri_self,
   },
   apply grammar_deri_of_deri_tran ih,
   use R_BR,
   split_ile,
-  use [list.repeat a m ++ [L] ++ list.repeat X m ++ list.repeat B k, []],
+  use [List.repeat a m ++ [L] ++ List.repeat X m ++ List.repeat B k, []],
   split,
   {
-    simp [R, R_BR, list.append_nil],
+    simp [R, R_BR, List.append_nil],
   },
   {
-    rw list.repeat_succ_eq_append_singleton B,
-    simp [R, R_BR, list.append_nil, list.append_assoc],
+    rw List.repeat_succ_eq_append_singleton B,
+    simp [R, R_BR, List.append_nil, List.append_assoc],
   },
 end
 
 private lemma steps_quadratic (m n : ℕ) :
   grammar_derives gr_mul
-    (list.repeat a m ++ [M] ++ list.repeat X m ++ list.repeat B n ++ [E])
-    (list.repeat a m ++ [M] ++ list.repeat B n ++ list.repeat C (m * n) ++
-      list.repeat X m ++ [E]) :=
+    (List.repeat a m ++ [M] ++ List.repeat X m ++ List.repeat B n ++ [E])
+    (List.repeat a m ++ [M] ++ List.repeat B n ++ List.repeat C (m * n) ++
+      List.repeat X m ++ [E]) :=
 begin
   apply grammar_deri_with_postfix,
   repeat {
-    rw list.append_assoc (list.repeat a m ++ [M]),
+    rw List.append_assoc (List.repeat a m ++ [M]),
   },
   apply grammar_deri_with_prefix,
 
   have parametrized : ∀ q : ℕ, q ≤ m →
     grammar_derives gr_mul
-      (list.repeat X m ++ list.repeat B n)
-      (list.repeat X (m - q) ++ list.repeat B n ++ list.repeat C (q * n) ++ list.repeat X q),
+      (List.repeat X m ++ List.repeat B n)
+      (List.repeat X (m - q) ++ List.repeat B n ++ List.repeat C (q * n) ++ List.repeat X q),
   {
     intros q q_le_m,
     induction q with k ih,
     {
-      rw [nat.sub_zero, zero_mul, list.repeat_zero, list.repeat_zero, list.append_nil, list.append_nil],
+      rw [nat.sub_zero, zero_mul, List.repeat_zero, List.repeat_zero, List.append_nil, List.append_nil],
       apply grammar_deri_self,
     },
     apply grammar_deri_of_deri_deri (ih (nat.le_of_succ_le q_le_m)),
 
     have big_step_generateCs :
       grammar_derives gr_mul
-        (list.repeat X (m - k) ++ list.repeat B n ++ list.repeat C (k * n) ++ list.repeat X k)
-        (list.repeat X (m - k.succ) ++ [B, C] ^ n ++ [X] ++ list.repeat C (k * n) ++ list.repeat X k),
+        (List.repeat X (m - k) ++ List.repeat B n ++ List.repeat C (k * n) ++ List.repeat X k)
+        (List.repeat X (m - k.succ) ++ [B, C] ^ n ++ [X] ++ List.repeat C (k * n) ++ List.repeat X k),
     {
       apply grammar_deri_with_postfix,
       apply grammar_deri_with_postfix,
 
       have aux_generateCs : ∀ p : ℕ, p ≤ n →
         grammar_derives gr_mul
-          (list.repeat X (m - k) ++ list.repeat B n)
-          (list.repeat X (m - k.succ) ++ [B, C] ^ p ++ [X] ++ list.repeat B (n - p)),
+          (List.repeat X (m - k) ++ List.repeat B n)
+          (List.repeat X (m - k.succ) ++ [B, C] ^ p ++ [X] ++ List.repeat B (n - p)),
       {
         intros p p_le_n,
         induction p with r ih,
         {
           rw nat.sub_zero,
-          unfold list.n_times,
-          rw list.repeat_zero,
-          rw list.join,
-          rw list.append_nil,
-          rw ←list.repeat_succ_eq_append_singleton,
+          unfold List.n_times,
+          rw List.repeat_zero,
+          rw List.join,
+          rw List.append_nil,
+          rw ←List.repeat_succ_eq_append_singleton,
           rw ←sub_suc_suc, swap,
           {
             rwa nat.succ_le_iff at q_le_m,
@@ -347,12 +347,12 @@ begin
         apply grammar_deri_of_deri_tran (ih (nat.le_of_succ_le p_le_n)),
         use XB_BCX,
         split_ile,
-        use list.repeat X (m - k.succ) ++ [B, C] ^ r,
-        use list.repeat B (n - r.succ),
+        use List.repeat X (m - k.succ) ++ [B, C] ^ r,
+        use List.repeat B (n - r.succ),
         split,
         {
           repeat {
-            rw list.append_assoc,
+            rw List.append_assoc,
           },
           trim,
           have r_lt_n : r < n,
@@ -360,50 +360,50 @@ begin
             rwa nat.succ_le_iff at p_le_n,
           },
           rw sub_suc_suc r_lt_n,
-          rw list.repeat_succ_eq_singleton_append B,
+          rw List.repeat_succ_eq_singleton_append B,
           repeat {
-            rw ←list.append_assoc,
+            rw ←List.append_assoc,
           },
           refl,
         },
         {
           trim,
-          unfold list.n_times,
-          rw list.repeat_succ_eq_append_singleton,
-          rw list.join_append,
+          unfold List.n_times,
+          rw List.repeat_succ_eq_append_singleton,
+          rw List.join_append,
           finish,
         },
       },
       have generatedCs := aux_generateCs n (by refl),
-      rwa [nat.sub_self, list.repeat_zero, list.append_nil] at generatedCs,
+      rwa [nat.sub_self, List.repeat_zero, List.append_nil] at generatedCs,
     },
     apply grammar_deri_of_deri_deri big_step_generateCs,
     clear big_step_generateCs,
 
     have big_step_bubbleCs :
       grammar_derives gr_mul
-        (list.repeat X (m - k.succ) ++ [B, C] ^ n ++ [X] ++ list.repeat C (k * n) ++ list.repeat X k)
-        (list.repeat X (m - k.succ) ++ list.repeat B n ++ list.repeat C n ++ [X] ++
-          list.repeat C (k * n) ++ list.repeat X k),
+        (List.repeat X (m - k.succ) ++ [B, C] ^ n ++ [X] ++ List.repeat C (k * n) ++ List.repeat X k)
+        (List.repeat X (m - k.succ) ++ List.repeat B n ++ List.repeat C n ++ [X] ++
+          List.repeat C (k * n) ++ List.repeat X k),
     {
       apply grammar_deri_with_postfix,
       apply grammar_deri_with_postfix,
       apply grammar_deri_with_postfix,
-      rw list.append_assoc,
+      rw List.append_assoc,
       apply grammar_deri_with_prefix,
 
       have aux_bubbleCs : ∀ s : ℕ, s ≤ n →
         grammar_derives gr_mul
           ([B, C] ^ n)
-          (list.repeat B s ++ list.repeat C s ++ [B, C] ^ (n - s)),
+          (List.repeat B s ++ List.repeat C s ++ [B, C] ^ (n - s)),
       {
         intros s s_le_n,
         induction s with z ih,
         {
-          rw list.repeat_zero,
-          rw list.nil_append,
-          rw list.repeat_zero,
-          rw list.nil_append,
+          rw List.repeat_zero,
+          rw List.nil_append,
+          rw List.repeat_zero,
+          rw List.nil_append,
           rw nat.sub_zero,
           apply grammar_deri_self,
         },
@@ -413,44 +413,44 @@ begin
           rwa nat.succ_le_iff at s_le_n,
         },
         rw sub_suc_suc z_lt_n,
-        unfold list.n_times,
-        rw list.repeat_succ_eq_singleton_append,
-        rw list.join_append,
-        rw list.join_singleton,
+        unfold List.n_times,
+        rw List.repeat_succ_eq_singleton_append,
+        rw List.join_append,
+        rw List.join_singleton,
         repeat {
-          rw ←list.append_assoc,
+          rw ←List.append_assoc,
         },
         apply grammar_deri_with_postfix,
-        rw list.repeat_succ_eq_append_singleton B,
-        rw list.append_assoc,
-        rw list.append_assoc,
+        rw List.repeat_succ_eq_append_singleton B,
+        rw List.append_assoc,
+        rw List.append_assoc,
         apply grammar_deri_with_prefix,
-        rw list.repeat_succ_eq_append_singleton C,
+        rw List.repeat_succ_eq_append_singleton C,
         convert_to
           grammar_derives gr_mul
-            (list.repeat C z ++ [B] ++ [C])
-            ([B] ++ list.repeat C z ++ [C]),
+            (List.repeat C z ++ [B] ++ [C])
+            ([B] ++ List.repeat C z ++ [C]),
         {
-          rw list.append_assoc,
+          rw List.append_assoc,
           refl,
         },
         apply grammar_deri_with_postfix,
 
         have aux_bubbleB : ∀ x : ℕ, x ≤ z →
           grammar_derives gr_mul
-            (list.repeat C z ++ [B])
-            (list.repeat C (z - x) ++ [B] ++ list.repeat C x),
+            (List.repeat C z ++ [B])
+            (List.repeat C (z - x) ++ [B] ++ List.repeat C x),
         {
           intros x x_le_z,
           induction x with y ih,
           {
-            rw [nat.sub_zero, list.repeat_zero, list.append_nil],
+            rw [nat.sub_zero, List.repeat_zero, List.append_nil],
             apply grammar_deri_self,
           },
           apply grammar_deri_of_deri_tran (ih (nat.le_of_succ_le x_le_z)),
           use CB_BC,
           split_ile,
-          use [list.repeat C (z - y.succ), list.repeat C y],
+          use [List.repeat C (z - y.succ), List.repeat C y],
           split,
           {
             trim,
@@ -459,52 +459,52 @@ begin
               rwa nat.succ_le_iff at x_le_z,
             },
             rw sub_suc_suc y_lt_z,
-            rw list.repeat_succ_eq_append_singleton C,
+            rw List.repeat_succ_eq_append_singleton C,
             repeat {
-              rw list.append_assoc,
+              rw List.append_assoc,
             },
             refl,
           },
           {
-            rw list.repeat_succ_eq_singleton_append C,
-            rw ←list.append_assoc,
+            rw List.repeat_succ_eq_singleton_append C,
+            rw ←List.append_assoc,
             trim,
           },
         },
         have bubbledB := aux_bubbleB z (by refl),
-        rwa [nat.sub_self, list.repeat_zero, list.nil_append] at bubbledB,
+        rwa [nat.sub_self, List.repeat_zero, List.nil_append] at bubbledB,
       },
       have bubbledCs := aux_bubbleCs n (by refl),
       rw nat.sub_self at bubbledCs,
-      unfold list.n_times at bubbledCs,
-      rw list.append_assoc at bubbledCs,
-      rw list.repeat_zero at bubbledCs,
-      rw list.join at bubbledCs,
-      rwa list.append_nil at bubbledCs,
+      unfold List.n_times at bubbledCs,
+      rw List.append_assoc at bubbledCs,
+      rw List.repeat_zero at bubbledCs,
+      rw List.join at bubbledCs,
+      rwa List.append_nil at bubbledCs,
     },
     apply grammar_deri_of_deri_deri big_step_bubbleCs,
     clear big_step_bubbleCs,
 
     repeat {
-      rw list.append_assoc,
+      rw List.append_assoc,
     },
     apply grammar_deri_with_prefix,
     apply grammar_deri_with_prefix,
     rw nat.succ_mul,
     rw add_comm,
-    rw list.repeat_add,
-    rw list.append_assoc,
+    rw List.repeat_add,
+    rw List.append_assoc,
     apply grammar_deri_with_prefix,
-    rw list.repeat_succ_eq_singleton_append X,
+    rw List.repeat_succ_eq_singleton_append X,
     repeat {
-      rw ←list.append_assoc,
+      rw ←List.append_assoc,
     },
     apply grammar_deri_with_postfix,
 
     have skipCs : ∀ d e : ℕ, d ≤ e →
       grammar_derives gr_mul
-        ([X] ++ list.repeat C e)
-        (list.repeat C d ++ [X] ++ list.repeat C (e - d)),
+        ([X] ++ List.repeat C e)
+        (List.repeat C d ++ [X] ++ List.repeat C (e - d)),
     {
       intros d e d_le_e,
       induction d with f ih,
@@ -514,7 +514,7 @@ begin
       apply grammar_deri_of_deri_tran (ih (nat.le_of_succ_le d_le_e)),
       use XC_CX,
       split_ile,
-      use [list.repeat C f, list.repeat C (e - f.succ)],
+      use [List.repeat C f, List.repeat C (e - f.succ)],
       split,
       {
         have f_lt_e : f < e,
@@ -522,33 +522,33 @@ begin
           rwa nat.succ_le_iff at d_le_e,
         },
         rw sub_suc_suc f_lt_e,
-        rw list.repeat_succ_eq_singleton_append C,
-        rw ←list.append_assoc,
+        rw List.repeat_succ_eq_singleton_append C,
+        rw ←List.append_assoc,
         trim,
       },
       {
-        rw list.repeat_succ_eq_append_singleton C,
+        rw List.repeat_succ_eq_append_singleton C,
         trim,
-        rw list.append_assoc,
+        rw List.append_assoc,
         refl,
       },
     },
     have almost := skipCs (k * n) (k * n) (by refl),
-    rwa [nat.sub_self, list.repeat_zero, list.append_nil] at almost,
+    rwa [nat.sub_self, List.repeat_zero, List.append_nil] at almost,
   },
   convert parametrized m (by refl),
-  rw [nat.sub_self, list.repeat_zero, list.nil_append],
+  rw [nat.sub_self, List.repeat_zero, List.nil_append],
 end
 
 private lemma steps_XE_E (m n : ℕ) :
   grammar_derives gr_mul
-    (list.repeat a m ++ [M] ++ list.repeat B n ++ list.repeat C (m * n) ++ list.repeat X m ++ [E])
-    (list.repeat a m ++ [M] ++ list.repeat B n ++ list.repeat C (m * n) ++ [E]) :=
+    (List.repeat a m ++ [M] ++ List.repeat B n ++ List.repeat C (m * n) ++ List.repeat X m ++ [E])
+    (List.repeat a m ++ [M] ++ List.repeat B n ++ List.repeat C (m * n) ++ [E]) :=
 begin
   have backwards : ∀ q : ℕ, q ≤ m →
     grammar_derives gr_mul
-      (list.repeat a m ++ [M] ++ list.repeat B n ++ list.repeat C (m * n) ++ list.repeat X m ++ [E])
-      (list.repeat a m ++ [M] ++ list.repeat B n ++ list.repeat C (m * n) ++ list.repeat X (m - q) ++ [E]),
+      (List.repeat a m ++ [M] ++ List.repeat B n ++ List.repeat C (m * n) ++ List.repeat X m ++ [E])
+      (List.repeat a m ++ [M] ++ List.repeat B n ++ List.repeat C (m * n) ++ List.repeat X (m - q) ++ [E]),
   {
     intros q ass,
     induction q with k ih,
@@ -558,43 +558,43 @@ begin
     apply grammar_deri_of_deri_tran (ih (nat.le_of_succ_le ass)),
     use XE_E,
     split_ile,
-    use [list.repeat a m ++ [M] ++ list.repeat B n ++ list.repeat C (m * n) ++ list.repeat X (m - k.succ), []],
+    use [List.repeat a m ++ [M] ++ List.repeat B n ++ List.repeat C (m * n) ++ List.repeat X (m - k.succ), []],
     split,
     {
-      have detach_X : list.repeat X (m - k) = list.repeat X (m - k.succ) ++ [X],
+      have detach_X : List.repeat X (m - k) = List.repeat X (m - k.succ) ++ [X],
       {
         have k_lt_m : k < m,
         {
           rwa nat.succ_le_iff at ass,
         },
         rw sub_suc_suc k_lt_m,
-        apply list.repeat_succ_eq_append_singleton,
+        apply List.repeat_succ_eq_append_singleton,
       },
       rw detach_X,
       finish,
     },
     {
-      rw list.append_nil,
+      rw List.append_nil,
       refl,
     },
   },
   have almost := backwards m (by refl),
-  rwa [nat.sub_self, list.repeat_zero, list.append_nil] at almost,
+  rwa [nat.sub_self, List.repeat_zero, List.append_nil] at almost,
 end
 
 private lemma steps_MB_bM (m n : ℕ) :
   grammar_derives gr_mul
-    (list.repeat a m ++ [M] ++ list.repeat B n ++ list.repeat C (m * n) ++ [E])
-    (list.repeat a m ++ list.repeat b n ++ [M] ++ list.repeat C (m * n) ++ [E]) :=
+    (List.repeat a m ++ [M] ++ List.repeat B n ++ List.repeat C (m * n) ++ [E])
+    (List.repeat a m ++ List.repeat b n ++ [M] ++ List.repeat C (m * n) ++ [E]) :=
 begin
   apply grammar_deri_with_postfix,
   apply grammar_deri_with_postfix,
-  rw list.append_assoc,
-  rw list.append_assoc,
+  rw List.append_assoc,
+  rw List.append_assoc,
   apply grammar_deri_with_prefix,
 
   have bees : ∀ k : ℕ, k ≤ n →
-    grammar_derives gr_mul ([M] ++ list.repeat B n) (list.repeat b k ++ [M] ++ list.repeat B (n - k)),
+    grammar_derives gr_mul ([M] ++ List.repeat B n) (List.repeat b k ++ [M] ++ List.repeat B (n - k)),
   {
     intros k ass,
     induction k with q ih,
@@ -604,7 +604,7 @@ begin
     apply grammar_deri_of_deri_tran (ih (nat.le_of_succ_le ass)),
     use MB_bM,
     split_ile,
-    use [list.repeat b q, list.repeat B (n - q.succ)],
+    use [List.repeat b q, List.repeat B (n - q.succ)],
     split,
     {
       have q_lt_n : q < n,
@@ -612,37 +612,37 @@ begin
         rwa nat.succ_le_iff at ass,
       },
       rw sub_suc_suc q_lt_n,
-      rw list.repeat_succ_eq_singleton_append,
+      rw List.repeat_succ_eq_singleton_append,
       repeat {
-        rw list.append_assoc,
+        rw List.append_assoc,
       },
       trim,
     },
     {
-      rw list.repeat_succ_eq_append_singleton b,
+      rw List.repeat_succ_eq_append_singleton b,
       trim,
-      rw list.append_assoc,
+      rw List.append_assoc,
       refl,
     },
   },
   have almost := bees n (by refl),
-  rwa [nat.sub_self, list.repeat_zero, list.append_nil] at almost,
+  rwa [nat.sub_self, List.repeat_zero, List.append_nil] at almost,
 end
 
 private lemma steps_KC_cK (m n : ℕ) :
   grammar_derives gr_mul
-    (list.repeat a m ++ list.repeat b n ++ [K] ++ list.repeat C (m * n) ++ [E])
-    (list.repeat a m ++ list.repeat b n ++ list.repeat c (m * n) ++ [K] ++ [E]) :=
+    (List.repeat a m ++ List.repeat b n ++ [K] ++ List.repeat C (m * n) ++ [E])
+    (List.repeat a m ++ List.repeat b n ++ List.repeat c (m * n) ++ [K] ++ [E]) :=
 begin
   apply grammar_deri_with_postfix,
   repeat {
-    rw list.append_assoc,
+    rw List.append_assoc,
   },
   apply grammar_deri_with_prefix,
   apply grammar_deri_with_prefix,
 
   have terminating : ∀ p q : ℕ, p ≤ q →
-    grammar_derives gr_mul ([K] ++ list.repeat C q) (list.repeat c p ++ [K] ++ list.repeat C (q - p)),
+    grammar_derives gr_mul ([K] ++ List.repeat C q) (List.repeat c p ++ [K] ++ List.repeat C (q - p)),
   {
     intros p q ass,
     induction p with r ih,
@@ -653,7 +653,7 @@ begin
     clear ih,
     use KC_cK,
     split_ile,
-    use [list.repeat c r, list.repeat C (q - r.succ)],
+    use [List.repeat c r, List.repeat C (q - r.succ)],
     split,
     {
       have r_lt_q : r < q,
@@ -661,21 +661,21 @@ begin
         rwa nat.succ_le_iff at ass,
       },
       rw sub_suc_suc r_lt_q,
-      rw list.repeat_succ_eq_singleton_append,
+      rw List.repeat_succ_eq_singleton_append,
       repeat {
-        rw list.append_assoc,
+        rw List.append_assoc,
       },
       trim,
     },
     {
-      rw list.repeat_succ_eq_append_singleton c,
+      rw List.repeat_succ_eq_append_singleton c,
       trim,
-      rw list.append_assoc,
+      rw List.append_assoc,
       refl,
     },
   },
   have almost := terminating (m * n) (m * n) (by refl),
-  rwa [nat.sub_self, list.repeat_zero, list.append_nil] at almost,
+  rwa [nat.sub_self, List.repeat_zero, List.append_nil] at almost,
 end
 
 -- example 3 * 3 = 9 reproved using the new lemmata
@@ -700,29 +700,29 @@ begin
 end
 
 -- example 7 * 11 = 77
-example : grammar_generates gr_mul (list.repeat a_ 7 ++ list.repeat b_ 11 ++ list.repeat c_ 77) :=
+example : grammar_generates gr_mul (List.repeat a_ 7 ++ List.repeat b_ 11 ++ List.repeat c_ 77) :=
 begin
   grammar_step ``(S_LR) ``([]) ``([]),
   apply grammar_deri_of_deri_deri (steps_L_aLX 7),
   apply grammar_deri_of_deri_deri (steps_R_BR 7 11),
-  grammar_step ``(L_M) ``(list.repeat a 7) ``(list.repeat X 7 ++ list.repeat B 11 ++ [R]),
-  grammar_step ``(R_E) ``(list.repeat a 7 ++ [M] ++ list.repeat X 7 ++ list.repeat B 11) ``([]),
+  grammar_step ``(L_M) ``(List.repeat a 7) ``(List.repeat X 7 ++ List.repeat B 11 ++ [R]),
+  grammar_step ``(R_E) ``(List.repeat a 7 ++ [M] ++ List.repeat X 7 ++ List.repeat B 11) ``([]),
   apply grammar_deri_of_deri_deri (steps_quadratic 7 11),
   apply grammar_deri_of_deri_deri (steps_XE_E 7 11),
   apply grammar_deri_of_deri_deri (steps_MB_bM 7 11),
-  grammar_step ``(M_K) ``((list.repeat a 7 ++ list.repeat b 11)) ``(list.repeat C 77 ++ [E]),
+  grammar_step ``(M_K) ``((List.repeat a 7 ++ List.repeat b 11)) ``(List.repeat C 77 ++ [E]),
   apply grammar_deri_of_deri_deri (steps_KC_cK 7 11),
   apply grammar_deri_of_tran,
   use KE_nil,
   split_ile,
-  use [(list.repeat a 7 ++ list.repeat b 11 ++ list.repeat c 77), []],
+  use [(List.repeat a 7 ++ List.repeat b 11 ++ List.repeat c 77), []],
   split;
   refl,
 end
 
 
 private theorem multiplication_complete (m n : ℕ) :
-  grammar_generates gr_mul (list.repeat a_ m ++ list.repeat b_ n ++ list.repeat c_ (m * n)) :=
+  grammar_generates gr_mul (List.repeat a_ m ++ List.repeat b_ n ++ List.repeat c_ (m * n)) :=
 begin
   grammar_step ``(S_LR) ``([]) ``([]),
   apply grammar_deri_of_deri_deri (steps_L_aLX m),
@@ -731,7 +731,7 @@ begin
   {
     use L_M,
     split_ile,
-    use [list.repeat a m, list.repeat X m ++ list.repeat B n ++ [R]],
+    use [List.repeat a m, List.repeat X m ++ List.repeat B n ++ [R]],
     split;
     finish,
   },
@@ -739,13 +739,13 @@ begin
   {
     use R_E,
     split_ile,
-    use [list.repeat a m ++ [M] ++ list.repeat X m ++ list.repeat B n, []],
+    use [List.repeat a m ++ [M] ++ List.repeat X m ++ List.repeat B n, []],
     split;
     finish,
   },
-  rw ←list.singleton_append,
+  rw ←List.singleton_append,
   repeat {
-    rw ←list.append_assoc,
+    rw ←List.append_assoc,
   },
   apply grammar_deri_of_deri_deri (steps_quadratic m n),
   apply grammar_deri_of_deri_deri (steps_XE_E m n),
@@ -754,33 +754,33 @@ begin
   {
     use M_K,
     split_ile,
-    use [list.repeat a m ++ list.repeat b n, list.repeat C (m * n) ++ [E]],
+    use [List.repeat a m ++ List.repeat b n, List.repeat C (m * n) ++ [E]],
     split;
     finish,
   },
   repeat {
-    rw ←list.append_assoc,
+    rw ←List.append_assoc,
   },
   apply grammar_deri_of_deri_deri (steps_KC_cK m n),
   apply grammar_deri_of_tran,
   use KE_nil,
   split_ile,
   unfold KE_nil,
-  use [(list.repeat a m ++ list.repeat b n ++ list.repeat c (m * n)), []],
+  use [(List.repeat a m ++ List.repeat b n ++ List.repeat c (m * n)), []],
   split,
   {
     finish,
   },
-  rw list.map_append_append,
+  rw List.map_append_append,
   repeat {
-    rw list.map_repeat,
+    rw List.map_repeat,
   },
   repeat {
-    rw list.append_assoc,
+    rw List.append_assoc,
   },
   congr,
-  rw list.append_nil,
-  rw list.append_nil,
+  rw List.append_nil,
+  rw List.append_nil,
   refl,
 end
 
@@ -791,7 +791,7 @@ begin
 end
 
 -- example 1001 * 587 = 587587
-example : grammar_generates gr_mul (list.repeat a_ 1001 ++ list.repeat b_ 587 ++ list.repeat c_ 587587) :=
+example : grammar_generates gr_mul (List.repeat a_ 1001 ++ List.repeat b_ 587 ++ List.repeat c_ 587587) :=
 begin
   have pe : 587587 = 1001 * 587,
   {
