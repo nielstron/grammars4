@@ -1,7 +1,9 @@
 -- Written by Patrick Johnson and released into the public domain at:
 -- https://github.com/user7230724/lean-projects/blob/master/src/list_take_join/main.lean
 
-import tactic
+import Mathlib.Tactic
+
+open Lean Elab Tactic
 
 namespace list
 
