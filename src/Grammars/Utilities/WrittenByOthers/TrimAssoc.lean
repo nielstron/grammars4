@@ -1,6 +1,6 @@
 -- Written by Damiano Testa. BSD license applies.
 
-import Mathlib/Tactic
+import Mathlib.Tactic
 
 private def in_match {α : Type*} [decidable_eq α] : List α → List α → List α
 | [] _ := []

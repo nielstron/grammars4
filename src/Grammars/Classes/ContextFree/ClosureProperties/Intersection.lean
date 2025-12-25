@@ -50,7 +50,7 @@ private lemma false_of_uvvxyyz
 begin
   have extra_not_a : _b ∈ (v ++ y) ∨ _c ∈ (v ++ y),
   {
-    let first_letter := (v ++ y).nth_le 0 nonempty,
+    let first_letter := (v ++ y).nthLe 0 nonempty,
 
     have first_letter_b_or_c : first_letter = _b ∨ first_letter = _c,
     {
@@ -60,25 +60,25 @@ begin
         have yes_a : _a ∈ v ++ y,
         {
           rw ←contra,
-          apply List.nth_le_mem,
+          apply List.nthLe_mem,
         },
         exact no_a yes_a,
       },
       by_contradiction contr,
       push_neg at contr,
       cases contr with first_letter_not_b first_letter_not_c,
-      exact elimin ((v ++ y).nth_le 0 nonempty) first_letter_not_a first_letter_not_b first_letter_not_c,
+      exact elimin ((v ++ y).nthLe 0 nonempty) first_letter_not_a first_letter_not_b first_letter_not_c,
     },
     cases first_letter_b_or_c with first_letter_b first_letter_c,
     {
       left,
       rw ←first_letter_b,
-      apply List.nth_le_mem,
+      apply List.nthLe_mem,
     },
     {
       right,
       rw ←first_letter_c,
-      apply List.nth_le_mem,
+      apply List.nthLe_mem,
     },
   },
   have hab := counts_ab (u ++ v ^ 2 ++ x ++ y ^ 2 ++ z) pumping,
@@ -199,7 +199,7 @@ begin
     rw List.length_repeat,
     calc (List.repeat a_ (n + 1) ++ List.repeat b_ (n + 1)).length + (n + 1)
         ≥ n + 1 : le_add_self
-    ... ≥ n     : nat.le_succ n,
+    ... ≥ n     : Nat.le_succ n,
   }),
   rcases pump with ⟨u, v, x, y, z, concatenating, nonempty, vxy_short, pumping⟩,
   specialize pumping 2,
@@ -265,11 +265,11 @@ begin
         repeat {
           rw List.append_assoc at concatenating,
         },
-        rcases List.nth_le_of_mem relaxed_a with ⟨nₐ, hnₐ, h_nthₐ⟩,
+        rcases List.nthLe_of_mem relaxed_a with ⟨nₐ, hnₐ, h_nthₐ⟩,
         obtain ⟨h_nth_a_pr, h_nth_a⟩ :
-          ∃ proofoo, (v ++ x ++ y ++ z).nth_le ((nₐ + u.length) - u.length) proofoo = a_,
+          ∃ proofoo, (v ++ x ++ y ++ z).nthLe ((nₐ + u.length) - u.length) proofoo = a_,
         {
-          rw nat.add_sub_cancel nₐ u.length,
+          rw Nat.add_sub_cancel nₐ u.length,
           use hnₐ,
           exact h_nthₐ,
         },
@@ -278,11 +278,11 @@ begin
           rw List.length_append,
           linarith,
         },
-        rw ←List.nth_le_append_right le_add_self lt_len at h_nth_a,
+        rw ←List.nthLe_append_right le_add_self lt_len at h_nth_a,
 
         have orig_nth_le_eq_a :
           ∃ proofoo,
-            (List.repeat a_ (n + 1) ++ (List.repeat b_ (n + 1) ++ List.repeat c_ (n + 1))).nth_le
+            (List.repeat a_ (n + 1) ++ (List.repeat b_ (n + 1) ++ List.repeat c_ (n + 1))).nthLe
               (nₐ + u.length) proofoo =
             a_,
         {
@@ -297,7 +297,7 @@ begin
         },
         cases orig_nth_le_eq_a with rrr_nth_le_eq_a_pr rrr_nth_le_eq_a,
 
-        rw @List.nth_le_append_right (Fin 3)
+        rw @List.nthLe_append_right (Fin 3)
           (List.repeat a_ (n + 1))
           (List.repeat b_ (n + 1) ++ List.repeat c_ (n + 1))
           (nₐ + u.length)
@@ -317,7 +317,7 @@ begin
         have a_in_rb_rc : a_ ∈ (List.repeat b_ (n + 1) ++ List.repeat c_ (n + 1)),
         {
           rw ←rrr_nth_le_eq_a,
-          apply List.nth_le_mem,
+          apply List.nthLe_mem,
         },
         rw List.mem_append at a_in_rb_rc,
         cases a_in_rb_rc,
@@ -360,13 +360,13 @@ begin
           repeat {
             rw List.append_assoc at concatenating,
           },
-          rcases List.nth_le_of_mem relaxed_c with ⟨m, hm, mth_is_c⟩,
+          rcases List.nthLe_of_mem relaxed_c with ⟨m, hm, mth_is_c⟩,
 
           have m_big : m ≥ 2 * n + 2,
           {
             have orig_mth_is_c :
               ∃ proofoo,
-                ((List.repeat a_ (n + 1) ++ List.repeat b_ (n + 1)) ++ List.repeat c_ (n + 1)).nth_le
+                ((List.repeat a_ (n + 1) ++ List.repeat b_ (n + 1)) ++ List.repeat c_ (n + 1)).nthLe
                   m proofoo =
                 c_,
             {
@@ -379,7 +379,7 @@ begin
                 rw List.length_append,
                 linarith,
               },
-              rw ←@List.nth_le_append _ _ z m m_small at mth_is_c,
+              rw ←@List.nthLe_append _ _ z m m_small at mth_is_c,
               use m_small,
               exact mth_is_c,
             },
@@ -396,12 +396,12 @@ begin
               exact mle,
             },
 
-            rw List.nth_le_append _ m_lt_len at mth_is_c,
+            rw List.nthLe_append _ m_lt_len at mth_is_c,
             {
               have c_in_ra_rb : c_ ∈ (List.repeat a_ (n + 1) ++ List.repeat b_ (n + 1)),
               {
                 rw ←mth_is_c,
-                apply List.nth_le_mem,
+                apply List.nthLe_mem,
               },
               rw List.mem_append at c_in_ra_rb,
               cases c_in_ra_rb with c_in_ra c_in_rb,
@@ -662,7 +662,7 @@ begin
           rw List.append_assoc,
           rw List.nth_append_right (le_of_eq rfl),
           {
-            rw nat.sub_self,
+            rw Nat.sub_self,
             refl,
           },
         },
@@ -681,9 +681,9 @@ begin
               exact h,
             },
             rw List.nth_append plength_small,
-            rw List.nth_le_nth plength_small,
+            rw List.nthLe_nth plength_small,
             apply congr_arg,
-            exact List.nth_le_repeat a plength_small,
+            exact List.nthLe_repeat a plength_small,
           },
           rw plengthth_is_a at kth_eq,
           have S_neq_a : S ≠ a,
@@ -702,7 +702,7 @@ begin
             {
               rw List.length_append,
               rw List.length_repeat,
-              exact nat.succ_le_iff.mpr h,
+              exact Nat.succ_le_iff.mpr h,
             },
             rw List.nth_append_right plength_big,
             have len_within_list : p.length - (List.repeat a k ++ [S]).length < (List.repeat b k).length,
@@ -711,18 +711,18 @@ begin
               simp only [List.length_repeat, List.length_append, List.length_singleton] at *,
               have ihlen' : p.length + 1 ≤ k + 1 + k,
               {
-                exact nat.le.intro ihlen,
+                exact Nat.le.intro ihlen,
               },
               have ihlen'' : p.length < k + 1 + k,
               {
-                exact nat.succ_le_iff.mp ihlen',
+                exact Nat.succ_le_iff.mp ihlen',
               },
               rw ←tsub_lt_iff_left plength_big at ihlen'',
               exact ihlen'',
             },
-            rw List.nth_le_nth len_within_list,
+            rw List.nthLe_nth len_within_list,
             apply congr_arg,
-            exact List.nth_le_repeat b len_within_list,
+            exact List.nthLe_repeat b len_within_list,
           },
           rw plengthth_is_b at kth_eq,
           have S_neq_b : S ≠ b,
@@ -1083,8 +1083,8 @@ begin
     rw List.length_append,
     rw List.length_repeat,
     rw add_assoc,
-    apply nat.lt_add_right,
-    exact nat.sub_lt n₁pos (nat.succ_pos 0),
+    apply Nat.lt_add_right,
+    exact Nat.sub_lt n₁pos (Nat.succ_pos 0),
   },
   have n₁_le_len₂ : (n₁ - 1) < (List.repeat a_ n₂ ++ (List.repeat b_ m₂ ++ List.repeat c_ m₂)).length,
   {
@@ -1095,36 +1095,36 @@ begin
     exact n₁_le_len₁,
   },
   have n₁th :
-    (List.repeat a_ n₁ ++ (List.repeat b_ n₁ ++ List.repeat c_ m₁)).nth_le (n₁ - 1) n₁_le_len₁ =
-    (List.repeat a_ n₂ ++ (List.repeat b_ m₂ ++ List.repeat c_ m₂)).nth_le (n₁ - 1) n₁_le_len₂,
+    (List.repeat a_ n₁ ++ (List.repeat b_ n₁ ++ List.repeat c_ m₁)).nthLe (n₁ - 1) n₁_le_len₁ =
+    (List.repeat a_ n₂ ++ (List.repeat b_ m₂ ++ List.repeat c_ m₂)).nthLe (n₁ - 1) n₁_le_len₂,
   {
     rw List.append_assoc at equ,
     rw List.append_assoc at equ,
-    exact List.nth_le_of_eq equ n₁_le_len₁,
+    exact List.nthLe_of_eq equ n₁_le_len₁,
   },
-  have n₁th₁ : (List.repeat a_ n₁ ++ (List.repeat b_ n₁ ++ List.repeat c_ m₁)).nth_le (n₁ - 1) n₁_le_len₁ = a_,
+  have n₁th₁ : (List.repeat a_ n₁ ++ (List.repeat b_ n₁ ++ List.repeat c_ m₁)).nthLe (n₁ - 1) n₁_le_len₁ = a_,
   {
     have foo : (n₁ - 1) < (List.repeat a_ n₁).length,
     {
       rw List.length_repeat,
-      exact nat.sub_lt n₁pos (nat.succ_pos 0),
+      exact Nat.sub_lt n₁pos (Nat.succ_pos 0),
     },
-    rw List.nth_le_append n₁_le_len₁ foo,
-    exact List.nth_le_repeat a_ foo,
+    rw List.nthLe_append n₁_le_len₁ foo,
+    exact List.nthLe_repeat a_ foo,
   },
-  have n₁th₂ : (List.repeat a_ n₂ ++ (List.repeat b_ m₂ ++ List.repeat c_ m₂)).nth_le (n₁ - 1) n₁_le_len₂ ≠ a_,
+  have n₁th₂ : (List.repeat a_ n₂ ++ (List.repeat b_ m₂ ++ List.repeat c_ m₂)).nthLe (n₁ - 1) n₁_le_len₂ ≠ a_,
   {
     have foo : (List.repeat a_ n₂).length ≤ (n₁ - 1),
     {
       rw List.length_repeat,
-      exact nat.le_pred_of_lt contr,
+      exact Nat.le_pred_of_lt contr,
     },
-    rw List.nth_le_append_right foo n₁_le_len₂,
+    rw List.nthLe_append_right foo n₁_le_len₂,
     by_contradiction,
     have a_in_bc : a_ ∈ (List.repeat b_ m₂ ++ List.repeat c_ m₂),
     {
       rw ←h,
-      apply List.nth_le_mem,
+      apply List.nthLe_mem,
     },
     rw List.mem_append at a_in_bc,
     cases a_in_bc,
@@ -1161,8 +1161,8 @@ begin
     rw List.length_append,
     rw List.length_repeat,
     rw add_assoc,
-    apply nat.lt_add_right,
-    exact nat.sub_lt n₂pos (nat.succ_pos 0),
+    apply Nat.lt_add_right,
+    exact Nat.sub_lt n₂pos (Nat.succ_pos 0),
   },
   have n₂_le_len₁ : (n₂ - 1) < (List.repeat a_ n₁ ++ (List.repeat b_ n₁ ++ List.repeat c_ m₁)).length,
   {
@@ -1173,36 +1173,36 @@ begin
     exact n₂_le_len₂,
   },
   have n₂th :
-    (List.repeat a_ n₁ ++ (List.repeat b_ n₁ ++ List.repeat c_ m₁)).nth_le (n₂ - 1) n₂_le_len₁ =
-    (List.repeat a_ n₂ ++ (List.repeat b_ m₂ ++ List.repeat c_ m₂)).nth_le (n₂ - 1) n₂_le_len₂,
+    (List.repeat a_ n₁ ++ (List.repeat b_ n₁ ++ List.repeat c_ m₁)).nthLe (n₂ - 1) n₂_le_len₁ =
+    (List.repeat a_ n₂ ++ (List.repeat b_ m₂ ++ List.repeat c_ m₂)).nthLe (n₂ - 1) n₂_le_len₂,
   {
     rw List.append_assoc at equ,
     rw List.append_assoc at equ,
-    exact List.nth_le_of_eq equ n₂_le_len₁,
+    exact List.nthLe_of_eq equ n₂_le_len₁,
   },
-  have n₂th₂ : (List.repeat a_ n₂ ++ (List.repeat b_ m₂ ++ List.repeat c_ m₂)).nth_le (n₂ - 1) n₂_le_len₂ = a_,
+  have n₂th₂ : (List.repeat a_ n₂ ++ (List.repeat b_ m₂ ++ List.repeat c_ m₂)).nthLe (n₂ - 1) n₂_le_len₂ = a_,
   {
     have foo : (n₂ - 1) < (List.repeat a_ n₂).length,
     {
       rw List.length_repeat,
-      exact nat.sub_lt n₂pos (nat.succ_pos 0),
+      exact Nat.sub_lt n₂pos (Nat.succ_pos 0),
     },
-    rw List.nth_le_append n₂_le_len₂ foo,
-    exact List.nth_le_repeat a_ foo,
+    rw List.nthLe_append n₂_le_len₂ foo,
+    exact List.nthLe_repeat a_ foo,
   },
-  have n₂th₁ : (List.repeat a_ n₁ ++ (List.repeat b_ n₁ ++ List.repeat c_ m₁)).nth_le (n₂ - 1) n₂_le_len₁ ≠ a_,
+  have n₂th₁ : (List.repeat a_ n₁ ++ (List.repeat b_ n₁ ++ List.repeat c_ m₁)).nthLe (n₂ - 1) n₂_le_len₁ ≠ a_,
   {
     have foo : (List.repeat a_ n₁).length ≤ (n₂ - 1),
     {
       rw List.length_repeat,
-      exact nat.le_pred_of_lt contr,
+      exact Nat.le_pred_of_lt contr,
     },
-    rw List.nth_le_append_right foo n₂_le_len₁,
+    rw List.nthLe_append_right foo n₂_le_len₁,
     by_contradiction,
     have a_in_bc : a_ ∈ (List.repeat b_ n₁ ++ List.repeat c_ m₁),
     {
       rw ←h,
-      apply List.nth_le_mem,
+      apply List.nthLe_mem,
     },
     rw List.mem_append at a_in_bc,
     cases a_in_bc,
@@ -1231,7 +1231,7 @@ begin
     have hn₂ : n₂ = 0,
     {
       by_contradiction,
-      have pos := nat.pos_of_ne_zero h,
+      have pos := Nat.pos_of_ne_zero h,
       clear h,
       have a_in_equ := congr_arg (λ lis, a_ ∈ lis) equ,
       clear equ,
@@ -1248,7 +1248,7 @@ begin
     have hm₂ : m₂ = 0,
     {
       by_contradiction,
-      have pos := nat.pos_of_ne_zero h,
+      have pos := Nat.pos_of_ne_zero h,
       clear h,
       have b_in_equ := congr_arg (λ lis, b_ ∈ lis) equ,
       clear equ,
@@ -1275,7 +1275,7 @@ begin
     have n₂zero : n₂ = 0,
     {
       push_neg at h,
-      rw nat.le_zero_iff at h,
+      rw Nat.le_zero_iff at h,
       exact h,
     },
     clear h,
@@ -1315,7 +1315,7 @@ begin
     have m₂zero : m₂ = 0,
     {
       push_neg at h,
-      rw nat.le_zero_iff at h,
+      rw Nat.le_zero_iff at h,
       exact h,
     },
     clear h,
@@ -1333,7 +1333,7 @@ begin
     have m₁zero : m₁ = 0,
     {
       push_neg at h,
-      rw nat.le_zero_iff at h,
+      rw Nat.le_zero_iff at h,
       exact h,
     },
     clear h,

@@ -532,10 +532,10 @@ begin
   {
     by_contradiction,
     rw ←List.length_eq_zero at h,
-    exact nat.not_succ_le_self 1 (by calc
+    exact Nat.not_succ_le_self 1 (by calc
       1 = (u.length + 1) + v.length : len
     ... = u.length + (1 + v.length) : add_assoc (List.length u) 1 (List.length v)
-    ... ≥ 1 + (1 + v.length)        : add_le_add (nat.one_le_iff_ne_zero.mpr h) (le_of_eq rfl)
+    ... ≥ 1 + (1 + v.length)        : add_le_add (Nat.one_le_iff_ne_zero.mpr h) (le_of_eq rfl)
     ... = (1 + 1) + v.length        : eq.symm (add_assoc 1 1 (List.length v))
     ... ≥ 1 + 1 + 0                 : le_self_add
     ... = 2                         : rfl),
@@ -543,9 +543,9 @@ begin
   {
     by_contradiction,
     rw ←List.length_eq_zero at h,
-    exact nat.not_succ_le_self 1 (by calc
+    exact Nat.not_succ_le_self 1 (by calc
       1 = (u.length + 1) + v.length : len
-    ... ≥ (u.length + 1) + 1        : add_le_add (le_of_eq rfl) (nat.one_le_iff_ne_zero.mpr h)
+    ... ≥ (u.length + 1) + 1        : add_le_add (le_of_eq rfl) (Nat.one_le_iff_ne_zero.mpr h)
     ... = u.length + (1 + 1)        : add_assoc (List.length u) 1 1
     ... ≥ 0 + (1 + 1)               : le_add_self
     ... = (0 + 1) + 1               : eq.symm (add_assoc 0 1 1)

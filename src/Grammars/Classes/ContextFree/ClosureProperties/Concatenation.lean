@@ -264,28 +264,28 @@ begin
       rw List.length_map,
       exact n_lt_wl,
     },
-    rw List.nth_le_nth triv at nth_equ,
-    rw List.nth_le_nth trin at nth_equ,
+    rw List.nthLe_nth triv at nth_equ,
+    rw List.nthLe_nth trin at nth_equ,
     rw Option.some_inj at nth_equ,
-    rw List.nth_le_map at nth_equ, swap,
+    rw List.nthLe_map at nth_equ, swap,
     {
       exact h,
     },
-    rw List.nth_le_map at nth_equ, swap,
+    rw List.nthLe_map at nth_equ, swap,
     {
       exact n_lt_wl,
     },
-    rw List.nth_le_nth, swap,
+    rw List.nthLe_nth, swap,
     {
       exact h,
     },
-    rw List.nth_le_nth, swap,
+    rw List.nthLe_nth, swap,
     {
       exact trig,
     },
     apply congr_arg,
     norm_num,
-    cases u.nth_le n h,
+    cases u.nthLe n h,
     {
       unfold sTN_of_sTN₁ at nth_equ,
       clear_except nth_equ,
@@ -353,10 +353,10 @@ begin
       rw List.length_map,
       exact hunltw,
     },
-    rw List.nth_le_nth hlen₁ at nth_equ,
-    rw List.nth_le_nth hlen₂ at nth_equ,
-    rw List.nth_le_nth h,
-    rw List.nth_le_nth hlen₂',
+    rw List.nthLe_nth hlen₁ at nth_equ,
+    rw List.nthLe_nth hlen₂ at nth_equ,
+    rw List.nthLe_nth h,
+    rw List.nthLe_nth hlen₂',
 
     rw Option.some_inj at *,
     have hlen₀ : (List.map sTN_of_sTN₁ u).length ≤ u.length + n,
@@ -370,22 +370,22 @@ begin
       exact h,
     },
     have nth_equ_simplified :
-      (List.map sTN_of_sTN₂ v).nth_le n hlen =
-      (List.map symbol.terminal w).nth_le (u.length + n) hlen₂,
+      (List.map sTN_of_sTN₂ v).nthLe n hlen =
+      (List.map symbol.terminal w).nthLe (u.length + n) hlen₂,
     {
-      rw List.nth_le_append_right hlen₀ at nth_equ,
+      rw List.nthLe_append_right hlen₀ at nth_equ,
       convert nth_equ,
       rw List.length_map,
       symmetry,
       apply add_tsub_cancel_left,
     },
-    rw List.nth_le_map at nth_equ_simplified,
+    rw List.nthLe_map at nth_equ_simplified,
 
-    cases v.nth_le n h with x,
+    cases v.nthLe n h with x,
     {
       unfold sTN_of_sTN₂ at nth_equ_simplified,
-      rw List.nth_le_map _ _ hunltw at nth_equ_simplified,
-      rw List.nth_le_map _ _ hunltw,
+      rw List.nthLe_map _ _ hunltw at nth_equ_simplified,
+      rw List.nthLe_map _ _ hunltw,
       injection nth_equ_simplified with hx,
       apply congr_arg,
       exact hx,
@@ -690,9 +690,9 @@ begin
           push_neg,
           unfold lsTN_of_lsTN₁,
           intros n hn,
-          rw List.nth_le_map,
+          rw List.nthLe_map,
           {
-            cases u.nth_le n _ with t s,
+            cases u.nthLe n _ with t s,
             {
               apply symbol.no_confusion,
             },
@@ -713,9 +713,9 @@ begin
           push_neg,
           unfold lsTN_of_lsTN₂,
           intros n hn,
-          rw List.nth_le_map,
+          rw List.nthLe_map,
           {
-            cases v.nth_le n _ with t s,
+            cases v.nthLe n _ with t s,
             {
               apply symbol.no_confusion,
             },
@@ -784,7 +784,7 @@ begin
             {
               refl,
             },
-            rw nat.sub_self,
+            rw Nat.sub_self,
             refl,
           },
           rw clength at lcth,
@@ -859,12 +859,12 @@ begin
               {
                 symmetry,
                 clear_except h_len,
-                apply nat.add_sub_of_le,
+                apply Nat.add_sub_of_le,
                 rw List.length_append,
                 rw List.length_singleton,
                 unfold lsTN_of_lsTN₁ at h_len,
                 rw List.length_map at h_len,
-                rw nat.succ_le_iff,
+                rw Nat.succ_le_iff,
                 exact h_len,
               },
               convert_to
@@ -972,8 +972,8 @@ begin
             (c.length + 1) + ((@lsTN_of_lsTN₁ T g₁ g₂ u).length - (c.length + 1)),
           {
             symmetry,
-            apply nat.add_sub_of_le,
-            exact nat.succ_le_of_lt h_len,
+            apply Nat.add_sub_of_le,
+            exact Nat.succ_le_of_lt h_len,
           },
           rw for_the_decomposition at taken_d_from_dropped_u,
           rw List.drop_take at taken_d_from_dropped_u,
@@ -1058,7 +1058,7 @@ begin
               ((@lsTN_of_lsTN₁ T g₁ g₂ u').length - (c ++ (rule_of_rule₁ r₁).snd).length),
           {
             symmetry,
-            apply nat.add_sub_of_le,
+            apply Nat.add_sub_of_le,
             unfold lsTN_of_lsTN₁,
             rw List.length_map,
             rw len_u',
@@ -1079,7 +1079,7 @@ begin
             List.length_map,
             len_u',
             List.length_take,
-            nat.add_sub_cancel_left,
+            Nat.add_sub_cancel_left,
             trivi_min,
             lsTN_of_lsTN₁,
             List.length_map
@@ -1096,7 +1096,7 @@ begin
           {
             rw List.length_append,
             rw List.length_singleton,
-            apply nat.succ_le_of_lt,
+            apply Nat.succ_le_of_lt,
             exact h_len,
           },
           have intermediate :
@@ -1115,7 +1115,7 @@ begin
               {
                 refl,
               },
-              apply nat.add_sub_of_le,
+              apply Nat.add_sub_of_le,
               exact h_len_,
             },
             rw List.drop_append,
@@ -1190,7 +1190,7 @@ begin
               rw List.length_reverse,
             },
             rw List.length_reverse,
-            rw nat.sub_self,
+            rw Nat.sub_self,
             refl,
           },
           rw dlengthth at ldth,
@@ -1217,10 +1217,10 @@ begin
           calc c.length + 1 + d.length
               = (@lsTN_of_lsTN₁ T g₁ g₂ u).length + (@lsTN_of_lsTN₂ T g₁ g₂ v).length :   total_length.symm
           ... > (@lsTN_of_lsTN₁ T g₁ g₂ u).length + d.length :   add_lt_add_left hlen_vd _
-          ... ≥ c.length + d.length + 1 :   by { apply nat.succ_le_of_lt, apply add_lt_add_right too_long, }
-          ... = c.length + 1 + d.length :   nat.add_right_comm _ _ _,
+          ... ≥ c.length + d.length + 1 :   by { apply Nat.succ_le_of_lt, apply add_lt_add_right too_long, }
+          ... = c.length + 1 + d.length :   Nat.add_right_comm _ _ _,
         },
-        exact nat.lt_irrefl _ imposs_gt_self,
+        exact Nat.lt_irrefl _ imposs_gt_self,
       },
       have hlen_uc_orig : u.length ≤ c.length,
       {
@@ -1329,8 +1329,8 @@ begin
           {
             have aux_plus_minus : (lsTN_of_lsTN₁ u).length + (c.length - (lsTN_of_lsTN₁ u).length) = c.length,
             {
-              rw ←nat.add_sub_assoc hlen_uc,
-              rw nat.add_sub_cancel_left,
+              rw ←Nat.add_sub_assoc hlen_uc,
+              rw Nat.add_sub_cancel_left,
             },
             have taken_c_from_v := congr_arg (List.take (c.length - (@lsTN_of_lsTN₁ T g₁ g₂ u).length)) part_for_v,
             rw ←List.drop_take at taken_c_from_v,
@@ -1364,14 +1364,14 @@ begin
                 (lsTN_of_lsTN₂ v).length - d.length + (lsTN_of_lsTN₁ u).length =
                 (lsTN_of_lsTN₁ u).length + (lsTN_of_lsTN₂ v).length - d.length,
               {
-                rw nat.add_sub_assoc,
-                apply nat.add_comm,
+                rw Nat.add_sub_assoc,
+                apply Nat.add_comm,
                 apply le_of_lt,
                 exact hlen_vd,
               },
               rw reorder_sum,
               rw total_length,
-              apply nat.add_sub_cancel,
+              apply Nat.add_sub_cancel,
             },
             rw dropped_exactly_length at taken_d_from_v,
             rw List.drop_left at taken_d_from_v,
@@ -1422,7 +1422,7 @@ begin
           rw List.length_append at hwlen,
           rw List.length_map at hwlen,
           rw List.length_map at hwlen,
-          exact nat.le.intro hwlen,
+          exact Nat.le.intro hwlen,
         }) (congr_arg (List.take u.length) hw),
     },
     cases u_from_terminals with uₜ hut,

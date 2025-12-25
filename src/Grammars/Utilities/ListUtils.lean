@@ -1,23 +1,18 @@
-import Mathlib/Tactic
-import Grammars.Utilities.WrittenByOthers.ListTakeJoin
+import Mathlib.Tactic
 
-section tactic_in_list_explicit
+open Lean Elab Tactic
 
-meta def in_list_explicit : tactic unit := `[
-  tactic.repeat `[
-    tactic.try `[apply List.mem_cons_self],
-    tactic.try `[apply List.mem_cons_of_mem]
-  ]
-]
+macro "in_list_explicit" : tactic =>
+  `(tactic|
+    repeat
+      first
+        | (try (apply List.mem_cons_self))
+        | (try (apply List.mem_cons_of_mem)))
 
-meta def split_ile : tactic unit := `[
-  split,
-  {
-    in_list_explicit,
-  }
-]
-
-end tactic_in_list_explicit
+macro "split_ile" : tactic =>
+  `(tactic|
+    refine And.intro ?_ ?_;
+    · in_list_explicit)
 
 namespace List
 
@@ -111,13 +106,13 @@ begin
 end
 
 private lemma cons_drop_succ {m : ℕ} (mlt : m < x.length) :
-  drop m x = x.nth_le m mlt :: drop m.succ x :=
+  drop m x = x.nthLe m mlt :: drop m.succ x :=
 begin
   induction x with d l ih generalizing m,
   {
     exfalso,
     rw length at mlt,
-    exact nat.not_lt_zero m mlt,
+    exact Nat.not_lt_zero m mlt,
   },
   cases m,
   {
@@ -128,8 +123,8 @@ begin
 end
 
 lemma drop_join_of_lt {L : List (List α)} {n : ℕ} (notall : n < L.join.length) :
-  ∃ m k : ℕ, ∃ mlt : m < L.length, k < (L.nth_le m mlt).length ∧
-    L.join.drop n = (L.nth_le m mlt).drop k ++ (L.drop m.succ).join :=
+  ∃ m k : ℕ, ∃ mlt : m < L.length, k < (L.nthLe m mlt).length ∧
+    L.join.drop n = (L.nthLe m mlt).drop k ++ (L.drop m.succ).join :=
 begin
   obtain ⟨m, k, mlt, klt, left_half⟩ := take_join_of_lt notall,
   use    [m, k, mlt, klt],
@@ -140,7 +135,7 @@ begin
   have important := eq.trans whole L_two_parts.symm,
   rw append_assoc at important,
   have right_side := append_left_cancel important,
-  have auxi : (drop m L).join = (L.nth_le m mlt :: drop m.succ L).join,
+  have auxi : (drop m L).join = (L.nthLe m mlt :: drop m.succ L).join,
   {
     apply congr_arg,
     apply cons_drop_succ,
@@ -148,8 +143,8 @@ begin
   rw join at auxi,
   rw auxi at right_side,
   have near_result :
-    take k (L.nth_le m mlt) ++ drop n L.join =
-    take k (L.nth_le m mlt) ++ drop k (L.nth_le m mlt) ++ (drop m.succ L).join,
+    take k (L.nthLe m mlt) ++ drop n L.join =
+    take k (L.nthLe m mlt) ++ drop k (L.nthLe m mlt) ++ (drop m.succ L).join,
   {
     convert right_side,
     rw List.take_append_drop,
@@ -202,7 +197,7 @@ begin
     index_of_cons_ne _ (ne_of_not_mem_cons not_on_left),
     List.length,
     ih (not_mem_of_not_mem_cons not_on_left),
-    nat.succ_add
+    Nat.succ_add
   ],
 end
 
@@ -245,7 +240,7 @@ begin
   },
   rw [List.repeat_succ, List.map_cons, List.sum_cons, ih],
   rw if_pos rfl,
-  apply nat.one_add,
+  apply Nat.one_add,
 end
 
 lemma count_in_repeat_neq {a b : α} (hyp : a ≠ b) (n : ℕ) :
@@ -286,7 +281,7 @@ begin
   },
   by_contradiction contr,
   rw not_lt at contr,
-  rw nat.le_zero_iff at contr,
+  rw Nat.le_zero_iff at contr,
   rw List.mem_cons_eq at hyp,
   unfold count_in at contr,
   unfold List.map at contr,
@@ -302,7 +297,7 @@ begin
     exact contr.right,
   },
   rw zero_in_tail at ih,
-  exact nat.lt_irrefl 0 ih,
+  exact Nat.lt_irrefl 0 ih,
 end
 
 lemma count_in_zero_of_notin {a : α} (hyp : a ∉ x) :
@@ -316,7 +311,7 @@ begin
   rw [List.map_cons, List.sum_cons, add_eq_zero_iff, ite_eq_right_iff],
   split,
   {
-    simp only [nat.one_ne_zero],
+    simp only [Nat.one_ne_zero],
     exact (List.ne_of_not_mem_cons hyp).symm,
   },
   {

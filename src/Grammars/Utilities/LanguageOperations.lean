@@ -1,4 +1,4 @@
-import Mathlib/Computability/Language
+import Mathlib.Computability.Language
 
 open scoped Classical
 

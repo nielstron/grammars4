@@ -97,10 +97,10 @@ begin
     {
       have is_terminal : ∃ t, (List.map symbol.terminal w).nth 0 = some (symbol.terminal t),
       {
-        apply exists.intro (w.nth_le 0 (List.length_pos_of_ne_nil h)),
+        apply exists.intro (w.nthLe 0 (List.length_pos_of_ne_nil h)),
         rw List.nth_map,
         norm_num,
-        exact List.nth_le_nth (List.length_pos_of_ne_nil h),
+        exact List.nthLe_nth (List.length_pos_of_ne_nil h),
       },
       cases is_terminal with irr is_termin,
       rw is_termin at zeroth,
@@ -166,7 +166,7 @@ begin
     rw List.length at impossible_lengths,
     rw List.length_map at impossible_lengths,
     rw ←impossible_lengths at w_not_nil,
-    exact nat.lt_irrefl 0 w_not_nil,
+    exact Nat.lt_irrefl 0 w_not_nil,
   },
   {
     exfalso,
@@ -207,7 +207,7 @@ begin
 
       have different :
         ∃ n : ℕ, ∃ hl : n < w.length, ∃ hr : n < (List.repeat a w.length).length,
-          w.nth_le n hl ≠ (List.repeat a w.length).nth_le n hr,
+          w.nthLe n hl ≠ (List.repeat a w.length).nthLe n hr,
       {
         by_contradiction isnt,
         have same_len : w.length = (List.repeat a w.length).length,
@@ -226,9 +226,9 @@ begin
       },
       rcases different with ⟨n, hl, hr, nq⟩,
 
-      rw List.nth_le_repeat a hr at nq,
-      specialize ass (w.nth_le n hl) nq,
-      exact ass (List.nth_le_mem w n hl),
+      rw List.nthLe_repeat a hr at nq,
+      specialize ass (w.nthLe n hl) nq,
+      exact ass (List.nthLe_mem w n hl),
     },
 
     have implication1 : w ∈ CF_language (cfg_symbol_star a) → (∀ t : T, t ≠ a → t ∉ w),

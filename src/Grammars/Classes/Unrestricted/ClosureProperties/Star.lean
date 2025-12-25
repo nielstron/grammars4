@@ -121,10 +121,10 @@ begin
   {
     apply grammar_deri_of_tran_deri,
     {
-      use (star_grammar g).rules.nth_le 0 (by dec_trivial),
+      use (star_grammar g).rules.nthLe 0 (by dec_trivial),
       split,
       {
-        apply List.nth_le_mem,
+        apply List.nthLe_mem,
       },
       use [[], []],
       split;
@@ -313,7 +313,7 @@ private lemma terminal_scan_ind {g : grammar T} {w : List (List T)} (n : ℕ) (n
 begin
   induction n with k ih,
   {
-    rw nat.sub_zero,
+    rw Nat.sub_zero,
     rw List.drop_length,
     rw List.map_nil,
     rw List.join,
@@ -323,7 +323,7 @@ begin
     rw List.append_assoc,
     apply grammar_deri_self,
   },
-  specialize ih (nat.le_of_succ_le n_lt_wl),
+  specialize ih (Nat.le_of_succ_le n_lt_wl),
   apply grammar_deri_of_deri_deri _ ih,
   clear ih,
 
@@ -353,7 +353,7 @@ begin
       exact min_eq_left_of_lt lt_wl,
     },
     rw eq_q,
-    rw nat.sub_self,
+    rw Nat.sub_self,
     have drop_q_succ :
       List.drop q.succ (List.take q w ++ List.drop q w) = List.drop 1 (List.drop q w),
     {
@@ -374,14 +374,14 @@ begin
       rw List.nth_append,
       swap, {
         rw List.length_drop,
-        exact nat.sub_pos_of_lt q_lt,
+        exact Nat.sub_pos_of_lt q_lt,
       },
       rw List.nth_drop,
       rw add_zero,
       rw List.nth_take (lt_one_add q),
       rw add_comm,
       rw list_drop_take_succ lt_wl,
-      rw List.nth_le_nth lt_wl,
+      rw List.nthLe_nth lt_wl,
       refl,
     },
     {
@@ -394,25 +394,25 @@ begin
   rw [wlk_succ, List.take_succ, List.map_append, List.join_append, List.append_assoc, List.append_assoc],
   apply grammar_deri_with_prefix,
   clear_except terminals lt_wl,
-  specialize terminals (w.nth_le (w.length - k.succ) lt_wl) (List.nth_le_mem w (w.length - k.succ) lt_wl),
-  rw List.nth_le_nth lt_wl,
+  specialize terminals (w.nthLe (w.length - k.succ) lt_wl) (List.nthLe_mem w (w.length - k.succ) lt_wl),
+  rw List.nthLe_nth lt_wl,
   unfold Option.to_list,
   rw [List.map_singleton, List.join_singleton, ←List.map_join, List.join_singleton],
   apply grammar_deri_of_tran_deri,
   {
-    use (star_grammar g).rules.nth_le 2 (by dec_trivial),
+    use (star_grammar g).rules.nthLe 2 (by dec_trivial),
     split_ile,
-    use [[], List.map symbol.terminal (w.nth_le (w.length - k.succ) lt_wl)],
+    use [[], List.map symbol.terminal (w.nthLe (w.length - k.succ) lt_wl)],
     split;
     refl,
   },
   rw List.nil_append,
 
-  have scan_segment : ∀ m : ℕ, m ≤ (w.nth_le (w.length - k.succ) lt_wl).length →
+  have scan_segment : ∀ m : ℕ, m ≤ (w.nthLe (w.length - k.succ) lt_wl).length →
     grammar_derives (star_grammar g)
-      ([R] ++ List.map symbol.terminal (w.nth_le (w.length - k.succ) lt_wl))
-      (List.map symbol.terminal (List.take m (w.nth_le (w.length - k.succ) lt_wl)) ++
-        ([R] ++ List.map symbol.terminal (List.drop m (w.nth_le (w.length - k.succ) lt_wl)))),
+      ([R] ++ List.map symbol.terminal (w.nthLe (w.length - k.succ) lt_wl))
+      (List.map symbol.terminal (List.take m (w.nthLe (w.length - k.succ) lt_wl)) ++
+        ([R] ++ List.map symbol.terminal (List.drop m (w.nthLe (w.length - k.succ) lt_wl)))),
   {
     intros m small,
     induction m with n ih,
@@ -420,10 +420,10 @@ begin
       rw ←List.append_assoc,
       convert grammar_deri_self,
     },
-    apply grammar_deri_of_deri_tran (ih (nat.le_of_succ_le small)),
-    rw nat.succ_le_iff at small,
-    use ⟨[], (sum.inr 2), [symbol.terminal (List.nth_le (w.nth_le (w.length - k.succ) lt_wl) n small)],
-      [symbol.terminal (List.nth_le (w.nth_le (w.length - k.succ) lt_wl) n small), R]⟩,
+    apply grammar_deri_of_deri_tran (ih (Nat.le_of_succ_le small)),
+    rw Nat.succ_le_iff at small,
+    use ⟨[], (sum.inr 2), [symbol.terminal (List.nthLe (w.nthLe (w.length - k.succ) lt_wl) n small)],
+      [symbol.terminal (List.nthLe (w.nthLe (w.length - k.succ) lt_wl) n small), R]⟩,
     split,
     {
       iterate 4 {
@@ -432,16 +432,16 @@ begin
       apply List.mem_append_right,
       unfold rules_that_scan_terminals,
       rw List.mem_map,
-      use List.nth_le (w.nth_le (w.length - k.succ) lt_wl) n small,
+      use List.nthLe (w.nthLe (w.length - k.succ) lt_wl) n small,
       split,
       {
         unfold all_used_terminals,
         rw List.mem_filter_map,
-        use (w.nth_le (w.length - k.succ) lt_wl).nth_le n small,
+        use (w.nthLe (w.length - k.succ) lt_wl).nthLe n small,
         split,
         {
           apply terminals,
-          apply List.nth_le_mem,
+          apply List.nthLe_mem,
         },
         {
           refl,
@@ -451,8 +451,8 @@ begin
         refl,
       },
     },
-    use List.map symbol.terminal (List.take n (w.nth_le (w.length - k.succ) lt_wl)),
-    use List.map symbol.terminal (List.drop n.succ (w.nth_le (w.length - k.succ) lt_wl)),
+    use List.map symbol.terminal (List.take n (w.nthLe (w.length - k.succ) lt_wl)),
+    use List.map symbol.terminal (List.drop n.succ (w.nthLe (w.length - k.succ) lt_wl)),
     dsimp only,
     split,
     {
@@ -463,7 +463,7 @@ begin
       {
         refl,
       },
-      rw ←List.take_append_drop 1 (List.map symbol.terminal (List.drop n (w.nth_le (w.length - k.succ) lt_wl))),
+      rw ←List.take_append_drop 1 (List.map symbol.terminal (List.drop n (w.nthLe (w.length - k.succ) lt_wl))),
       apply congr_arg2,
       {
         rw ←List.map_take,
@@ -480,11 +480,11 @@ begin
       rw List.take_succ,
       rw List.map_append,
       trim,
-      rw List.nth_le_nth small,
+      rw List.nthLe_nth small,
       refl,
     },
   },
-  convert scan_segment (w.nth_le (w.length - k.succ) lt_wl).length (by refl),
+  convert scan_segment (w.nthLe (w.length - k.succ) lt_wl).length (by refl),
   {
     rw List.take_length,
   },
@@ -504,12 +504,12 @@ begin
   rw List.map_map,
   convert terminal_scan_ind w.length (by refl) terminals,
   {
-    rw nat.sub_self,
+    rw Nat.sub_self,
     rw List.take_zero,
     refl,
   },
   {
-    rw nat.sub_self,
+    rw Nat.sub_self,
     refl,
   },
 end
@@ -522,7 +522,7 @@ section hard_direction
 lemma zero_of_not_ge_one {n : ℕ} (not_pos : ¬ (n ≥ 1)) :  n = 0  :=
 begin
   push_neg at not_pos,
-  rwa nat.lt_one_iff at not_pos,
+  rwa Nat.lt_one_iff at not_pos,
 end
 
 lemma length_ge_one_of_not_nil {α : Type*} {l : List α} (lnn : l ≠ []) :  l.length ≥ 1  :=
@@ -864,32 +864,32 @@ begin
   {
     rwa List.length_map,
   },
-  use [m, List.take k (x.nth_le m mxl), List.drop k' (x.nth_le m' mxl')],
+  use [m, List.take k (x.nthLe m mxl), List.drop k' (x.nthLe m' mxl')],
 
   have hyp_u := congr_arg (List.take u.length) hypp,
   rw List.append_assoc at hyp_u,
   rw List.take_left at hyp_u,
   rw init_ul at hyp_u,
-  rw List.nth_le_map at hyp_u,
+  rw List.nthLe_map at hyp_u,
   swap, {
     exact mxlmm,
   },
   rw List.take_append_of_le_length at hyp_u,
   swap, {
-    rw List.nth_le_map at klt,
+    rw List.nthLe_map at klt,
     swap, {
       exact mxlmm,
     },
     rw List.length_append at klt,
     rw List.length_singleton at klt,
-    rw List.nth_le_map at klt ⊢,
+    rw List.nthLe_map at klt ⊢,
     iterate 2 {
       swap, {
         exact mxl,
       },
     },
     rw List.length_map at klt ⊢,
-    rw nat.lt_succ_iff at klt,
+    rw Nat.lt_succ_iff at klt,
     exact klt,
   },
   rw ←hyp_u at count_Hs,
@@ -900,26 +900,26 @@ begin
       )))) hypp,
   rw List.drop_left at hyp_v,
   rw last_vl at hyp_v,
-  rw List.nth_le_map at hyp_v,
+  rw List.nthLe_map at hyp_v,
   swap, {
     exact mxlmm',
   },
   rw List.drop_append_of_le_length at hyp_v,
   swap, {
-    rw List.nth_le_map at klt',
+    rw List.nthLe_map at klt',
     swap, {
       exact mxlmm',
     },
     rw List.length_append at klt',
     rw List.length_singleton at klt',
-    rw List.nth_le_map at klt' ⊢,
+    rw List.nthLe_map at klt' ⊢,
     iterate 2 {
       swap, {
         exact mxl',
       },
     },
     rw List.length_map at klt' ⊢,
-    rw nat.lt_succ_iff at klt',
+    rw Nat.lt_succ_iff at klt',
     exact klt',
   },
   rw ←hyp_v at count_Hs,
@@ -956,23 +956,23 @@ begin
     repeat {
       rw [List.map_const, List.sum_const_nat, one_mul] at count_Hs,
     },
-    rw [List.length_take, List.length_drop, List.nth_le_map', List.nth_le_map'] at count_Hs,
+    rw [List.length_take, List.length_drop, List.nthLe_map', List.nthLe_map'] at count_Hs,
     rw min_eq_left (le_of_lt mxl) at count_Hs,
-    have inside_take : (List.take k (List.map wrap_sym (x.nth_le m mxl))).count_in H = 0,
+    have inside_take : (List.take k (List.map wrap_sym (x.nthLe m mxl))).count_in H = 0,
     {
       rw ←List.map_take,
       rw inside_wrap,
     },
-    have inside_drop : (List.drop k' (List.map wrap_sym (x.nth_le m' mxl'))).count_in H + [H].count_in H = 1,
+    have inside_drop : (List.drop k' (List.map wrap_sym (x.nthLe m' mxl'))).count_in H + [H].count_in H = 1,
     {
       rw ←List.map_drop,
       rw inside_wrap,
       rw List.count_in_singleton_eq (@H T g.nt),
     },
     rw [inside_take, inside_drop] at count_Hs,
-    rw [add_zero, ←add_assoc, ←nat.add_sub_assoc] at count_Hs,
+    rw [add_zero, ←add_assoc, ←Nat.add_sub_assoc] at count_Hs,
     swap, {
-      rwa nat.succ_le_iff,
+      rwa Nat.succ_le_iff,
     },
     exact nat_eq_tech mxl' count_Hs,
   },
@@ -987,7 +987,7 @@ begin
     },
     {
       rw List.map_take,
-      rw List.nth_le_map,
+      rw List.nthLe_map,
     },
   },
   split,
@@ -996,7 +996,7 @@ begin
     convert hyp_v,
     {
       rw List.map_drop,
-      rw List.nth_le_map,
+      rw List.nthLe_map,
     },
     {
       rw List.map_drop,
@@ -1011,7 +1011,7 @@ begin
     rw List.length_map at mlt,
     exact mlt,
   },
-  have xxx : x = x.take m ++ [x.nth_le m mltx] ++ x.drop m.succ,
+  have xxx : x = x.take m ++ [x.nthLe m mltx] ++ x.drop m.succ,
   {
     rw List.append_assoc,
     rw List.singleton_append,
@@ -1019,11 +1019,11 @@ begin
     rw List.take_append_drop,
   },
   have hyppp :
-    (List.map (++ [H]) (List.map (List.map wrap_sym) (x.take m ++ [x.nth_le m mltx] ++ x.drop m.succ))).join =
+    (List.map (++ [H]) (List.map (List.map wrap_sym) (x.take m ++ [x.nthLe m mltx] ++ x.drop m.succ))).join =
     (List.take m (List.map (++ [H]) (List.map (List.map wrap_sym) x))).join ++
-      List.take k ((List.map (List.map wrap_sym) x).nth_le m mxlmm) ++
+      List.take k ((List.map (List.map wrap_sym) x).nthLe m mxlmm) ++
       (List.map wrap_sym r₀.input_L ++ [symbol.nonterminal (sum.inl r₀.input_N)] ++ List.map wrap_sym r₀.input_R) ++
-      (List.drop k' ((List.map (List.map wrap_sym) x).nth_le m mxlmm) ++ [H] ++
+      (List.drop k' ((List.map (List.map wrap_sym) x).nthLe m mxlmm) ++ [H] ++
       (List.drop m.succ (List.map (++ [H]) (List.map (List.map wrap_sym) x))).join),
   {
     convert hypp,
@@ -1042,13 +1042,13 @@ begin
     List.map_singleton, List.map_singleton, List.join_singleton,
     List.append_left_inj
   ] at hyppp,
-  rw List.nth_le_nth mltx,
+  rw List.nthLe_nth mltx,
   apply congr_arg,
   apply wrap_str_inj,
   rw hyppp,
   rw List.map_append_append,
   rw List.map_take,
-  rw List.nth_le_map,
+  rw List.nthLe_map,
   swap, {
     exact mltx,
   },
@@ -1235,7 +1235,7 @@ begin
       cases u with d l,
       {
         rw List.length at ul_pos,
-        exact nat.lt_irrefl 0 ul_pos,
+        exact Nat.lt_irrefl 0 ul_pos,
       },
       {
         have Z_in_tail : Z ∈ l ++ [symbol.nonterminal (sum.inr 0)] ++ v,
@@ -1285,7 +1285,7 @@ begin
       cases u with d l,
       {
         rw List.length at ul_pos,
-        exact nat.lt_irrefl 0 ul_pos,
+        exact Nat.lt_irrefl 0 ul_pos,
       },
       {
         have Z_in_tail : Z ∈ l ++ [symbol.nonterminal (sum.inr 0)] ++ v,
@@ -2551,7 +2551,7 @@ begin
         rw [List.singleton_append, List.index_of_cons_self, add_zero] at first_H,
         rw [very_middle, ←List.map_append_append, List.index_of_append_of_notin map_wrap_never_contains_H] at first_H,
         rw List.length_map at first_H,
-        exact nat.le.intro first_H,
+        exact Nat.le.intro first_H,
       },
       split,
       {
@@ -2666,9 +2666,9 @@ begin
         rw List.index_of_append_of_notin H_not_in_v'' at first_H,
         rw [List.singleton_append, List.index_of_cons_self, add_zero] at first_H,
         rw [very_middle, ←List.map_append_append],
-        exact nat.le.intro first_H,
+        exact Nat.le.intro first_H,
       },
-      obtain ⟨n, key_prop'⟩ := nat.le.dest key_prop,
+      obtain ⟨n, key_prop'⟩ := Nat.le.dest key_prop,
       have right_take := congr_arg (List.take v''.length) right_half,
       rw List.take_left at right_take,
       rw ←key_prop' at right_take,
@@ -4081,10 +4081,10 @@ begin
     apply grammar_deri_of_deri_deri derived,
     apply grammar_deri_of_tran_deri,
     {
-      use (star_grammar g).rules.nth_le 1 (by dec_trivial),
+      use (star_grammar g).rules.nthLe 1 (by dec_trivial),
       split,
       {
-        apply List.nth_le_mem,
+        apply List.nthLe_mem,
       },
       use [[], (List.map (++ [H]) (List.map (List.map symbol.terminal) v.reverse)).join],
       split,
@@ -4103,7 +4103,7 @@ begin
         (List.map symbol.terminal w.join ++ [R, H])
         (List.map symbol.terminal w.join),
     {
-      use (star_grammar g).rules.nth_le 3 (by dec_trivial),
+      use (star_grammar g).rules.nthLe 3 (by dec_trivial),
       split_ile,
       use [List.map symbol.terminal w.join, List.nil],
       split,
@@ -4111,7 +4111,7 @@ begin
         trim,
       },
       {
-        have out_nil : ((star_grammar g).rules.nth_le 3 _).output_string = [],
+        have out_nil : ((star_grammar g).rules.nthLe 3 _).output_string = [],
         {
           refl,
         },

@@ -311,10 +311,10 @@ begin
     intros q q_le_m,
     induction q with k ih,
     {
-      rw [nat.sub_zero, zero_mul, List.repeat_zero, List.repeat_zero, List.append_nil, List.append_nil],
+      rw [Nat.sub_zero, zero_mul, List.repeat_zero, List.repeat_zero, List.append_nil, List.append_nil],
       apply grammar_deri_self,
     },
-    apply grammar_deri_of_deri_deri (ih (nat.le_of_succ_le q_le_m)),
+    apply grammar_deri_of_deri_deri (ih (Nat.le_of_succ_le q_le_m)),
 
     have big_step_generateCs :
       grammar_derives gr_mul
@@ -332,7 +332,7 @@ begin
         intros p p_le_n,
         induction p with r ih,
         {
-          rw nat.sub_zero,
+          rw Nat.sub_zero,
           unfold List.n_times,
           rw List.repeat_zero,
           rw List.join,
@@ -340,11 +340,11 @@ begin
           rw ←List.repeat_succ_eq_append_singleton,
           rw ←sub_suc_suc, swap,
           {
-            rwa nat.succ_le_iff at q_le_m,
+            rwa Nat.succ_le_iff at q_le_m,
           },
           apply grammar_deri_self,
         },
-        apply grammar_deri_of_deri_tran (ih (nat.le_of_succ_le p_le_n)),
+        apply grammar_deri_of_deri_tran (ih (Nat.le_of_succ_le p_le_n)),
         use XB_BCX,
         split_ile,
         use List.repeat X (m - k.succ) ++ [B, C] ^ r,
@@ -357,7 +357,7 @@ begin
           trim,
           have r_lt_n : r < n,
           {
-            rwa nat.succ_le_iff at p_le_n,
+            rwa Nat.succ_le_iff at p_le_n,
           },
           rw sub_suc_suc r_lt_n,
           rw List.repeat_succ_eq_singleton_append B,
@@ -375,7 +375,7 @@ begin
         },
       },
       have generatedCs := aux_generateCs n (by refl),
-      rwa [nat.sub_self, List.repeat_zero, List.append_nil] at generatedCs,
+      rwa [Nat.sub_self, List.repeat_zero, List.append_nil] at generatedCs,
     },
     apply grammar_deri_of_deri_deri big_step_generateCs,
     clear big_step_generateCs,
@@ -404,13 +404,13 @@ begin
           rw List.nil_append,
           rw List.repeat_zero,
           rw List.nil_append,
-          rw nat.sub_zero,
+          rw Nat.sub_zero,
           apply grammar_deri_self,
         },
-        apply grammar_deri_of_deri_deri (ih (nat.le_of_succ_le s_le_n)),
+        apply grammar_deri_of_deri_deri (ih (Nat.le_of_succ_le s_le_n)),
         have z_lt_n : z < n,
         {
-          rwa nat.succ_le_iff at s_le_n,
+          rwa Nat.succ_le_iff at s_le_n,
         },
         rw sub_suc_suc z_lt_n,
         unfold List.n_times,
@@ -444,10 +444,10 @@ begin
           intros x x_le_z,
           induction x with y ih,
           {
-            rw [nat.sub_zero, List.repeat_zero, List.append_nil],
+            rw [Nat.sub_zero, List.repeat_zero, List.append_nil],
             apply grammar_deri_self,
           },
-          apply grammar_deri_of_deri_tran (ih (nat.le_of_succ_le x_le_z)),
+          apply grammar_deri_of_deri_tran (ih (Nat.le_of_succ_le x_le_z)),
           use CB_BC,
           split_ile,
           use [List.repeat C (z - y.succ), List.repeat C y],
@@ -456,7 +456,7 @@ begin
             trim,
             have y_lt_z : y < z,
             {
-              rwa nat.succ_le_iff at x_le_z,
+              rwa Nat.succ_le_iff at x_le_z,
             },
             rw sub_suc_suc y_lt_z,
             rw List.repeat_succ_eq_append_singleton C,
@@ -472,10 +472,10 @@ begin
           },
         },
         have bubbledB := aux_bubbleB z (by refl),
-        rwa [nat.sub_self, List.repeat_zero, List.nil_append] at bubbledB,
+        rwa [Nat.sub_self, List.repeat_zero, List.nil_append] at bubbledB,
       },
       have bubbledCs := aux_bubbleCs n (by refl),
-      rw nat.sub_self at bubbledCs,
+      rw Nat.sub_self at bubbledCs,
       unfold List.n_times at bubbledCs,
       rw List.append_assoc at bubbledCs,
       rw List.repeat_zero at bubbledCs,
@@ -490,7 +490,7 @@ begin
     },
     apply grammar_deri_with_prefix,
     apply grammar_deri_with_prefix,
-    rw nat.succ_mul,
+    rw Nat.succ_mul,
     rw add_comm,
     rw List.repeat_add,
     rw List.append_assoc,
@@ -511,7 +511,7 @@ begin
       {
         apply grammar_deri_self,
       },
-      apply grammar_deri_of_deri_tran (ih (nat.le_of_succ_le d_le_e)),
+      apply grammar_deri_of_deri_tran (ih (Nat.le_of_succ_le d_le_e)),
       use XC_CX,
       split_ile,
       use [List.repeat C f, List.repeat C (e - f.succ)],
@@ -519,7 +519,7 @@ begin
       {
         have f_lt_e : f < e,
         {
-          rwa nat.succ_le_iff at d_le_e,
+          rwa Nat.succ_le_iff at d_le_e,
         },
         rw sub_suc_suc f_lt_e,
         rw List.repeat_succ_eq_singleton_append C,
@@ -534,10 +534,10 @@ begin
       },
     },
     have almost := skipCs (k * n) (k * n) (by refl),
-    rwa [nat.sub_self, List.repeat_zero, List.append_nil] at almost,
+    rwa [Nat.sub_self, List.repeat_zero, List.append_nil] at almost,
   },
   convert parametrized m (by refl),
-  rw [nat.sub_self, List.repeat_zero, List.nil_append],
+  rw [Nat.sub_self, List.repeat_zero, List.nil_append],
 end
 
 private lemma steps_XE_E (m n : ℕ) :
@@ -555,7 +555,7 @@ begin
     {
       apply grammar_deri_self,
     },
-    apply grammar_deri_of_deri_tran (ih (nat.le_of_succ_le ass)),
+    apply grammar_deri_of_deri_tran (ih (Nat.le_of_succ_le ass)),
     use XE_E,
     split_ile,
     use [List.repeat a m ++ [M] ++ List.repeat B n ++ List.repeat C (m * n) ++ List.repeat X (m - k.succ), []],
@@ -565,7 +565,7 @@ begin
       {
         have k_lt_m : k < m,
         {
-          rwa nat.succ_le_iff at ass,
+          rwa Nat.succ_le_iff at ass,
         },
         rw sub_suc_suc k_lt_m,
         apply List.repeat_succ_eq_append_singleton,
@@ -579,7 +579,7 @@ begin
     },
   },
   have almost := backwards m (by refl),
-  rwa [nat.sub_self, List.repeat_zero, List.append_nil] at almost,
+  rwa [Nat.sub_self, List.repeat_zero, List.append_nil] at almost,
 end
 
 private lemma steps_MB_bM (m n : ℕ) :
@@ -601,7 +601,7 @@ begin
     {
       apply grammar_deri_self,
     },
-    apply grammar_deri_of_deri_tran (ih (nat.le_of_succ_le ass)),
+    apply grammar_deri_of_deri_tran (ih (Nat.le_of_succ_le ass)),
     use MB_bM,
     split_ile,
     use [List.repeat b q, List.repeat B (n - q.succ)],
@@ -609,7 +609,7 @@ begin
     {
       have q_lt_n : q < n,
       {
-        rwa nat.succ_le_iff at ass,
+        rwa Nat.succ_le_iff at ass,
       },
       rw sub_suc_suc q_lt_n,
       rw List.repeat_succ_eq_singleton_append,
@@ -626,7 +626,7 @@ begin
     },
   },
   have almost := bees n (by refl),
-  rwa [nat.sub_self, List.repeat_zero, List.append_nil] at almost,
+  rwa [Nat.sub_self, List.repeat_zero, List.append_nil] at almost,
 end
 
 private lemma steps_KC_cK (m n : ℕ) :
@@ -649,7 +649,7 @@ begin
     {
       apply grammar_deri_self,
     },
-    apply grammar_deri_of_deri_tran (ih (nat.le_of_succ_le ass)),
+    apply grammar_deri_of_deri_tran (ih (Nat.le_of_succ_le ass)),
     clear ih,
     use KC_cK,
     split_ile,
@@ -658,7 +658,7 @@ begin
     {
       have r_lt_q : r < q,
       {
-        rwa nat.succ_le_iff at ass,
+        rwa Nat.succ_le_iff at ass,
       },
       rw sub_suc_suc r_lt_q,
       rw List.repeat_succ_eq_singleton_append,
@@ -675,7 +675,7 @@ begin
     },
   },
   have almost := terminating (m * n) (m * n) (by refl),
-  rwa [nat.sub_self, List.repeat_zero, List.append_nil] at almost,
+  rwa [Nat.sub_self, List.repeat_zero, List.append_nil] at almost,
 end
 
 -- example 3 * 3 = 9 reproved using the new lemmata
