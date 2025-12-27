@@ -43,7 +43,7 @@ def grammar_generates (g : grammar T) (w : List T) : Prop :=
 
 /-- The set of words that can be derived from the initial nonterminal. -/
 def grammar_language (g : grammar T) : Language T :=
-  SetOf (grammar_generates g)
+  setOf (grammar_generates g)
 
 /-- Predicate "is recursively-enumerable"; defined by existence of a grammar for the given language. -/
 def is_RE (L : Language T) : Prop :=
