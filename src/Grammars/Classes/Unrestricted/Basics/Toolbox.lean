@@ -1,22 +1,24 @@
 import Grammars.Classes.Unrestricted.Basics.Definition
 
-variables {T : Type} {g : grammar T}
+open Relation
+
+variable {T : Type} {g : grammar T}
 
 
 /-- The Relation `grammar_derives` is reflexive. -/
 lemma grammar_deri_self {w : List (symbol T g.nt)} :
   grammar_derives g w w :=
-Relation.refl_trans_gen.refl
+ReflTransGen.refl
 
 lemma grammar_deri_of_tran {v w : List (symbol T g.nt)} :
   grammar_transforms g v w → grammar_derives g v w :=
-Relation.refl_trans_gen.single
+ReflTransGen.single
 
 /-- The Relation `grammar_derives` is transitive. -/
 lemma grammar_deri_of_deri_deri {u v w : List (symbol T g.nt)}
     (huv : grammar_derives g u v) (hvw : grammar_derives g v w) :
   grammar_derives g u w :=
-Relation.refl_trans_gen.trans huv hvw
+ReflTransGen.trans huv hvw
 
 lemma grammar_deri_of_deri_tran {u v w : List (symbol T g.nt)}
     (huv : grammar_derives g u v) (hvw : grammar_transforms g v w) :
@@ -31,67 +33,43 @@ grammar_deri_of_deri_deri (grammar_deri_of_tran huv) hvw
 lemma grammar_tran_or_id_of_deri {u w : List (symbol T g.nt)} (ass : grammar_derives g u w) :
   (u = w) ∨
   (∃ v : List (symbol T g.nt), (grammar_transforms g u v) ∧ (grammar_derives g v w)) :=
-Relation.refl_trans_gen.cases_head ass
+ReflTransGen.cases_head ass
 
 
 lemma grammar_deri_with_prefix {w₁ w₂ : List (symbol T g.nt)}
     (pᵣ : List (symbol T g.nt))
     (ass : grammar_derives g w₁ w₂) :
   grammar_derives g (pᵣ ++ w₁) (pᵣ ++ w₂) :=
-begin
-  induction ass with x y trash hyp ih,
-  {
-    apply grammar_deri_self,
-  },
-  apply grammar_deri_of_deri_tran,
-  {
-    exact ih,
-  },
-  rcases hyp with ⟨r, rin, u, v, h_bef, h_aft⟩,
-  use r,
-  split,
-  {
-    exact rin,
-  },
-  use pᵣ ++ u,
-  use v,
-  rw h_bef,
-  rw h_aft,
-  split;
-  simp only [List.append_assoc],
-end
+by
+  induction ass with
+  | refl =>
+      simpa using grammar_deri_self (g := g) (w := pᵣ ++ w₁)
+  | tail ass step ih =>
+      refine grammar_deri_of_deri_tran ih ?_
+      rcases step with ⟨r, rin, u, v, hbef, haft⟩
+      refine ⟨r, rin, pᵣ ++ u, v, ?_, ?_⟩
+      · simp [hbef, List.append_assoc]
+      · simp [haft, List.append_assoc]
 
 lemma grammar_deri_with_postfix {w₁ w₂ : List (symbol T g.nt)}
     (pₒ : List (symbol T g.nt))
     (ass : grammar_derives g w₁ w₂) :
   grammar_derives g (w₁ ++ pₒ) (w₂ ++ pₒ) :=
-begin
-  induction ass with x y trash hyp ih,
-  {
-    apply grammar_deri_self,
-  },
-  apply grammar_deri_of_deri_tran,
-  {
-    exact ih,
-  },
-  rcases hyp with ⟨r, rin, u, v, h_bef, h_aft⟩,
-  use r,
-  split,
-  {
-    exact rin,
-  },
-  use u,
-  use v ++ pₒ,
-  rw h_bef,
-  rw h_aft,
-  split;
-  simp only [List.append_assoc],
-end
+by
+  induction ass with
+  | refl =>
+      simpa using grammar_deri_self (g := g) (w := w₁ ++ pₒ)
+  | tail ass step ih =>
+      refine grammar_deri_of_deri_tran ih ?_
+      rcases step with ⟨r, rin, u, v, hbef, haft⟩
+      refine ⟨r, rin, u, v ++ pₒ, ?_, ?_⟩
+      · simp [hbef, List.append_assoc]
+      · simp [haft, List.append_assoc]
 
 
 def as_terminal {N : Type} : symbol T N → Option T
-| (symbol.terminal t)    := some t
-| (symbol.nonterminal _) := none
+| (symbol.terminal t)    => some t
+| (symbol.nonterminal _) => none
 
 def all_used_terminals (g : grammar T) : List T :=
-List.filter_map as_terminal (List.join (List.map grule.output_string g.rules))
+List.filterMap as_terminal (List.flatten (List.map grule.output_string g.rules))
