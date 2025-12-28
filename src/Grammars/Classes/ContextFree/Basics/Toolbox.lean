@@ -73,36 +73,27 @@ lemma CF_deri_with_prefix {w₁ w₂ : List (symbol T g.nt)}
 lemma CF_deri_with_postfix {w₁ w₂ : List (symbol T g.nt)}
     (pₒ : List (symbol T g.nt))
     (ass : CF_derives g w₁ w₂) :
-  CF_derives g (w₁ ++ pₒ) (w₂ ++ pₒ) :=
-begin
-  induction ass with a b irr hyp ih,
-  {
-    apply CF_deri_self,
-  },
-  apply CF_deri_of_deri_tran,
-  {
-    exact ih,
-  },
-  rcases hyp with ⟨r, r_in, v, w, h_bef, h_aft⟩,
-  use r,
-  split,
-  {
-    exact r_in,
-  },
-  use v,
-  use w ++ pₒ,
-  rw h_bef,
-  rw h_aft,
-  split;
-  simp only [List.append_assoc],
-end
+  CF_derives g (w₁ ++ pₒ) (w₂ ++ pₒ) := by
+  induction ass with
+  | refl =>
+    apply CF_deri_self
+
+  | tail ass' step ih =>
+    apply CF_deri_of_deri_tran
+    exact ih
+    rcases step with ⟨r, v, w, r_in,  h_bef, h_aft⟩
+    use r
+    use v
+    use (w ++ pₒ)
+    repeat' constructor
+    · exact r_in
+    · simp [h_bef]
+    · simp [h_aft]
 
 lemma CF_deri_with_prefix_and_postfix {w₁ w₂ : List (symbol T g.nt)}
     (pᵣ pₒ : List (symbol T g.nt))
     (ass : CF_derives g w₁ w₂) :
-  CF_derives g (pᵣ ++ w₁ ++ pₒ) (pᵣ ++ w₂ ++ pₒ) :=
-begin
-  apply CF_deri_with_postfix,
-  apply CF_deri_with_prefix,
-  exact ass,
-end
+  CF_derives g (pᵣ ++ w₁ ++ pₒ) (pᵣ ++ w₂ ++ pₒ) := by
+  apply CF_deri_with_postfix
+  apply CF_deri_with_prefix
+  exact ass
