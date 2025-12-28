@@ -59,39 +59,16 @@ lemma CF_deri_with_prefix {w₁ w₂ : List (symbol T g.nt)}
       ·
         -- unpack the last transformation step
         rcases step with ⟨r, r_in, v, w, h_bef, h_aft⟩
-        refine ⟨r, r_in, pᵣ ++ v, w, ?_, ?_⟩
-        · -- before rewriting
-          -- (pᵣ ++ b✝) = (pᵣ ++ v) ++ ... ++ w
-          simpa [h_bef, List.append_assoc]
-        · -- after rewriting
-          simpa [h_aft, List.append_assoc]
+        use r
+        let u := pᵣ ++ r_in
+        use u
+        use v
+        repeat' constructor
+        · exact w
+        · simp [h_bef, u]
+        · simp [u, h_aft]
 
-lemma CF_deri_with_prefix {w₁ w₂ : List (symbol T g.nt)}
-    (pᵣ : List (symbol T g.nt))
-    (ass : CF_derives g w₁ w₂) :
-  CF_derives g (pᵣ ++ w₁) (pᵣ ++ w₂) :=
-begin
-  induction ass with a b irr hyp ih,
-  {
-    apply CF_deri_self,
-  },
-  apply CF_deri_of_deri_tran,
-  {
-    exact ih,
-  },
-  rcases hyp with ⟨r, r_in, v, w, h_bef, h_aft⟩,
-  use r,
-  split,
-  {
-    exact r_in,
-  },
-  use pᵣ ++ v,
-  use w,
-  rw h_bef,
-  rw h_aft,
-  split;
-  simp only [List.append_assoc],
-end
+
 
 lemma CF_deri_with_postfix {w₁ w₂ : List (symbol T g.nt)}
     (pₒ : List (symbol T g.nt))
