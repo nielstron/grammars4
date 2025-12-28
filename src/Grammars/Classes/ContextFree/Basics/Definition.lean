@@ -8,7 +8,7 @@ structure CF_grammar (T : Type) :=
 (rules : List (nt × List (symbol T nt)))   -- rewrite rules
 
 
-variables {T : Type}
+variable {T : Type}
 
 /-- One step of context-free transformation. -/
 def CF_transforms (g : CF_grammar T) (w₁ w₂ : List (symbol T g.nt)) : Prop :=
