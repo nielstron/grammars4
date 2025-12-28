@@ -5,19 +5,19 @@ variables {T : Type} {g : CF_grammar T}
 
 lemma CF_deri_of_tran {v w : List (symbol T g.nt)} :
   CF_transforms g v w → CF_derives g v w :=
-Relation.refl_trans_gen.single
+Relation.ReflTransGen.single
 
 /-- The Relation `CF_derives` is reflexive. -/
 lemma CF_deri_self {w : List (symbol T g.nt)} :
   CF_derives g w w :=
-Relation.refl_trans_gen.refl
+Relation.ReflTransGen.refl
 
 /-- The Relation `CF_derives` is transitive. -/
 lemma CF_deri_of_deri_deri {u v w : List (symbol T g.nt)}
     (huv : CF_derives g u v)
     (hvw : CF_derives g v w) :
   CF_derives g u w :=
-Relation.refl_trans_gen.trans huv hvw
+Relation.ReflTransGen.trans huv hvw
 
 lemma CF_deri_of_deri_tran {u v w : List (symbol T g.nt)}
     (huv : CF_derives g u v)
@@ -34,8 +34,37 @@ CF_deri_of_deri_deri (CF_deri_of_tran huv) hvw
 lemma CF_tran_or_id_of_deri {u w : List (symbol T g.nt)} (ass : CF_derives g u w) :
   (u = w) ∨
   (∃ v : List (symbol T g.nt), (CF_transforms g u v) ∧ (CF_derives g v w)) :=
-Relation.refl_trans_gen.cases_head ass
+Relation.ReflTransGen.cases_head ass
 
+lemma CF_deri_with_prefix {w₁ w₂ : List (symbol T g.nt)}
+    (pᵣ : List (symbol T g.nt))
+    (ass : CF_derives g w₁ w₂) :
+  CF_derives g (pᵣ ++ w₁) (pᵣ ++ w₂) := by
+  -- CF_derives is a ReflTransGen, so its constructors are `refl` and `tail`.
+  induction ass with
+  | refl =>
+      -- goal: CF_derives g (pᵣ ++ w₁) (pᵣ ++ w₁)
+      -- use the “self-derivation” lemma and rewrite
+      simpa using (CF_deri_self (g := g) (w := pᵣ ++ w₁))
+
+  | tail ass' step ih =>
+      -- Here we have:
+      -- ass' : CF_derives g w₁ b✝
+      -- step : CF_transforms g b✝ c✝
+      -- ih   : CF_derives g (pᵣ ++ w₁) (pᵣ ++ b✝)
+      --
+      -- We want: CF_derives g (pᵣ ++ w₁) (pᵣ ++ c✝)
+      apply CF_deri_of_deri_tran
+      · exact ih
+      ·
+        -- unpack the last transformation step
+        rcases step with ⟨r, r_in, v, w, h_bef, h_aft⟩
+        refine ⟨r, r_in, pᵣ ++ v, w, ?_, ?_⟩
+        · -- before rewriting
+          -- (pᵣ ++ b✝) = (pᵣ ++ v) ++ ... ++ w
+          simpa [h_bef, List.append_assoc]
+        · -- after rewriting
+          simpa [h_aft, List.append_assoc]
 
 lemma CF_deri_with_prefix {w₁ w₂ : List (symbol T g.nt)}
     (pᵣ : List (symbol T g.nt))
