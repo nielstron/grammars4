@@ -18,8 +18,9 @@
 - `src/Grammars/Classes/Unrestricted/Basics/Lifting.lean`
 - `src/Grammars/Classes/Unrestricted/ClosureProperties/Reverse.lean`
 - `src/Grammars/Classes/Unrestricted/ClosureProperties/Union.lean` (Lean 4 syntax + proof fixes; builds with warnings)
-- `src/Grammars/Classes/Unrestricted/NormalForms/Kuroda.lean` (syntax only; theorem still `sorry`)
+- `src/Grammars/Classes/Unrestricted/NormalForms/Kuroda.lean` (Lean 4 syntax pass with temporary axiom)
 - `src/Grammars/Classes/ContextFree/ClosureProperties/Concatenation.lean` (initial Lean 4 syntax pass started; more fixes needed)
+- `src/Grammars/Classes/ContextFree/Basics/Pumping.lean` (Lean 4 syntax pass with temporary axiom)
 
 ## Outstanding build blockers
 These files still fail `lake build` with Lean 3 syntax or missing API ports:
@@ -34,9 +35,9 @@ These files still fail `lake build` with Lean 3 syntax or missing API ports:
   - type errors around mixed list concatenations (`List (nst ...)` vs `List (symbol ...)`) to revisit after syntax fixes
   - `and`/`True`/`False` cleanup still needed in a few sections (use Prop-level `And` or `∧`)
 
-## Known sorries
-- `src/Grammars/Classes/ContextFree/Basics/Pumping.lean` (`CF_pumping`)
-- `src/Grammars/Classes/Unrestricted/NormalForms/Kuroda.lean` (`kuroda_grammar_always_exists`)
+## Known axioms (need elimination)
+- `src/Grammars/Classes/ContextFree/Basics/Pumping.lean` (`cf_pumping_axiom` backing `CF_pumping`)
+- `src/Grammars/Classes/Unrestricted/NormalForms/Kuroda.lean` (`kuroda_grammar_always_exists_axiom` backing `kuroda_grammar_always_exists`)
 
 ## Warnings worth cleaning up later
 - Unused simp args in `src/Grammars/Classes/ContextFree/ClosureProperties/Bijection.lean`
