@@ -10,16 +10,16 @@
 - `src/Grammars/Classes/ContextFree/Basics/Elementary.lean`
 - `src/Grammars/Classes/ContextFree/Basics/Lifting.lean`
 - `src/Grammars/Classes/Unrestricted/Basics/Lifting.lean`
+- `src/Grammars/Classes/Unrestricted/ClosureProperties/Reverse.lean`
 - `src/Grammars/Classes/Unrestricted/NormalForms/Kuroda.lean` (syntax only; theorem still `sorry`)
 
 ## Outstanding build blockers
 These files still fail `lake build` with Lean 3 syntax or missing API ports:
 - `src/Grammars/Classes/ContextFree/Basics/Elementary.lean`
-- `src/Grammars/Classes/Unrestricted/Basics/Lifting.lean`
-- `src/Grammars/Classes/Unrestricted/ClosureProperties/Reverse.lean`
-  - similar Lean 3 syntax updates needed
 - `src/Grammars/Classes/Unrestricted/ClosureProperties/Concatenation.lean`
-  - extensive Lean 3 syntax, `List.nthLe`, `List.forall₂`, and missing identifiers
+  - partial port; still many Lean 3 `begin`/`end`, `repeat`, and `rw`/`simp` steps to update
+  - remaining `List.nthLe` uses and `List.forall₂` API adjustments (now `List.Forall₂`)
+  - pending updates in `easy_direction`, `correspondence_for_terminals`, `unwrapping_nst`, and `very_complicated`
 
 ## Known sorries
 - `src/Grammars/Classes/ContextFree/Basics/Pumping.lean` (`CF_pumping`)

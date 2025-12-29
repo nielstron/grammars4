@@ -73,8 +73,7 @@ by
           ←List.reverse_append_append, ←List.reverse_append_append,
           ←List.append_assoc, ←List.append_assoc
         ]
-        congr
-        exact bef
+        simp [bef]
       ·
         have snd_from_r : r₀.output_string = r.output_string.reverse := by
           rw [←r_from_r₀]
@@ -105,18 +104,18 @@ by
   refine ⟨reversal_grammar g, ?_⟩
   unfold reverseLang
 
-  apply Set.eq_of_subSetOf_subset
+  ext w
+  constructor
   ·
-    intro w hwL
+    intro hwL
     change w.reverse ∈ grammar_language g
     exact reversed_word_in_original_language hwL
   ·
-    intro w hwL
+    intro hwL
     change w.reverse ∈ grammar_language g at hwL
     obtain ⟨g₀, pre_reversal⟩ : ∃ g₀, g = reversal_grammar g₀ := by
       refine ⟨reversal_grammar g, ?_⟩
       rw [dual_of_reversal_grammar]
     rw [pre_reversal] at hwL ⊢
     have finished_up_to_reverses := reversed_word_in_original_language hwL
-    rw [dual_of_reversal_grammar, List.reverse_reverse] at finished_up_to_reverses
-    exact finished_up_to_reverses
+    simpa [dual_of_reversal_grammar, List.reverse_reverse] using finished_up_to_reverses
