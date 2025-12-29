@@ -22,6 +22,7 @@
 - `src/Grammars/Classes/ContextFree/ClosureProperties/Concatenation.lean` (initial Lean 4 syntax pass started; more fixes needed)
 - `src/Grammars/Classes/ContextFree/Basics/Pumping.lean` (Lean 4 syntax pass with temporary axiom)
 - `src/Grammars/Classes/ContextFree/ClosureProperties/Intersection.lean` (partial Lean 4 conversion: `false_of_uvvxyyz`, `notCF_lang_eq_eq`, `CF_lang_eq_any`, `CF_lang_any_eq`, `permut` port, and small helpers)
+- `src/Grammars/Classes/ContextFree/ClosureProperties/Concatenation.lean` (ported `u_eq_take_map_w`, `v_eq_drop_map_w`, `self_of_sTN₁/₂`, `self_of_lsTN₁/₂` to Lean 4 `by` style)
 
 ## Outstanding build blockers
 These files still fail `lake build` with Lean 3 syntax or missing API ports:
