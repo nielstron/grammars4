@@ -42,14 +42,13 @@ lifted_grammar.mk g₁ (combined_grammar g₁ g₂) (some ∘ Sum.inl) (by
   apply List.mem_append_left
   rw [List.mem_map]
   use r
-  split
+  constructor
   · exact hyp
-  unfold rule_of_rule₁
-  unfold lift_rule
-  norm_num
-  unfold lift_string
-  unfold lsTN_of_lsTN₁
-  five_steps
+  cases r with
+  | mk nt rhs =>
+      simp [rule_of_rule₁, lift_rule, lift_string, lsTN_of_lsTN₁, lift_symbol, sTN_of_sTN₁]
+      intro a ha
+      cases a <;> rfl
 ) oN₁_of_N (by
   intros x y ass
   cases x with
@@ -58,21 +57,25 @@ lifted_grammar.mk g₁ (combined_grammar g₁ g₂) (some ∘ Sum.inl) (by
       rfl
   | some x =>
       cases x with
-      | inl =>
+      | inl x =>
           cases y with
           | none =>
-              rw ass
+              rw [ass]
               right
               rfl
           | some y =>
               cases y with
-              | inl =>
+              | inl y =>
                   left
-                  simp only [oN₁_of_N] at ass
-                  exact congrArg (fun nt => some nt) (congrArg id ass)
-              | inr =>
+                  have ass' : (some x : Option g₁.nt) = some y := by
+                    simpa [oN₁_of_N] using ass
+                  have hxy : x = y := by
+                    cases ass'
+                    rfl
+                  simpa [hxy]
+              | inr y =>
                   tauto
-      | inr =>
+      | inr x =>
           right
           rfl
 ) (by
@@ -94,14 +97,10 @@ lifted_grammar.mk g₁ (combined_grammar g₁ g₂) (some ∘ Sum.inl) (by
           rw [List.mem_map] at r_in
           rcases r_in with ⟨r₁, r₁_in, r₁_convert_r⟩
           use r₁
-          split
+          constructor
           · exact r₁_in
-          rw ←r₁_convert_r
-          simp only [
-            lift_rule, rule_of_rule₁, lift_string, lsTN_of_lsTN₁,
-            prod.mk.inj_iff, eq_self_iff_true, true_and
-          ]
-          five_steps
+          rw [←r₁_convert_r]
+          simp [lift_rule, rule_of_rule₁, lift_string, lsTN_of_lsTN₁, lift_symbol, sTN_of_sTN₁]
       | inr r_in =>
           exfalso
           rw [List.mem_map] at r_in
@@ -109,7 +108,7 @@ lifted_grammar.mk g₁ (combined_grammar g₁ g₂) (some ∘ Sum.inl) (by
           rcases r_ntype with ⟨n₁, r_ntype⟩
           have : (some (Sum.inl n₁) : Option (g₁.nt ⊕ g₂.nt)) =
               some (Sum.inr r₂.fst) := by
-            simpa [r₂_convert_r] using r_ntype
+            simpa [r₂_convert_r, rule_of_rule₂] using r_ntype
           cases this
 ) (by
   intro
@@ -130,14 +129,13 @@ lifted_grammar.mk g₂ (combined_grammar g₁ g₂) (some ∘ Sum.inr) (by
   apply List.mem_append_right
   rw [List.mem_map]
   use r
-  split
+  constructor
   · exact hyp
-  unfold rule_of_rule₂
-  unfold lift_rule
-  norm_num
-  unfold lift_string
-  unfold lsTN_of_lsTN₂
-  five_steps
+  cases r with
+  | mk nt rhs =>
+      simp [rule_of_rule₂, lift_rule, lift_string, lsTN_of_lsTN₂, lift_symbol, sTN_of_sTN₂]
+      intro a ha
+      cases a <;> rfl
 ) oN₂_of_N (by
   intros x y ass
   cases x with
@@ -146,23 +144,27 @@ lifted_grammar.mk g₂ (combined_grammar g₁ g₂) (some ∘ Sum.inr) (by
       rfl
   | some x =>
       cases x with
-      | inl =>
+      | inl x =>
           right
           rfl
-      | inr =>
+      | inr x =>
           cases y with
           | none =>
               right
-              rw ass
+              rw [ass]
               rfl
           | some y =>
               cases y with
-              | inl =>
+              | inl y =>
                   tauto
-              | inr =>
+              | inr y =>
                   left
-                  simp only [oN₂_of_N] at ass
-                  exact congrArg (fun nt => some nt) (congrArg id ass)
+                  have ass' : (some x : Option g₂.nt) = some y := by
+                    simpa [oN₂_of_N] using ass
+                  have hxy : x = y := by
+                    cases ass'
+                    rfl
+                  simpa [hxy]
 ) (by
   intro r
   rintro ⟨r_in, r_ntype⟩
@@ -185,20 +187,16 @@ lifted_grammar.mk g₂ (combined_grammar g₁ g₂) (some ∘ Sum.inr) (by
           rcases r_ntype with ⟨n₂, r_ntype⟩
           have : (some (Sum.inr n₂) : Option (g₁.nt ⊕ g₂.nt)) =
               some (Sum.inl r₁.fst) := by
-            simpa [r₁_convert_r] using r_ntype
+            simpa [r₁_convert_r, rule_of_rule₁] using r_ntype
           cases this
       | inr r_in =>
           rw [List.mem_map] at r_in
           rcases r_in with ⟨r₂, r₂_in, r₂_convert_r⟩
           use r₂
-          split
+          constructor
           · exact r₂_in
-          rw ←r₂_convert_r
-          simp only [
-            lift_rule, rule_of_rule₂, lift_string, lsTN_of_lsTN₂,
-            prod.mk.inj_iff, eq_self_iff_true, true_and
-          ]
-          five_steps
+          rw [←r₂_convert_r]
+          simp [lift_rule, rule_of_rule₂, lift_string, lsTN_of_lsTN₂, lift_symbol, sTN_of_sTN₂]
 ) (by
   intro
   rfl
@@ -434,7 +432,7 @@ private lemma in_concatenated_of_in_combined
     {w : List T}
     (hyp : w ∈ CF_language (combined_grammar g₁ g₂)) :
   w ∈ CF_language g₁ * CF_language g₂ :=
-begin
+by
   rw Language.mem_mul,
   change
     CF_derives
@@ -1424,8 +1422,7 @@ begin
     refl,
   },
   rw bundle_unbundle,
-  rw List.filter_map_some,
-end
+  rw List.filter_map_some
 
 
 private lemma in_combined_of_in_concatenated
