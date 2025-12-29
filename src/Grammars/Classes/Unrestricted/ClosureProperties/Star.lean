@@ -16,34 +16,36 @@ variables {T : Type}
 
 section specific_symbols
 
-private def Z {N : Type} : ns T N := symbol.nonterminal (sum.inr 0)
-private def H {N : Type} : ns T N := symbol.nonterminal (sum.inr 1) -- denoted by `#` in the pdf
-private def R {N : Type} : ns T N := symbol.nonterminal (sum.inr 2)
+private def Z {N : Type} : ns T N := symbol.nonterminal (Sum.inr 0)
+private def H {N : Type} : ns T N := symbol.nonterminal (Sum.inr 1) -- denoted by `#` in the pdf
+private def R {N : Type} : ns T N := symbol.nonterminal (Sum.inr 2)
 
-private def S {g : grammar T} : ns T g.nt := symbol.nonterminal (sum.inl g.initial)
+private def S {g : grammar T} : ns T g.nt := symbol.nonterminal (Sum.inl g.initial)
 
 private lemma Z_neq_H {N : Type} :  Z ≠ @H T N  :=
-begin
-  intro ass,
-  have imposs := sum.inr.inj (symbol.nonterminal.inj ass),
-  exact Fin.zero_ne_one imposs,
-end
+by
+  intro ass
+  have imposs : (0 : Fin 3) = 1 := by
+    exact Sum.inr.inj (symbol.nonterminal.inj ass)
+  exact Fin.zero_ne_one imposs
 
 private lemma Z_neq_R {N : Type} :  Z ≠ @R T N  :=
-begin
-  intro ass,
-  have imposs := sum.inr.inj (symbol.nonterminal.inj ass),
-  have zero_ne_two : (0 : Fin 3) ≠ (2 : Fin 3), dec_trivial,
-  exact zero_ne_two imposs,
-end
+by
+  intro ass
+  have imposs : (0 : Fin 3) = 2 := by
+    exact Sum.inr.inj (symbol.nonterminal.inj ass)
+  have zero_ne_two : (0 : Fin 3) ≠ (2 : Fin 3) := by
+    decide
+  exact zero_ne_two imposs
 
 private lemma H_neq_R {N : Type} :  H ≠ @R T N  :=
-begin
-  intro ass,
-  have imposs := sum.inr.inj (symbol.nonterminal.inj ass),
-  have one_ne_two : (1 : Fin 3) ≠ (2 : Fin 3), dec_trivial,
-  exact one_ne_two imposs,
-end
+by
+  intro ass
+  have imposs : (1 : Fin 3) = 2 := by
+    exact Sum.inr.inj (symbol.nonterminal.inj ass)
+  have one_ne_two : (1 : Fin 3) ≠ (2 : Fin 3) := by
+    decide
+  exact one_ne_two imposs
 
 end specific_symbols
 
@@ -52,27 +54,27 @@ section construction
 
 private def wrap_sym {N : Type} : symbol T N → ns T N
 | (symbol.terminal t)    := symbol.terminal t
-| (symbol.nonterminal n) := symbol.nonterminal (sum.inl n)
+| (symbol.nonterminal n) := symbol.nonterminal (Sum.inl n)
 
 private def wrap_gr {N : Type} (r : grule T N) : grule T (nn N) :=
 grule.mk
   (List.map wrap_sym r.input_L)
-  (sum.inl r.input_N)
+  (Sum.inl r.input_N)
   (List.map wrap_sym r.input_R)
   (List.map wrap_sym r.output_string)
 
 private def rules_that_scan_terminals (g : grammar T) : List (grule T (nn g.nt)) :=
 List.map (λ t, grule.mk
-    [] (sum.inr 2) [symbol.terminal t] [symbol.terminal t, R]
+    [] (Sum.inr 2) [symbol.terminal t] [symbol.terminal t, R]
   ) (all_used_terminals g)
 
 -- based on `/informal/KleeneStar.pdf`
 private def star_grammar (g : grammar T) : grammar T :=
-grammar.mk (nn g.nt) (sum.inr 0) (
-  grule.mk [] (sum.inr 0) [] [Z, S, H] ::
-  grule.mk [] (sum.inr 0) [] [R, H] ::
-  grule.mk [] (sum.inr 2) [H] [R] ::
-  grule.mk [] (sum.inr 2) [H] [] ::
+grammar.mk (nn g.nt) (Sum.inr 0) (
+  grule.mk [] (Sum.inr 0) [] [Z, S, H] ::
+  grule.mk [] (Sum.inr 0) [] [R, H] ::
+  grule.mk [] (Sum.inr 2) [H] [R] ::
+  grule.mk [] (Sum.inr 2) [H] [] ::
   List.map wrap_gr g.rules ++
   rules_that_scan_terminals g
 )

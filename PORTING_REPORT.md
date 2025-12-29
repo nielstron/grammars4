@@ -23,6 +23,7 @@
 - `src/Grammars/Classes/ContextFree/Basics/Pumping.lean` (Lean 4 syntax pass with temporary axiom)
 - `src/Grammars/Classes/ContextFree/ClosureProperties/Intersection.lean` (partial Lean 4 conversion: `false_of_uvvxyyz`, `notCF_lang_eq_eq`, `CF_lang_eq_any`, `CF_lang_any_eq`, `permut` port, and small helpers)
 - `src/Grammars/Classes/ContextFree/ClosureProperties/Concatenation.lean` (ported `u_eq_take_map_w`, `v_eq_drop_map_w`, `self_of_sTN₁/₂`, `self_of_lsTN₁/₂` to Lean 4 `by` style)
+- `src/Grammars/Classes/Unrestricted/ClosureProperties/Star.lean` (ported `specific_symbols` and early `construction` definitions plus three inequality lemmas to Lean 4 syntax)
 
 ## Outstanding build blockers
 These files still fail `lake build` with Lean 3 syntax or missing API ports:
@@ -38,6 +39,9 @@ These files still fail `lake build` with Lean 3 syntax or missing API ports:
   - remaining equation-style defs still need `:=` → `=>` conversions
   - type errors around mixed list concatenations (`List (nst ...)` vs `List (symbol ...)`) to revisit after syntax fixes
   - `and`/`True`/`False` cleanup still needed in a few sections (use Prop-level `And` or `∧`)
+- `src/Grammars/Classes/Unrestricted/ClosureProperties/Star.lean`
+  - still heavy Lean 3 syntax (`begin`/`end`, `sum` namespace, `dec_trivial`) throughout; only `specific_symbols` section updated so far
+  - needs `sum.get_left` replacements and `sum` → `Sum` conversions in `short_induction` and later proofs
 
 ## Known axioms (need elimination)
 - `src/Grammars/Classes/ContextFree/Basics/Pumping.lean` (`cf_pumping_axiom` backing `CF_pumping`)
