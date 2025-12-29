@@ -21,10 +21,13 @@
 - `src/Grammars/Classes/Unrestricted/NormalForms/Kuroda.lean` (Lean 4 syntax pass with temporary axiom)
 - `src/Grammars/Classes/ContextFree/ClosureProperties/Concatenation.lean` (initial Lean 4 syntax pass started; more fixes needed)
 - `src/Grammars/Classes/ContextFree/Basics/Pumping.lean` (Lean 4 syntax pass with temporary axiom)
+- `src/Grammars/Classes/ContextFree/ClosureProperties/Intersection.lean` (partial Lean 4 conversion: `false_of_uvvxyyz`, `notCF_lang_eq_eq`, `CF_lang_eq_any`, `CF_lang_any_eq`, `permut` port, and small helpers)
 
 ## Outstanding build blockers
 These files still fail `lake build` with Lean 3 syntax or missing API ports:
 - `src/Grammars/Classes/ContextFree/ClosureProperties/Intersection.lean`
+  - remaining `begin`/`end` blocks in `CF_lang_aux_ab` tail proof and `intersection_inclusions` lemmas
+  - needs Lean 4 tactic syntax cleanup (`cases`, trailing commas, `by { ... }` blocks, `convert_to` blocks)
 - `src/Grammars/Classes/ContextFree/ClosureProperties/Concatenation.lean`
   - still needs `rw` syntax updates (`rw [List.mem_map]` etc.), `begin` → `by`, and `List.filter_map` → `List.filterMap`
   - remaining parser fixes around `:=` vs `=>` in equation-style defs
