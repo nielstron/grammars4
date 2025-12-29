@@ -11,19 +11,19 @@ CF_grammar.mk (Option (g₁.nt ⊕ g₂.nt)) none (
 )
 
 
-variables {g₁ g₂ : CF_grammar T}
+variable {g₁ g₂ : CF_grammar T}
 
 section lifted_grammars
 
 private def oN₁_of_N : (union_grammar g₁ g₂).nt → (Option g₁.nt)
-| none := none
-| (some (Sum.inl nonte)) := some nonte
-| (some (Sum.inr _)) := none
+| none => none
+| (some (Sum.inl nonte)) => some nonte
+| (some (Sum.inr _)) => none
 
 private def oN₂_of_N : (union_grammar g₁ g₂).nt → (Option g₂.nt)
-| none := none
-| (some (Sum.inl _)) := none
-| (some (Sum.inr nonte)) := some nonte
+| none => none
+| (some (Sum.inl _)) => none
+| (some (Sum.inr nonte)) => some nonte
 
 
 private def g₁g : @lifted_grammar T :=
