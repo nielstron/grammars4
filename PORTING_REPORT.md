@@ -1,6 +1,8 @@
 # Lean 4 Porting Report
 
 ## Completed in this pass
+- `src/Grammars/Classes/ContextFree/ClosureProperties/Intersection.lean` (ported remaining `begin` blocks in `intersection_inclusions` + `nnyCF_of_CF_i_CF` to `by` style)
+- `src/Grammars/Classes/ContextFree/ClosureProperties/Concatenation.lean` (ported `in_combined_of_in_concatenated` + `CF_of_CF_c_CF` to Lean 4 `by` style)
 - `src/Grammars/Classes/ContextSensitive/ClosureProperties/Concatenation.lean` (Lean 4 syntax pass: `Sum` constructors and `by` blocks)
 - `src/Grammars/Classes/Unrestricted/ClosureProperties/Concatenation.lean` (partial Lean 4 cleanup: `begin` removal, `corresponding_symbols` port, early lemma rewrites)
 - `src/Grammars/Classes/Unrestricted/ClosureProperties/ConcatenationBonus.lean` (Lean 4 syntax pass for two proofs)
@@ -27,11 +29,9 @@
 
 ## Outstanding build blockers
 These files still fail `lake build` with Lean 3 syntax or missing API ports:
-- `src/Grammars/Classes/ContextFree/ClosureProperties/Intersection.lean`
-  - remaining `begin`/`end` blocks in `CF_lang_aux_ab` tail proof and `intersection_inclusions` lemmas
-  - needs Lean 4 tactic syntax cleanup (`cases`, trailing commas, `by { ... }` blocks, `convert_to` blocks)
 - `src/Grammars/Classes/ContextFree/ClosureProperties/Concatenation.lean`
   - still needs `rw` syntax updates (`rw [List.mem_map]` etc.), `begin` → `by`, and `List.filter_map` → `List.filterMap`
+  - `in_concatenated_of_in_combined` still in Lean 3 block style and needs Lean 4 tactic syntax pass
   - remaining parser fixes around `:=` vs `=>` in equation-style defs
 - `src/Grammars/Classes/ContextFree/ClosureProperties/Union.lean` (now fails because `Concatenation.lean` fails)
 - `src/Grammars/Classes/Unrestricted/ClosureProperties/Concatenation.lean`
