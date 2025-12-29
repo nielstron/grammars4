@@ -1,6 +1,8 @@
 # Lean 4 Porting Report
 
 ## Completed in this pass
+- `src/Grammars/Classes/ContextSensitive/ClosureProperties/Concatenation.lean` (Lean 4 syntax pass: `Sum` constructors and `by` blocks)
+- `src/Grammars/Classes/Unrestricted/ClosureProperties/Concatenation.lean` (partial Lean 4 cleanup: `begin` removal, `corresponding_symbols` port, early lemma rewrites)
 - `src/Grammars/Classes/Unrestricted/ClosureProperties/ConcatenationBonus.lean` (Lean 4 syntax pass for two proofs)
 - `src/Grammars/Classes/Unrestricted/ClosureProperties/UnionBonus.lean` (Lean 4 syntax pass for two proofs)
 - `src/Grammars/Classes/ContextSensitive/Basics/Inclusion.lean`
@@ -27,6 +29,10 @@ These files still fail `lake build` with Lean 3 syntax or missing API ports:
   - remaining parser fixes around `:=` vs `=>` in equation-style defs
 - `src/Grammars/Classes/ContextFree/ClosureProperties/Union.lean` (now fails because `Concatenation.lean` fails)
 - `src/Grammars/Classes/Unrestricted/ClosureProperties/Concatenation.lean`
+  - heavy Lean 3 syntax cleanup still in progress; many lemmas retain trailing commas and `by { ... }` blocks
+  - remaining equation-style defs still need `:=` → `=>` conversions
+  - type errors around mixed list concatenations (`List (nst ...)` vs `List (symbol ...)`) to revisit after syntax fixes
+  - `and`/`True`/`False` cleanup still needed in a few sections (use Prop-level `And` or `∧`)
 
 ## Known sorries
 - `src/Grammars/Classes/ContextFree/Basics/Pumping.lean` (`CF_pumping`)
@@ -42,3 +48,5 @@ These files still fail `lake build` with Lean 3 syntax or missing API ports:
 
 ## Build/test notes
 - `lake build Grammars.Classes.Unrestricted.ClosureProperties.ConcatenationBonus` failed because `src/Grammars/Classes/Unrestricted/ClosureProperties/Concatenation.lean` still has Lean 3 syntax (`begin`/`end`, `:=` vs `=>`) and typeclass issues.
+- `lake build Grammars.Classes.ContextSensitive.ClosureProperties.Concatenation` currently fails in `src/Grammars/Classes/Unrestricted/ClosureProperties/Concatenation.lean` due to remaining `begin`/`end` and parser errors.
+- `lake build Grammars.Classes.Unrestricted.ClosureProperties.Concatenation` currently fails with many Lean 4 syntax errors (trailing commas, `:=` vs `=>`, `by { ... }`) and a few proof obligations in the `correspondence_for_terminals` and `unwrapping_nst` sections.
