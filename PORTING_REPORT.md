@@ -13,6 +13,7 @@
 - `src/Grammars/Classes/ContextFree/Basics/Lifting.lean`
 - `src/Grammars/Classes/Unrestricted/Basics/Lifting.lean`
 - `src/Grammars/Classes/Unrestricted/ClosureProperties/Reverse.lean`
+- `src/Grammars/Classes/Unrestricted/ClosureProperties/Union.lean` (Lean 4 syntax + proof fixes; builds with warnings)
 - `src/Grammars/Classes/Unrestricted/NormalForms/Kuroda.lean` (syntax only; theorem still `sorry`)
 - `src/Grammars/Classes/ContextFree/ClosureProperties/Concatenation.lean` (initial Lean 4 syntax pass started; more fixes needed)
 
@@ -24,10 +25,6 @@ These files still fail `lake build` with Lean 3 syntax or missing API ports:
   - remaining parser fixes around `:=` vs `=>` in equation-style defs
 - `src/Grammars/Classes/ContextFree/ClosureProperties/Union.lean` (now fails because `Concatenation.lean` fails)
 - `src/Grammars/Classes/Unrestricted/ClosureProperties/Concatenation.lean`
-- `src/Grammars/Classes/Unrestricted/ClosureProperties/Union.lean`
-  - partial port; still many Lean 3 `begin`/`end`, `repeat`, and `rw`/`simp` steps to update
-  - remaining `List.nthLe` uses and `List.forall₂` API adjustments (now `List.Forall₂`)
-  - pending updates in `easy_direction`, `correspondence_for_terminals`, `unwrapping_nst`, and `very_complicated`
 
 ## Known sorries
 - `src/Grammars/Classes/ContextFree/Basics/Pumping.lean` (`CF_pumping`)
@@ -38,4 +35,5 @@ These files still fail `lake build` with Lean 3 syntax or missing API ports:
 - Unused simp args in `src/Grammars/Classes/ContextFree/ClosureProperties/Reverse.lean`
 - Unused simp args and minor lints in `src/Grammars/Classes/ContextFree/Basics/Lifting.lean`
 - Unused variable warning in `src/Grammars/Classes/Unrestricted/Basics/Lifting.lean`
+- Minor simp/lint suggestions in `src/Grammars/Classes/Unrestricted/ClosureProperties/Union.lean`
 - Deprecated `structure ... :=` and `variables` warnings in several definition files

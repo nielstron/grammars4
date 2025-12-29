@@ -206,8 +206,8 @@ lifted_grammar.mk g₂ (combined_grammar g₁ g₂) (some ∘ Sum.inr) (by
 
 
 private def oT_of_sTN₃ {g₃ : CF_grammar T} : symbol T g₃.nt → Option T
-| (symbol.terminal t) := some t
-| (symbol.nonterminal _) := none
+| (symbol.terminal t) => some t
+| (symbol.nonterminal _) => none
 
 private def liT_of_lsTN₃ {g₃ : CF_grammar T} : List (symbol T g₃.nt) → List T :=
 List.filter_map oT_of_sTN₃
@@ -498,7 +498,7 @@ begin
     exfalso,
     have hh := congr_fun (congr_arg List.nth refl_contr) 0,
     rw List.nth at hh,
-    
+
     by_cases (List.map (@symbol.terminal T (combined_grammar g₁ g₂).nt) w).length = 0,
     {
       have empty_none : (List.map symbol.terminal w).nth 0 = none,
@@ -784,7 +784,7 @@ begin
 
         exact not_in yes_in,
       },
-      
+
       -- nonterminal was rewritten in the left half of `a` ... upgrade `u`
       let d' : List (symbol T (combined_grammar g₁ g₂).nt) :=
         List.take ((@lsTN_of_lsTN₁ T g₁ g₂ u).length - (c.length + 1)) d,
@@ -1528,7 +1528,7 @@ begin
     change CF_derives g₁ [symbol.nonterminal g₁.initial] (List.map symbol.terminal u) at hu,
     let gg₁ := g₁g g₁ g₂,
     change CF_derives gg₁.g [symbol.nonterminal (some (Sum.inl g₁.initial))] (List.map symbol.terminal u),
-    
+
     have ini_equ :
       [symbol.nonterminal (some (Sum.inl g₁.initial))] =
       List.map (lift_symbol gg₁.lift_nt) [symbol.nonterminal g₁.initial],
@@ -1545,7 +1545,7 @@ begin
       refl,
     },
     rw baz,
-    
+
     exact lift_deri hu,
   },
   {
@@ -1554,7 +1554,7 @@ begin
     change CF_derives g₂ [symbol.nonterminal g₂.initial] (List.map symbol.terminal v) at hv,
     let gg₂ := g₂g g₁ g₂,
     change CF_derives gg₂.g [symbol.nonterminal (some (Sum.inr g₂.initial))] (List.map symbol.terminal v),
-    
+
     have ini_equ :
       [symbol.nonterminal (some (Sum.inr g₂.initial))] =
       List.map (lift_symbol gg₂.lift_nt) [symbol.nonterminal g₂.initial],
@@ -1571,7 +1571,7 @@ begin
       refl,
     },
     rw baz,
-    
+
     exact lift_deri hv,
   },
 end
