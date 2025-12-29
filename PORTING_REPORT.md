@@ -4,6 +4,8 @@
 - `src/Grammars/Classes/ContextSensitive/Basics/Inclusion.lean`
 - `src/Grammars/Classes/ContextFree/Basics/Inclusion.lean`
 - `src/Grammars/Classes/ContextFree/ClosureProperties/Bijection.lean`
+- `src/Grammars/Classes/ContextFree/ClosureProperties/Union.lean` (syntax + tactic port)
+- `src/Grammars/Classes/ContextFree/ClosureProperties/Complement.lean`
 - `src/Grammars/Classes/ContextFree/ClosureProperties/Permutation.lean`
 - `src/Grammars/Classes/ContextFree/ClosureProperties/Reverse.lean`
 - `src/Grammars/Utilities/WrittenByOthers/ListTakeJoin.lean`
@@ -15,7 +17,8 @@
 
 ## Outstanding build blockers
 These files still fail `lake build` with Lean 3 syntax or missing API ports:
-- `src/Grammars/Classes/ContextFree/Basics/Elementary.lean`
+- `src/Grammars/Classes/ContextFree/ClosureProperties/Intersection.lean`
+- `src/Grammars/Classes/ContextFree/ClosureProperties/Concatenation.lean`
 - `src/Grammars/Classes/Unrestricted/ClosureProperties/Concatenation.lean`
   - partial port; still many Lean 3 `begin`/`end`, `repeat`, and `rw`/`simp` steps to update
   - remaining `List.nthLe` uses and `List.forall₂` API adjustments (now `List.Forall₂`)

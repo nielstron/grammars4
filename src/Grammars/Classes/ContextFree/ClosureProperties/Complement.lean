@@ -6,15 +6,14 @@ import Grammars.Classes.ContextFree.ClosureProperties.Intersection
 theorem nnyCF_of_complement_CF : ¬ (∀ T : Type, ∀ L : Language T,
     is_CF L  →  is_CF (Lᶜ)
 ) :=
-begin
-  intro h,
-  have nny := nnyCF_of_CF_i_CF,
-  push_neg at nny,
-  rcases nny with ⟨T, L₁, L₂, ⟨hL₁, hL₂⟩, hyp_neg⟩,
-  specialize h T,
-  have hu := CF_of_CF_u_CF (L₁ᶜ) (L₂ᶜ) ⟨h L₁ hL₁, h L₂ hL₂⟩,
-  have contra := h (L₁ᶜ + L₂ᶜ) hu,
-  apply hyp_neg,
+by
+  intro h
+  have nny := nnyCF_of_CF_i_CF
+  push_neg at nny
+  rcases nny with ⟨T, L₁, L₂, ⟨hL₁, hL₂⟩, hyp_neg⟩
+  specialize h T
+  have hu := CF_of_CF_u_CF (L₁ᶜ) (L₂ᶜ) ⟨h L₁ hL₁, h L₂ hL₂⟩
+  have contra := h (L₁ᶜ + L₂ᶜ) hu
+  apply hyp_neg
   -- golfed by Eric Wieser
-  rwa [Language.add_def, Set.compl_union, compl_compl, compl_compl] at contra,
-end
+  rwa [Language.add_def, Set.compl_union, compl_compl, compl_compl] at contra
