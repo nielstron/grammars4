@@ -2,217 +2,207 @@ import Grammars.Classes.ContextFree.Basics.Lifting
 import Grammars.Utilities.WrittenByOthers.TrimAssoc
 
 
-variables {T : Type}
+variable {T : Type}
 
 private def combined_grammar (gₗ gᵣ : CF_grammar T) : CF_grammar T :=
 CF_grammar.mk
   (Option (gₗ.nt ⊕ gᵣ.nt))
   none
   ((none, [
-    symbol.nonterminal (some (sum.inl (gₗ.initial))),
-    symbol.nonterminal (some (sum.inr (gᵣ.initial)))
+    symbol.nonterminal (some (Sum.inl (gₗ.initial))),
+    symbol.nonterminal (some (Sum.inr (gᵣ.initial)))
   ]) :: (
     (List.map rule_of_rule₁ gₗ.rules) ++ (List.map rule_of_rule₂ gᵣ.rules)
   ))
 
 /-- similar to `sink_symbol` -/
-private def oN₁_of_N {g₁ g₂ : CF_grammar T} : (combined_grammar g₁ g₂).nt → (Option g₁.nt)
-| none := none
-| (some (sum.inl nt)) := some nt
-| (some (sum.inr _)) := none
+private def oN₁_of_N {g₁ g₂ : CF_grammar T} : (combined_grammar g₁ g₂).nt → Option g₁.nt
+| none => none
+| (some (Sum.inl nt)) => some nt
+| (some (Sum.inr _)) => none
 
 /-- similar to `sink_symbol` -/
-private def oN₂_of_N {g₁ g₂ : CF_grammar T} : (combined_grammar g₁ g₂).nt → (Option g₂.nt)
-| none := none
-| (some (sum.inl _)) := none
-| (some (sum.inr nt)) := some nt
+private def oN₂_of_N {g₁ g₂ : CF_grammar T} : (combined_grammar g₁ g₂).nt → Option g₂.nt
+| none => none
+| (some (Sum.inl _)) => none
+| (some (Sum.inr nt)) => some nt
 
 
 private def g₁g (g₁ g₂ : CF_grammar T) : @lifted_grammar T :=
-lifted_grammar.mk g₁ (combined_grammar g₁ g₂) (some ∘ sum.inl) (by {
-  -- prove `function.injective (some ∘ sum.inl)` here
-  intros x y hyp,
-  apply sum.inl_injective,
-  apply Option.some_injective,
-  exact hyp,
-}) (by {
-  -- prove `∀ r ∈ g₁.rules` we have `lift_rule (some ∘ sum.inl) r ∈ List.map rule_of_rule₁ g₁.rules` here
-  intros r hyp,
-  apply List.mem_cons_of_mem,
-  apply List.mem_append_left,
-  rw List.mem_map,
-  use r,
-  split,
-  {
-    exact hyp,
-  },
-  unfold rule_of_rule₁,
-  unfold lift_rule,
-  norm_num,
-  unfold lift_string,
-  unfold lsTN_of_lsTN₁,
-  five_steps,
-}) oN₁_of_N (by {
-  intros x y ass,
-  cases x,
-  {
-    right,
-    refl,
-  },
-  cases x, swap,
-  {
-    right,
-    refl,
-  },
-  cases y,
-  {
-    rw ass,
-    right,
-    refl,
-  },
-  cases y, swap,
-  {
-    tauto,
-  },
-  left,
-  simp only [oN₁_of_N] at ass,
-  apply congr_arg,
-  apply congr_arg,
-  exact ass,
-}) (by {
-  intro r,
-  rintro ⟨r_in, r_ntype⟩,
-  cases r_in,
-  {
-    exfalso,
-    rw r_in at r_ntype,
-    dsimp only at r_ntype,
-    cases r_ntype with n₀ imposs,
-    exact Option.no_confusion imposs,
-  },
-  change r ∈ (List.map rule_of_rule₁ g₁.rules ++ List.map rule_of_rule₂ g₂.rules) at r_in,
-  rw List.mem_append at r_in,
-  cases r_in,
-  {
-    rw List.mem_map at r_in,
-    rcases r_in with ⟨r₁, r₁_in, r₁_convert_r⟩,
-    use r₁,
-    split,
-    {
-      exact r₁_in,
-    },
-    rw ←r₁_convert_r,
-    simp only [
-      lift_rule, rule_of_rule₁, lift_string, lsTN_of_lsTN₁,
-      prod.mk.inj_iff, eq_self_iff_true, true_and
-    ],
-    five_steps,
-  },
-  {
-    exfalso,
-    rw List.mem_map at r_in,
-    rcases r_in with ⟨r₂, r₂_in, r₂_convert_r⟩,
-    rw ←r₂_convert_r at r_ntype,
-    unfold rule_of_rule₂ at r_ntype,
-    dsimp only at r_ntype,
-    cases r_ntype with n₁ contr,
-    rw Option.some_inj at contr,
-    exact sum.no_confusion contr,
-  },
-}) (by { intro, refl })
+lifted_grammar.mk g₁ (combined_grammar g₁ g₂) (some ∘ Sum.inl) (by
+  -- prove `function.injective (some ∘ Sum.inl)` here
+  intros x y hyp
+  apply Sum.inl_injective
+  apply Option.some_injective
+  exact hyp
+) (by
+  -- prove `∀ r ∈ g₁.rules` we have `lift_rule (some ∘ Sum.inl) r ∈ List.map rule_of_rule₁ g₁.rules` here
+  intros r hyp
+  apply List.mem_cons_of_mem
+  apply List.mem_append_left
+  rw [List.mem_map]
+  use r
+  split
+  · exact hyp
+  unfold rule_of_rule₁
+  unfold lift_rule
+  norm_num
+  unfold lift_string
+  unfold lsTN_of_lsTN₁
+  five_steps
+) oN₁_of_N (by
+  intros x y ass
+  cases x with
+  | none =>
+      right
+      rfl
+  | some x =>
+      cases x with
+      | inl =>
+          cases y with
+          | none =>
+              rw ass
+              right
+              rfl
+          | some y =>
+              cases y with
+              | inl =>
+                  left
+                  simp only [oN₁_of_N] at ass
+                  exact congrArg (fun nt => some nt) (congrArg id ass)
+              | inr =>
+                  tauto
+      | inr =>
+          right
+          rfl
+) (by
+  intro r
+  rintro ⟨r_in, r_ntype⟩
+  have r_in' := List.mem_cons.1 r_in
+  cases r_in' with
+  | inl r_eq =>
+      exfalso
+      rcases r_ntype with ⟨n₀, r_ntype⟩
+      have : (some (Sum.inl n₀) : Option (g₁.nt ⊕ g₂.nt)) = none := by
+        simpa [r_eq] using r_ntype
+      cases this
+  | inr r_in =>
+      change r ∈ (List.map rule_of_rule₁ g₁.rules ++ List.map rule_of_rule₂ g₂.rules) at r_in
+      rw [List.mem_append] at r_in
+      cases r_in with
+      | inl r_in =>
+          rw [List.mem_map] at r_in
+          rcases r_in with ⟨r₁, r₁_in, r₁_convert_r⟩
+          use r₁
+          split
+          · exact r₁_in
+          rw ←r₁_convert_r
+          simp only [
+            lift_rule, rule_of_rule₁, lift_string, lsTN_of_lsTN₁,
+            prod.mk.inj_iff, eq_self_iff_true, true_and
+          ]
+          five_steps
+      | inr r_in =>
+          exfalso
+          rw [List.mem_map] at r_in
+          rcases r_in with ⟨r₂, r₂_in, r₂_convert_r⟩
+          rcases r_ntype with ⟨n₁, r_ntype⟩
+          have : (some (Sum.inl n₁) : Option (g₁.nt ⊕ g₂.nt)) =
+              some (Sum.inr r₂.fst) := by
+            simpa [r₂_convert_r] using r_ntype
+          cases this
+) (by
+  intro
+  rfl
+)
 
 private def g₂g (g₁ g₂ : CF_grammar T) : @lifted_grammar T :=
-lifted_grammar.mk g₂ (combined_grammar g₁ g₂) (some ∘ sum.inr) (by {
-  -- prove `function.injective (some ∘ sum.inr)` here
-  intros x y hyp,
-  apply sum.inr_injective,
-  apply Option.some_injective,
-  exact hyp,
-}) (by {
-  -- prove `∀ r ∈ g₂.rules` we have `lift_rule (some ∘ sum.inr) r ∈ List.map rule_of_rule₂ g₂.rules` here
-  intros r hyp,
-  apply List.mem_cons_of_mem,
-  apply List.mem_append_right,
-  rw List.mem_map,
-  use r,
-  split,
-  {
-    exact hyp,
-  },
-  unfold rule_of_rule₂,
-  unfold lift_rule,
-  norm_num,
-  unfold lift_string,
-  unfold lsTN_of_lsTN₂,
-  five_steps,
-}) oN₂_of_N (by {
-  intros x y ass,
-  cases x,
-  {
-    right,
-    refl,
-  },
-  cases x,
-  {
-    right,
-    refl,
-  },
-  cases y,
-  {
-    right,
-    rw ass,
-    refl,
-  },
-  cases y,
-  {
-    tauto,
-  },
-  left,
-  simp only [oN₂_of_N] at ass,
-  apply congr_arg,
-  apply congr_arg,
-  exact ass,
-}) (by {
-  intro r,
-  rintro ⟨r_in, r_ntype⟩,
-  cases r_in,
-  {
-    exfalso,
-    rw r_in at r_ntype,
-    dsimp only at r_ntype,
-    cases r_ntype with n₀ imposs,
-    exact Option.no_confusion imposs,
-  },
-  change r ∈ (List.map rule_of_rule₁ g₁.rules ++ List.map rule_of_rule₂ g₂.rules) at r_in,
-  rw List.mem_append at r_in,
-  cases r_in,
-  {
-    exfalso,
-    rw List.mem_map at r_in,
-    rcases r_in with ⟨r₁, r₁_in, r₁_convert_r⟩,
-    rw ←r₁_convert_r at r_ntype,
-    unfold rule_of_rule₁ at r_ntype,
-    dsimp only at r_ntype,
-    cases r_ntype with n₂ contr,
-    rw Option.some_inj at contr,
-    exact sum.no_confusion contr,
-  },
-  {
-    rw List.mem_map at r_in,
-    rcases r_in with ⟨r₂, r₂_in, r₂_convert_r⟩,
-    use r₂,
-    split,
-    {
-      exact r₂_in,
-    },
-    rw ←r₂_convert_r,
-    simp only [
-      lift_rule, rule_of_rule₂, lift_string, lsTN_of_lsTN₂,
-      prod.mk.inj_iff, eq_self_iff_true, true_and
-    ],
-    five_steps,
-  },
-}) (by { intro, refl })
+lifted_grammar.mk g₂ (combined_grammar g₁ g₂) (some ∘ Sum.inr) (by
+  -- prove `function.injective (some ∘ Sum.inr)` here
+  intros x y hyp
+  apply Sum.inr_injective
+  apply Option.some_injective
+  exact hyp
+) (by
+  -- prove `∀ r ∈ g₂.rules` we have `lift_rule (some ∘ Sum.inr) r ∈ List.map rule_of_rule₂ g₂.rules` here
+  intros r hyp
+  apply List.mem_cons_of_mem
+  apply List.mem_append_right
+  rw [List.mem_map]
+  use r
+  split
+  · exact hyp
+  unfold rule_of_rule₂
+  unfold lift_rule
+  norm_num
+  unfold lift_string
+  unfold lsTN_of_lsTN₂
+  five_steps
+) oN₂_of_N (by
+  intros x y ass
+  cases x with
+  | none =>
+      right
+      rfl
+  | some x =>
+      cases x with
+      | inl =>
+          right
+          rfl
+      | inr =>
+          cases y with
+          | none =>
+              right
+              rw ass
+              rfl
+          | some y =>
+              cases y with
+              | inl =>
+                  tauto
+              | inr =>
+                  left
+                  simp only [oN₂_of_N] at ass
+                  exact congrArg (fun nt => some nt) (congrArg id ass)
+) (by
+  intro r
+  rintro ⟨r_in, r_ntype⟩
+  have r_in' := List.mem_cons.1 r_in
+  cases r_in' with
+  | inl r_eq =>
+      exfalso
+      rcases r_ntype with ⟨n₀, r_ntype⟩
+      have : (some (Sum.inr n₀) : Option (g₁.nt ⊕ g₂.nt)) = none := by
+        simpa [r_eq] using r_ntype
+      cases this
+  | inr r_in =>
+      change r ∈ (List.map rule_of_rule₁ g₁.rules ++ List.map rule_of_rule₂ g₂.rules) at r_in
+      rw [List.mem_append] at r_in
+      cases r_in with
+      | inl r_in =>
+          exfalso
+          rw [List.mem_map] at r_in
+          rcases r_in with ⟨r₁, r₁_in, r₁_convert_r⟩
+          rcases r_ntype with ⟨n₂, r_ntype⟩
+          have : (some (Sum.inr n₂) : Option (g₁.nt ⊕ g₂.nt)) =
+              some (Sum.inl r₁.fst) := by
+            simpa [r₁_convert_r] using r_ntype
+          cases this
+      | inr r_in =>
+          rw [List.mem_map] at r_in
+          rcases r_in with ⟨r₂, r₂_in, r₂_convert_r⟩
+          use r₂
+          split
+          · exact r₂_in
+          rw ←r₂_convert_r
+          simp only [
+            lift_rule, rule_of_rule₂, lift_string, lsTN_of_lsTN₂,
+            prod.mk.inj_iff, eq_self_iff_true, true_and
+          ]
+          five_steps
+) (by
+  intro
+  rfl
+)
 
 
 private def oT_of_sTN₃ {g₃ : CF_grammar T} : symbol T g₃.nt → Option T
@@ -540,8 +530,8 @@ begin
   have only_option :
     y =
     [
-      symbol.nonterminal (some (sum.inl (g₁.initial))),
-      symbol.nonterminal (some (sum.inr (g₂.initial)))
+      symbol.nonterminal (some (Sum.inl (g₁.initial))),
+      symbol.nonterminal (some (Sum.inr (g₂.initial)))
     ],
   {
     rcases first_step with ⟨first_rule, first_rule_in, p, q, bef, aft⟩,
@@ -576,14 +566,14 @@ begin
     },
     have only_rule :
       first_rule = (none, [
-        symbol.nonterminal (some (sum.inl (g₁.initial))),
-        symbol.nonterminal (some (sum.inr (g₂.initial)))
+        symbol.nonterminal (some (Sum.inl (g₁.initial))),
+        symbol.nonterminal (some (Sum.inr (g₂.initial)))
       ]),
     {
       change first_rule ∈ (
         (none, [
-          symbol.nonterminal (some (sum.inl (g₁.initial))),
-          symbol.nonterminal (some (sum.inr (g₂.initial)))
+          symbol.nonterminal (some (Sum.inl (g₁.initial))),
+          symbol.nonterminal (some (Sum.inr (g₂.initial)))
         ]) :: (
           (List.map rule_of_rule₁ g₁.rules) ++ (List.map rule_of_rule₂ g₂.rules)
         )
@@ -594,7 +584,7 @@ begin
       },
       exfalso,
       change first_rule ∈ (List.map rule_of_rule₁ g₁.rules ++ List.map rule_of_rule₂ g₂.rules) at first_rule_in,
-      rw List.mem_append at first_rule_in,
+      rw [List.mem_append] at first_rule_in,
       cases first_rule_in,
       {
         delta rule_of_rule₁ at first_rule_in,
@@ -602,7 +592,7 @@ begin
           first_rule.fst ∈ List.map prod.fst
             (List.map (
                 λ (r : g₁.nt × List (symbol T g₁.nt)),
-                (some (sum.inl r.fst), lsTN_of_lsTN₁ r.snd)
+                (some (Sum.inl r.fst), lsTN_of_lsTN₁ r.snd)
               ) g₁.rules),
         {
           exact List.mem_map_of_mem prod.fst first_rule_in,
@@ -617,7 +607,7 @@ begin
           first_rule.fst ∈ List.map prod.fst
             (List.map (
                 λ (r : g₂.nt × List (symbol T g₂.nt)),
-                (some (sum.inr r.fst), lsTN_of_lsTN₂ r.snd)
+                (some (Sum.inr r.fst), lsTN_of_lsTN₂ r.snd)
               ) g₂.rules),
         {
           exact List.mem_map_of_mem prod.fst first_rule_in,
@@ -641,8 +631,8 @@ begin
       CF_derives
         (combined_grammar g₁ g₂)
         [
-          symbol.nonterminal (some (sum.inl (g₁.initial))),
-          symbol.nonterminal (some (sum.inr (g₂.initial)))
+          symbol.nonterminal (some (Sum.inl (g₁.initial))),
+          symbol.nonterminal (some (Sum.inr (g₂.initial)))
         ]
         x
       →
@@ -682,7 +672,7 @@ begin
       },
       have init_nt_notin_bef_left : symbol.nonterminal none ∉ lsTN_of_lsTN₁ u ++ lsTN_of_lsTN₂ v,
       {
-        rw List.mem_append,
+        rw [List.mem_append],
         push_neg,
         split,
         {
@@ -737,10 +727,10 @@ begin
     },
     clear derivation w,
     change orig_rule ∈ (List.map rule_of_rule₁ g₁.rules ++ List.map rule_of_rule₂ g₂.rules) at orig_in,
-    rw List.mem_append at orig_in,
+    rw [List.mem_append] at orig_in,
     cases orig_in,
     {
-      rw List.mem_map at orig_in,
+      rw [List.mem_map] at orig_in,
       rcases orig_in with ⟨r₁, r₁_in, r₁_conv⟩,
       rw aft,
       rw bef at ih_concat,
@@ -760,7 +750,7 @@ begin
         have not_in : symbol.nonterminal (rule_of_rule₁ r₁).fst ∉ lsTN_of_lsTN₂ v,
         {
           unfold lsTN_of_lsTN₂,
-          rw List.mem_map,
+          rw [List.mem_map],
           rintro ⟨s, -, imposs⟩,
           cases s,
           {
@@ -768,7 +758,7 @@ begin
           },
           {
             have inr_eq_inl := Option.some.inj (symbol.nonterminal.inj imposs),
-            exact sum.no_confusion inr_eq_inl,
+            exact Sum.no_confusion inr_eq_inl,
           },
         },
 
@@ -1142,7 +1132,7 @@ begin
       },
     },
     {
-      rw List.mem_map at orig_in,
+      rw [List.mem_map] at orig_in,
       rcases orig_in with ⟨r₂, r₂_in, r₂_conv⟩,
       rw aft,
       rw bef at ih_concat,
@@ -1162,7 +1152,7 @@ begin
         have not_in : symbol.nonterminal (rule_of_rule₂ r₂).fst ∉ lsTN_of_lsTN₁ u,
         {
           unfold lsTN_of_lsTN₁,
-          rw List.mem_map,
+          rw [List.mem_map],
           rintro ⟨s, -, imposs⟩,
           cases s,
           {
@@ -1170,7 +1160,7 @@ begin
           },
           {
             have inl_eq_inr := Option.some.inj (symbol.nonterminal.inj imposs),
-            exact sum.no_confusion inl_eq_inr,
+            exact Sum.no_confusion inl_eq_inr,
           },
         },
 
@@ -1506,13 +1496,13 @@ begin
   apply @CF_deri_of_tran_deri T
     (combined_grammar g₁ g₂)
     _ [
-      symbol.nonterminal (some (sum.inl (g₁.initial))),
-      symbol.nonterminal (some (sum.inr (g₂.initial)))
+      symbol.nonterminal (some (Sum.inl (g₁.initial))),
+      symbol.nonterminal (some (Sum.inr (g₂.initial)))
     ] _,
   {
     use (none, [
-        symbol.nonterminal (some (sum.inl (g₁.initial))),
-        symbol.nonterminal (some (sum.inr (g₂.initial)))
+        symbol.nonterminal (some (Sum.inl (g₁.initial))),
+        symbol.nonterminal (some (Sum.inr (g₂.initial)))
       ]),
     split,
     {
@@ -1526,21 +1516,21 @@ begin
   rw List.map_append,
   apply @CF_deri_of_deri_deri T
     (combined_grammar g₁ g₂) _
-    (List.map symbol.terminal u ++ [symbol.nonterminal (some (sum.inr g₂.initial))]) _,
+    (List.map symbol.terminal u ++ [symbol.nonterminal (some (Sum.inr g₂.initial))]) _,
   {
     change
       CF_derives
         (combined_grammar g₁ g₂)
-        ([symbol.nonterminal (some (sum.inl g₁.initial))] ++ [symbol.nonterminal (some (sum.inr g₂.initial))])
-        (List.map symbol.terminal u ++ [symbol.nonterminal (some (sum.inr g₂.initial))]),
+        ([symbol.nonterminal (some (Sum.inl g₁.initial))] ++ [symbol.nonterminal (some (Sum.inr g₂.initial))])
+        (List.map symbol.terminal u ++ [symbol.nonterminal (some (Sum.inr g₂.initial))]),
     apply CF_deri_with_postfix,
 
     change CF_derives g₁ [symbol.nonterminal g₁.initial] (List.map symbol.terminal u) at hu,
     let gg₁ := g₁g g₁ g₂,
-    change CF_derives gg₁.g [symbol.nonterminal (some (sum.inl g₁.initial))] (List.map symbol.terminal u),
+    change CF_derives gg₁.g [symbol.nonterminal (some (Sum.inl g₁.initial))] (List.map symbol.terminal u),
     
     have ini_equ :
-      [symbol.nonterminal (some (sum.inl g₁.initial))] =
+      [symbol.nonterminal (some (Sum.inl g₁.initial))] =
       List.map (lift_symbol gg₁.lift_nt) [symbol.nonterminal g₁.initial],
     {
       apply List.singleton_eq,
@@ -1563,10 +1553,10 @@ begin
 
     change CF_derives g₂ [symbol.nonterminal g₂.initial] (List.map symbol.terminal v) at hv,
     let gg₂ := g₂g g₁ g₂,
-    change CF_derives gg₂.g [symbol.nonterminal (some (sum.inr g₂.initial))] (List.map symbol.terminal v),
+    change CF_derives gg₂.g [symbol.nonterminal (some (Sum.inr g₂.initial))] (List.map symbol.terminal v),
     
     have ini_equ :
-      [symbol.nonterminal (some (sum.inr g₂.initial))] =
+      [symbol.nonterminal (some (Sum.inr g₂.initial))] =
       List.map (lift_symbol gg₂.lift_nt) [symbol.nonterminal g₂.initial],
     {
       apply List.singleton_eq,

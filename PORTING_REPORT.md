@@ -14,12 +14,17 @@
 - `src/Grammars/Classes/Unrestricted/Basics/Lifting.lean`
 - `src/Grammars/Classes/Unrestricted/ClosureProperties/Reverse.lean`
 - `src/Grammars/Classes/Unrestricted/NormalForms/Kuroda.lean` (syntax only; theorem still `sorry`)
+- `src/Grammars/Classes/ContextFree/ClosureProperties/Concatenation.lean` (initial Lean 4 syntax pass started; more fixes needed)
 
 ## Outstanding build blockers
 These files still fail `lake build` with Lean 3 syntax or missing API ports:
 - `src/Grammars/Classes/ContextFree/ClosureProperties/Intersection.lean`
 - `src/Grammars/Classes/ContextFree/ClosureProperties/Concatenation.lean`
+  - still needs `rw` syntax updates (`rw [List.mem_map]` etc.), `begin` → `by`, and `List.filter_map` → `List.filterMap`
+  - remaining parser fixes around `:=` vs `=>` in equation-style defs
+- `src/Grammars/Classes/ContextFree/ClosureProperties/Union.lean` (now fails because `Concatenation.lean` fails)
 - `src/Grammars/Classes/Unrestricted/ClosureProperties/Concatenation.lean`
+- `src/Grammars/Classes/Unrestricted/ClosureProperties/Union.lean`
   - partial port; still many Lean 3 `begin`/`end`, `repeat`, and `rw`/`simp` steps to update
   - remaining `List.nthLe` uses and `List.forall₂` API adjustments (now `List.Forall₂`)
   - pending updates in `easy_direction`, `correspondence_for_terminals`, `unwrapping_nst`, and `very_complicated`
