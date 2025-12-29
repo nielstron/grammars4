@@ -1,6 +1,8 @@
 # Lean 4 Porting Report
 
 ## Completed in this pass
+- `src/Grammars/Classes/Unrestricted/ClosureProperties/ConcatenationBonus.lean` (Lean 4 syntax pass for two proofs)
+- `src/Grammars/Classes/Unrestricted/ClosureProperties/UnionBonus.lean` (Lean 4 syntax pass for two proofs)
 - `src/Grammars/Classes/ContextSensitive/Basics/Inclusion.lean`
 - `src/Grammars/Classes/ContextFree/Basics/Inclusion.lean`
 - `src/Grammars/Classes/ContextFree/ClosureProperties/Bijection.lean`
@@ -37,3 +39,6 @@ These files still fail `lake build` with Lean 3 syntax or missing API ports:
 - Unused variable warning in `src/Grammars/Classes/Unrestricted/Basics/Lifting.lean`
 - Minor simp/lint suggestions in `src/Grammars/Classes/Unrestricted/ClosureProperties/Union.lean`
 - Deprecated `structure ... :=` and `variables` warnings in several definition files
+
+## Build/test notes
+- `lake build Grammars.Classes.Unrestricted.ClosureProperties.ConcatenationBonus` failed because `src/Grammars/Classes/Unrestricted/ClosureProperties/Concatenation.lean` still has Lean 3 syntax (`begin`/`end`, `:=` vs `=>`) and typeclass issues.

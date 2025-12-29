@@ -36,32 +36,27 @@ CF_grammar.mk
 
 private lemma big_CF_grammar_same_language (g₁ g₂ : CF_grammar T) :
   CF_language (big_CF_grammar g₁ g₂) = grammar_language (big_grammar (grammar_of_cfg g₁) (grammar_of_cfg g₂)) :=
-begin
-  rw CF_language_eq_grammar_language,
-  congr,
-  unfold big_CF_grammar,
-  unfold grammar_of_cfg,
-  unfold big_grammar,
-  dsimp only [List.map],
-  congr,
-  repeat {
-    rw List.map_append,
-  },
-  trim,
-  {
-    apply congr_arg2,
-    {
-      unfold rules_for_terminals₁,
-      unfold CF_rules_for_terminals₁,
-      finish,
-    },
-    {
-      unfold rules_for_terminals₂,
-      unfold CF_rules_for_terminals₂,
-      finish,
-    },
-  },
-end
+by
+  rw [CF_language_eq_grammar_language]
+  congr
+  unfold big_CF_grammar
+  unfold grammar_of_cfg
+  unfold big_grammar
+  dsimp only [List.map]
+  congr
+  repeat
+    rw [List.map_append]
+  trim
+  ·
+    apply congr_arg2
+    ·
+      unfold rules_for_terminals₁
+      unfold CF_rules_for_terminals₁
+      finish
+    ·
+      unfold rules_for_terminals₂
+      unfold CF_rules_for_terminals₂
+      finish
 
 /-- The class of context-free languages is closed under concatenation.
     This theorem is proved by translation from general grammars.
@@ -69,28 +64,25 @@ end
     a simpler and more effective construction (based on context-gree grammars only). -/
 private theorem bonus_CF_of_CF_c_CF (L₁ : Language T) (L₂ : Language T) :
   is_CF L₁  ∧  is_CF L₂   →   is_CF (L₁ * L₂)   :=
-begin
-  rintro ⟨⟨g₁, eq_L₁⟩, ⟨g₂, eq_L₂⟩⟩,
-  rw CF_language_eq_grammar_language g₁ at eq_L₁,
-  rw CF_language_eq_grammar_language g₂ at eq_L₂,
+by
+  rintro ⟨⟨g₁, eq_L₁⟩, ⟨g₂, eq_L₂⟩⟩
+  rw [CF_language_eq_grammar_language g₁] at eq_L₁
+  rw [CF_language_eq_grammar_language g₂] at eq_L₂
 
-  use big_CF_grammar g₁ g₂,
-  rw big_CF_grammar_same_language,
+  use big_CF_grammar g₁ g₂
+  rw [big_CF_grammar_same_language]
 
-  apply Set.eq_of_subSetOf_subset,
-  {
-    intros w hyp,
-    rw ←eq_L₁,
-    rw ←eq_L₂,
-    exact in_concatenated_of_in_big hyp,
-  },
-  {
-    intros w hyp,
-    rw ←eq_L₁ at hyp,
-    rw ←eq_L₂ at hyp,
-    exact in_big_of_in_concatenated hyp,
-  },
-end
+  apply Set.eq_of_subSetOf_subset
+  ·
+    intros w hyp
+    rw [←eq_L₁]
+    rw [←eq_L₂]
+    exact in_concatenated_of_in_big hyp
+  ·
+    intros w hyp
+    rw [←eq_L₁] at hyp
+    rw [←eq_L₂] at hyp
+    exact in_big_of_in_concatenated hyp
 
 
 #check            bonus_CF_of_CF_c_CF

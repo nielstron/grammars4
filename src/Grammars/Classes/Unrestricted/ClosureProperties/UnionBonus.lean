@@ -22,17 +22,15 @@ CF_grammar.mk (Option (g₁.nt ⊕ g₂.nt)) none (
 
 private lemma union_CF_grammar_same_language (g₁ g₂ : CF_grammar T) :
   CF_language (union_CF_grammar g₁ g₂) = grammar_language (union_grammar (grammar_of_cfg g₁) (grammar_of_cfg g₂)) :=
-begin
-  rw CF_language_eq_grammar_language,
-  congr,
-  unfold union_CF_grammar grammar_of_cfg union_grammar,
-  dsimp only [List.map],
-  congr,
-  repeat {
-    rw List.map_append,
-  },
-  finish,
-end
+by
+  rw [CF_language_eq_grammar_language]
+  congr
+  unfold union_CF_grammar grammar_of_cfg union_grammar
+  dsimp only [List.map]
+  congr
+  repeat
+    rw [List.map_append]
+  finish
 
 /-- The class of context-free languages is closed under union.
     This theorem is proved by translation from general grammars.
@@ -40,33 +38,28 @@ end
     which uses a direct proof for context-free grammars. -/
 private theorem bonus_CF_of_CF_u_CF (L₁ : Language T) (L₂ : Language T) :
   is_CF L₁  ∧  is_CF L₂   →   is_CF (L₁ + L₂)   :=
-begin
-  rintro ⟨⟨g₁, eq_L₁⟩, ⟨g₂, eq_L₂⟩⟩,
-  rw CF_language_eq_grammar_language g₁ at eq_L₁,
-  rw CF_language_eq_grammar_language g₂ at eq_L₂,
+by
+  rintro ⟨⟨g₁, eq_L₁⟩, ⟨g₂, eq_L₂⟩⟩
+  rw [CF_language_eq_grammar_language g₁] at eq_L₁
+  rw [CF_language_eq_grammar_language g₂] at eq_L₂
 
-  use union_CF_grammar g₁ g₂,
-  rw union_CF_grammar_same_language,
+  use union_CF_grammar g₁ g₂
+  rw [union_CF_grammar_same_language]
 
-  apply Set.eq_of_subSetOf_subset,
-  {
-    intros w hyp,
-    rw [←eq_L₁, ←eq_L₂],
-    exact in_L₁_or_L₂_of_in_union hyp,
-  },
-  {
-    intros w hyp,
-    cases hyp with case_1 case_2,
-    {
-      rw ←eq_L₁ at case_1,
-      exact in_union_of_in_L₁ case_1,
-    },
-    {
-      rw ←eq_L₂ at case_2,
-      exact in_union_of_in_L₂ case_2,
-    },
-  },
-end
+  apply Set.eq_of_subSetOf_subset
+  ·
+    intros w hyp
+    rw [←eq_L₁, ←eq_L₂]
+    exact in_L₁_or_L₂_of_in_union hyp
+  ·
+    intros w hyp
+    cases hyp with
+    | case_1 case_1 =>
+        rw [←eq_L₁] at case_1
+        exact in_union_of_in_L₁ case_1
+    | case_2 case_2 =>
+        rw [←eq_L₂] at case_2
+        exact in_union_of_in_L₂ case_2
 
 #check            bonus_CF_of_CF_u_CF
 #print_sorries_in bonus_CF_of_CF_u_CF
