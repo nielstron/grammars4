@@ -5,124 +5,201 @@ import Mathlib.Tactic
 
 open Lean Elab Tactic
 
-namespace list
+namespace List
 
-variables {α : Type*}
+variable {α : Type*}
 
-private noncomputable def get_max [inhabited α] [linear_order α] (P : α → Prop) :=
-classical.epsilon (λ (x : α), P x ∧ ∀ (y : α), x < y → ¬P y)
+private noncomputable def get_max [Inhabited α] [LinearOrder α] (P : α → Prop) :=
+Classical.epsilon (fun (x : α) => P x ∧ ∀ (y : α), x < y → ¬P y)
 
-private lemma epsilon_eq [inhabited α] {P : α → Prop} {x : α}
-  (h₁ : P x) (h₂ : ∀ (y : α), P y → y = x) : classical.epsilon P = x :=
-begin
-  have h₃ : P = (λ (y : α), y = x),
-  { ext y, split; intro h₃,
-    { exact h₂ y h₃ },
-    { rwa h₃ }},
-  subst h₃, apply classical.epsilon_singleton,
-end
+private lemma epsilon_eq [Inhabited α] {P : α → Prop} {x : α}
+  (h₁ : P x) (h₂ : ∀ (y : α), P y → y = x) : Classical.epsilon P = x :=
+by
+  have h₃ : P = (fun (y : α) => y = x) := by
+    ext y
+    constructor
+    · intro hy
+      exact h₂ y hy
+    · intro hy
+      simpa [hy]
+  subst h₃
+  apply Classical.epsilon_singleton
 
 private lemma nat_get_max_spec {P : ℕ → Prop}
   (h₁ : ∃ (x : ℕ), P x) (h₂ : ∃ (x : ℕ), ∀ (y : ℕ), x ≤ y → ¬P y) :
   P (get_max P) ∧ ∀ (x : ℕ), get_max P < x → ¬P x :=
-begin
-  cases h₁ with m h₁, cases h₂ with n h₂, induction n with n ih,
-  { cases h₂ m (zero_le m) h₁ },
-  { simp_rw nat.succ_le_iff at h₂, by_cases h₃ : P n,
-    { have : get_max P = n,
-      { rw get_max, apply epsilon_eq,
-        { use h₃, rintro k hk, exact h₂ k hk, },
-        { rintro k ⟨h₄, h₅⟩, by_contra h₆,
-          rw [←ne, ne_iff_lt_or_gt] at h₆, cases h₆,
-          { cases h₅ n h₆ h₃ }, { cases h₂ k h₆ h₄ }}},
-      rw this at *, clear this, exact ⟨h₃, h₂⟩ },
-    { apply ih, rintro k hk, rw le_iff_eq_or_lt at hk, rcases hk with rfl | hk,
-      { exact h₃ },
-      { exact h₂ k hk }}},
-end
+by
+  rcases h₁ with ⟨m, h₁⟩
+  rcases h₂ with ⟨n, h₂⟩
+  induction n with
+  | zero =>
+    cases h₂ m (zero_le m) h₁
+  | succ n ih =>
+    simp_rw [Nat.succ_le_iff] at h₂
+    by_cases h₃ : P n
+    ·
+      have : get_max P = n := by
+        rw [get_max]
+        apply epsilon_eq
+        ·
+          refine ⟨h₃, ?_⟩
+          rintro k hk
+          exact h₂ k hk
+        ·
+          rintro k ⟨h₄, h₅⟩
+          by_contra h₆
+          have h₆' : k < n ∨ k > n := lt_or_gt_of_ne h₆
+          cases h₆' with
+          | inl hlt => exact h₅ n hlt h₃
+          | inr hgt => exact h₂ k hgt h₄
+      rw [this] at *
+      exact ⟨h₃, h₂⟩
+    ·
+      apply ih
+      rintro k hk
+      rw [le_iff_eq_or_lt] at hk
+      rcases hk with rfl | hk
+      · exact h₃
+      · exact h₂ k hk
 
-private lemma list.take_eq_take {l : list α} {m n : ℕ} :
+private lemma take_eq_take {l : List α} {m n : ℕ} :
   l.take m = l.take n ↔ min m l.length = min n l.length :=
-begin
-  induction l with x l ih generalizing m n,
-  { simp },
-  { simp_rw list.length_cons, split; intro h,
-    { cases n, { simp at h, subst h },
-      cases m, { simp at h, cases h },
-      simp only [list.take, eq_self_iff_true, true_and] at h,
-      simpa [nat.min_succ_succ] using ih.mp h },
-    { cases n, { simp at h, subst h },
-      cases m, { simp [nat.min_succ_succ] at h, cases h },
-      simp_rw nat.min_succ_succ at h, simpa using ih.mpr h }},
-end
+by
+  induction l generalizing m n with
+  | nil =>
+    simp
+  | cons x l ih =>
+    cases m <;> cases n <;> simp [ih, Nat.succ_min_succ]
 
-private lemma list.take_add {l : list α} {m n : ℕ} :
+private lemma take_add_aux {l : List α} {m n : ℕ} :
   l.take (m + n) = l.take m ++ (l.drop m).take n :=
-begin
-  convert_to
-    list.take (m + n) (list.take m l ++ list.drop m l) =
-    list.take m l ++ list.take n (list.drop m l),
-  { rw list.take_append_drop },
-  rw [list.take_append_eq_append_take, list.take_all_of_le,
-    list.append_right_inj], swap,
-  { transitivity m,
-    { apply list.length_take_le },
-    { simp }},
-  simp only [list.take_eq_take, list.length_take, list.length_drop],
-  generalize : l.length = k, by_cases h : m ≤ k,
-  { simp [min_eq_left_iff.mpr h] },
-  { push_neg at h, simp [nat.sub_eq_zero_of_le (le_of_lt h)] },
-end
+by
+  simpa using (List.take_add (l := l) (i := m) (j := n))
 
-private lemma list.take_one_drop_eq_of_lt_length {l : list α} {n : ℕ}
-  (h : n < l.length) : (l.drop n).take 1 = [l.nth_le n h] :=
-begin
-  induction l with x l ih generalizing n,
-  { cases h },
-  { by_cases h₁ : l = [],
-    { subst h₁, rw list.nth_le_singleton, simp at h, subst h, simp },
-    have h₂ := h, rw [list.length_cons, nat.lt_succ_iff, le_iff_eq_or_lt] at h₂,
-    cases n, { simp }, rw [list.drop, list.nth_le], apply ih },
-end
+private lemma take_one_drop_eq_of_lt_length' {l : List α} {n : ℕ}
+  (h : n < l.length) : (l.drop n).take 1 = [l.get ⟨n, h⟩] :=
+by
+  simpa using (List.take_one_drop_eq_of_lt_length (l := l) h)
 
-lemma take_join_of_lt {L : list (list α)} {n : ℕ} (notall : n < L.join.length) :
-  ∃ m k : ℕ, ∃ mlt : m < L.length, k < (L.nth_le m mlt).length ∧
-    L.join.take n = (L.take m).join ++ (L.nth_le m mlt).take k :=
-begin
-  generalize hX : L.length = X, symmetry' at hX,
-  generalize hN : L.join.length = N, symmetry' at hN,
-  rw ←hN at notall, have hl : L ≠ [],
-  { rintro rfl, rw hN at notall, cases notall },
-  generalize hP : (λ (m : ℕ), (L.take m).join.length ≤ n) = P, symmetry' at hP,
-  generalize hm : get_max P = m, symmetry' at hm,
-  generalize hk : n - (L.take m).join.length = k, symmetry' at hk,
-  have hP0 : P 0, { rw hP, simp },
-  have hPX : ∀ (r : ℕ), X ≤ r → ¬P r,
-  { rintro r hr, rw hP, push_neg, convert notall, rw hX at hr,
-    rw [hN, list.take_all_of_le hr] },
-  obtain ⟨hm₁, hm₂⟩ := nat_get_max_spec ⟨0, hP0⟩ ⟨X, hPX⟩, rw ←hm at hm₁ hm₂,
-  have hm₃ : ¬P m.succ := hm₂ _ (nat.lt_succ_self m),
-  refine ⟨m, k, _, _, _⟩,
-  { rw ←hX, by_contra' hx, cases hPX m hx hm₁ },
-  { generalize_proofs h₁, rw hP at hm₁ hm₃, push_neg at hm₃,
-    by_contra' hk₁, obtain ⟨k, rfl⟩ := nat.exists_eq_add_of_le hk₁,
-    replace hk := congr_arg (λ (x : ℕ), x + (L.take m).join.length) hk,
-    dsimp at hk, rw nat.sub_add_cancel hm₁ at hk, rw ←hk at hm₃,
-    contrapose! hm₃, rw [add_comm, ←add_assoc], convert le_self_add,
-    simp [nat.succ_eq_add_one, list.take_add, list.join_append, list.length_append],
-    rw [list.take_one_drop_eq_of_lt_length, map_singleton, sum_singleton] },
-  conv { to_lhs, rw [←list.take_append_drop m.succ L, list.join_append] },
-  have hn₁ : (L.take m).join.length ≤ n, { rwa hP at hm₁ },
-  have hn₂ : n < (L.take m.succ).join.length,
-  { rw hP at hm₃, push_neg at hm₃, exact hm₃ },
-  rw list.take_append_of_le_length (le_of_lt hn₂),
-  change m.succ with m + 1, have hmX : m < X,
-  { by_contra' hx, exact hPX m hx hm₁ },
-  rw [list.take_add, list.join_append, list.take_one_drop_eq_of_lt_length,
-    list.join, list.join, list.append_nil], swap, { rwa ←hX },
-  have : n = (list.take m L).join.length + k,
-  { rw hk, exact (nat.add_sub_of_le hn₁).symm },
-  subst this, rw list.take_append,
-end
+lemma take_join_of_lt {L : List (List α)} {n : ℕ} (notall : n < (List.flatten L).length) :
+  ∃ m k : ℕ, ∃ mlt : m < L.length, k < (L.get ⟨m, mlt⟩).length ∧
+    (List.flatten L).take n = (List.flatten (L.take m)) ++ (L.get ⟨m, mlt⟩).take k :=
+by
+  set X := L.length with hX
+  set N := (List.flatten L).length with hN
+  have notall' : n < N := by
+    simpa [hN] using notall
+  have hl : L ≠ [] := by
+    rintro rfl
+    rw [hN] at notall'
+    cases notall'
+  generalize hP : (fun (m : ℕ) => (List.flatten (L.take m)).length ≤ n) = P
+  generalize hm : get_max P = m
+  generalize hk : n - (List.flatten (L.take m)).length = k
+  have hP0 : P 0 := by
+    rw [←hP]
+    simp
+  have hPX : ∀ (r : ℕ), X ≤ r → ¬P r := by
+    rintro r hr
+    rw [←hP]
+    push_neg
+    convert notall'
+    ·
+      have ht : L.take r = L := (List.take_eq_self_iff L).2 hr
+      simpa [ht]
+  obtain ⟨hm₁, hm₂⟩ := nat_get_max_spec ⟨0, hP0⟩ ⟨X, hPX⟩
+  rw [hm] at hm₁ hm₂
+  have hm₃ : ¬P m.succ := hm₂ _ (Nat.lt_succ_self m)
+  have mlt : m < L.length := by
+    by_contra hx
+    have hx' : L.length ≤ m := le_of_not_gt hx
+    have hx'' : X ≤ m := by simpa [hX] using hx'
+    exact hPX m hx'' hm₁
+  refine ⟨m, k, mlt, ?_, ?_⟩
+  ·
+    rw [←hP] at hm₁ hm₃
+    push_neg at hm₃
+    by_contra hk₁
+    have hk₁' : (L.get ⟨m, mlt⟩).length ≤ k := le_of_not_gt hk₁
+    obtain ⟨k', hk'⟩ := Nat.exists_eq_add_of_le hk₁'
+    have hk'' :
+        n = (L.get ⟨m, mlt⟩).length + k' + (List.flatten (L.take m)).length := by
+      replace hk := congr_arg (fun (x : ℕ) => x + (List.flatten (L.take m)).length) hk
+      dsimp at hk
+      rw [Nat.sub_add_cancel hm₁, hk'] at hk
+      simpa [add_assoc, add_left_comm, add_comm] using hk
+    have htake : L.take m.succ = L.take m ++ [L.get ⟨m, mlt⟩] := by
+      have h1 : L.take (m + 1) = L.take m ++ (L.drop m).take 1 := by
+        simpa using (take_add_aux (l := L) (m := m) (n := 1))
+      have h2 : (L.drop m).take 1 = [L.get ⟨m, mlt⟩] := by
+        simpa using (take_one_drop_eq_of_lt_length' (l := L) (n := m) mlt)
+      simpa [Nat.succ_eq_add_one, h2] using h1
+    have hlen : (List.flatten (L.take m.succ)).length =
+        (List.flatten (L.take m)).length + (L.get ⟨m, mlt⟩).length := by
+      rw [htake]
+      rw [List.flatten_append, List.length_append]
+      have hflat : List.flatten [L.get ⟨m, mlt⟩] = L.get ⟨m, mlt⟩ := by
+        simp
+      rw [hflat]
+    have hm₃' :
+        (L.get ⟨m, mlt⟩).length + k' + (List.flatten (L.take m)).length <
+          (List.flatten (L.take m)).length + (L.get ⟨m, mlt⟩).length := by
+      simpa [hk'', hlen, add_comm, add_left_comm, add_assoc] using hm₃
+    have hm₃'' :
+        (List.flatten (L.take m)).length + ((L.get ⟨m, mlt⟩).length + k') <
+          (List.flatten (L.take m)).length + (L.get ⟨m, mlt⟩).length := by
+      simpa [add_comm, add_left_comm, add_assoc] using hm₃'
+    have hm₃''' : (L.get ⟨m, mlt⟩).length + k' < (L.get ⟨m, mlt⟩).length := by
+      exact lt_of_add_lt_add_left hm₃''
+    have hm₃'''' : k' < 0 := by
+      have hm₃'''' :
+          (L.get ⟨m, mlt⟩).length + k' < (L.get ⟨m, mlt⟩).length + 0 := by
+        simpa using hm₃'''
+      exact lt_of_add_lt_add_left hm₃''''
+    exact (Nat.not_lt_zero _ hm₃'''')
+  ·
+    have hflatten :
+        List.flatten L = List.flatten (L.take m.succ) ++ List.flatten (L.drop m.succ) := by
+      have h :=
+        congrArg List.flatten (List.take_append_drop (i := m.succ) (l := L))
+      have h' :
+          List.flatten (L.take m.succ) ++ List.flatten (L.drop m.succ) = List.flatten L := by
+        have h' := h
+        rw [List.flatten_append] at h'
+        exact h'
+      exact h'.symm
+    rw [hflatten]
+    have hn₁ : (List.flatten (L.take m)).length ≤ n := by
+      rwa [←hP] at hm₁
+    have hn₂ : n < (List.flatten (L.take m.succ)).length := by
+      rw [←hP] at hm₃
+      push_neg at hm₃
+      exact hm₃
+    rw [List.take_append_of_le_length (le_of_lt hn₂)]
+    have htake : L.take m.succ = L.take m ++ [L.get ⟨m, mlt⟩] := by
+      have h1 : L.take (m + 1) = L.take m ++ (L.drop m).take 1 := by
+        simpa using (take_add_aux (l := L) (m := m) (n := 1))
+      have h2 : (L.drop m).take 1 = [L.get ⟨m, mlt⟩] := by
+        simpa using (take_one_drop_eq_of_lt_length' (l := L) (n := m) mlt)
+      simpa [Nat.succ_eq_add_one, h2] using h1
+    have hflatten_msucc :
+        List.flatten (L.take m.succ) =
+          List.flatten (L.take m) ++ (L.get ⟨m, mlt⟩) := by
+      rw [htake]
+      rw [List.flatten_append]
+      have hflat : List.flatten [L.get ⟨m, mlt⟩] = L.get ⟨m, mlt⟩ := by
+        simp
+      rw [hflat]
+    rw [hflatten_msucc]
+    have : n = (List.flatten (List.take m L)).length + k := by
+      have hk' := congr_arg (fun (x : ℕ) => x + (List.flatten (L.take m)).length) hk
+      dsimp at hk'
+      have hk'' : n = k + (List.flatten (L.take m)).length := by
+        simpa [Nat.sub_add_cancel hn₁, add_comm, add_left_comm, add_assoc, -List.length_flatten]
+          using hk'
+      simpa [add_comm, add_left_comm, add_assoc, -List.length_flatten] using hk''
+    subst this
+    simpa using (List.take_length_add_append
+      (l₁ := List.flatten (L.take m)) (l₂ := L.get ⟨m, mlt⟩) (i := k))
 
-end list
+end List
