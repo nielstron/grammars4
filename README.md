@@ -2,14 +2,15 @@
 
 ## Instructions
 
-In order to install Lean 3, follow the [manual](https://leanprover-community.github.io/get_started.html).
+In order to install Lean 4, follow the [manual](https://leanprover-community.github.io/get_started.html).
 
-In order to download this project, run `leanproject get madvorak/grammars` in your Unix-like command line.
+In order to download this project, run `git clone https://github.com/nielstron/grammars4` in your Unix-like command line.
 
-In order to check that the proofs are correct, run `./mk` from the root directory of this project.\
-The script will output `Result: SUCCESS` if everything builds successfully.
+In order to check that the proofs are correct, run `lake build` from the root directory of this project.
 
 ## Overview
+
+> This project is WIP translation of https://github.com/madvorak/grammars, not everything has been ported to Lean 4 yet. Links below are outdated
 
 Below you find what has been completed so far.
 
