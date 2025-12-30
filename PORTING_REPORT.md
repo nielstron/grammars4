@@ -1,6 +1,7 @@
 # Lean 4 Porting Report
 
 ## Completed in this pass
+- No net code changes; started a Lean 4 conversion of `complicated_induction` in `src/Grammars/Classes/ContextFree/ClosureProperties/Concatenation.lean` but reverted to avoid partial/invalid syntax.
 - `src/Grammars/Classes/ContextFree/ClosureProperties/Intersection.lean` (ported remaining `begin` blocks in `intersection_inclusions` + `nnyCF_of_CF_i_CF` to `by` style)
 - `src/Grammars/Classes/ContextFree/ClosureProperties/Concatenation.lean` (ported `in_combined_of_in_concatenated` + `CF_of_CF_c_CF` to Lean 4 `by` style)
 - `src/Grammars/Classes/ContextSensitive/ClosureProperties/Concatenation.lean` (Lean 4 syntax pass: `Sum` constructors and `by` blocks)
