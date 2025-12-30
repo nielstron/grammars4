@@ -26,16 +26,16 @@
 - `src/Grammars/Classes/ContextFree/ClosureProperties/Concatenation.lean` (initial Lean 4 syntax pass started; more fixes needed)
 - `src/Grammars/Classes/ContextFree/Basics/Pumping.lean` (Lean 4 syntax pass with temporary axiom)
 - `src/Grammars/Classes/ContextFree/ClosureProperties/Intersection.lean` (partial Lean 4 conversion: `false_of_uvvxyyz`, `notCF_lang_eq_eq`, `CF_lang_eq_any`, `CF_lang_any_eq`, `permut` port, and small helpers)
-- `src/Grammars/Classes/ContextFree/ClosureProperties/Concatenation.lean` (ported `u_eq_take_map_w`, `v_eq_drop_map_w`, `self_of_sTN₁/₂`, `self_of_lsTN₁/₂` to Lean 4 `by` style)
+- `src/Grammars/Classes/ContextFree/ClosureProperties/Concatenation.lean` (continued partial port: added `List.nthLe` compatibility and `nthLe_congr`; in-progress rewrites in `u_eq_take_map_w`/`v_eq_drop_map_w`)
 - `src/Grammars/Classes/Unrestricted/ClosureProperties/Star.lean` (ported `specific_symbols` and early `construction` definitions plus three inequality lemmas to Lean 4 syntax)
 
 ## Outstanding build blockers
 These files still fail `lake build` with Lean 3 syntax or missing API ports:
 - `src/Grammars/Classes/ContextFree/ClosureProperties/Concatenation.lean`
-  - still needs `rw` syntax updates (`rw [List.mem_map]` etc.), `begin` → `by`, and `List.filter_map` → `List.filterMap`
-  - `in_concatenated_of_in_combined` still in Lean 3 block style and needs Lean 4 tactic syntax pass
+  - `v_eq_drop_map_w` still failing in the `terminal` case (map/drop to `nthLe` equality, proof irrelevance cleanup, and `symbol.terminal` type ascriptions)
+  - `self_of_lsTN₁`/`self_of_lsTN₂` still Lean 3 (`List.filter_map_map`/`List.filter_map_some`) and `List.filter_map` → `List.filterMap` rewrites pending
   - remaining parser fixes around `:=` vs `=>` in equation-style defs
-  - new Lean 4 gaps: `List.nth_take`/`nth_eq_none_iff`/`nth_drop` rewrites in `u_eq_take_map_w` + `v_eq_drop_map_w`, `List.take_left` usage, and `filterMap` lemmas (`List.filter_map_map` → new lemma)
+  - downstream errors in `in_concatenated_of_in_combined` and `CF_of_CF_c_CF` remain after `v_eq_drop_map_w`/`self_of_lsTN₁/₂` are fixed
 - `src/Grammars/Classes/Unrestricted/ClosureProperties/Concatenation.lean`
   - heavy Lean 3 syntax cleanup still in progress; many lemmas retain trailing commas and `by { ... }` blocks
   - remaining equation-style defs still need `:=` → `=>` conversions
@@ -62,3 +62,4 @@ These files still fail `lake build` with Lean 3 syntax or missing API ports:
 - `lake build Grammars.Classes.Unrestricted.ClosureProperties.ConcatenationBonus` failed because `src/Grammars/Classes/Unrestricted/ClosureProperties/Concatenation.lean` still has Lean 3 syntax (`begin`/`end`, `:=` vs `=>`) and typeclass issues.
 - `lake build Grammars.Classes.ContextSensitive.ClosureProperties.Concatenation` currently fails in `src/Grammars/Classes/Unrestricted/ClosureProperties/Concatenation.lean` due to remaining `begin`/`end` and parser errors.
 - `lake build Grammars.Classes.Unrestricted.ClosureProperties.Concatenation` currently fails with many Lean 4 syntax errors (trailing commas, `:=` vs `=>`, `by { ... }`) and a few proof obligations in the `correspondence_for_terminals` and `unwrapping_nst` sections.
+- `lean build src/Grammars/Classes/ContextFree/ClosureProperties/Union.lean` fails with `Expected exactly one file name` (Lean CLI expects a single file argument; `lake build` succeeds for file checks).

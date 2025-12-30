@@ -13,6 +13,94 @@ def nth (l : List α) (n : Nat) : Option α :=
   | a :: _, 0 => some a
   | _ :: tail, Nat.succ k => nth tail k
 
+def nthLe : (l : List α) → (n : Nat) → n < l.length → α
+| [], _, h => (Nat.not_lt_zero _ h).elim
+| a :: _, 0, _ => a
+| _ :: tail, Nat.succ n, h =>
+    nthLe tail n (by simpa using (Nat.lt_of_succ_lt_succ h))
+
+theorem get?_eq_nth {l : List α} {n : Nat} : l[n]? = l.nth n := by
+  induction l generalizing n with
+  | nil =>
+      cases n <;> rfl
+  | cons head tail ih =>
+      cases n with
+      | zero =>
+          rfl
+      | succ n =>
+          simpa using (ih (n := n))
+
+theorem nthLe_nth {l : List α} {n : Nat} (h : n < l.length) : l.nth n = some (l.nthLe n h) := by
+  induction l generalizing n with
+  | nil =>
+      cases (Nat.not_lt_zero _ h)
+  | cons head tail ih =>
+      cases n with
+      | zero =>
+          rfl
+      | succ n =>
+          have h' : n < tail.length := by
+            simpa using (Nat.lt_of_succ_lt_succ h)
+          simpa [List.nth, List.nthLe] using (ih (n := n) h')
+
+theorem nthLe_map {f : α → β} {l : List α} {n : Nat}
+    (h : n < (List.map f l).length) :
+    (List.map f l).nthLe n h =
+      f (l.nthLe n (by simpa [List.length_map] using h)) := by
+  induction l generalizing n with
+  | nil =>
+      cases (Nat.not_lt_zero _ h)
+  | cons head tail ih =>
+      cases n with
+      | zero =>
+          rfl
+      | succ n =>
+          have h' : n < (List.map f tail).length := by
+            simpa [List.length_map, Nat.succ_lt_succ_iff] using h
+          have h'' : n < tail.length := by
+            simpa [List.length_map, Nat.succ_lt_succ_iff] using h
+          simpa [List.nthLe, List.length_map] using (ih (n := n) h')
+
+theorem nthLe_append_right {l₁ l₂ : List α} {n : Nat}
+    (h₁ : l₁.length ≤ n) (h₂ : n < (l₁ ++ l₂).length) :
+    (l₁ ++ l₂).nthLe n h₂ =
+      l₂.nthLe (n - l₁.length)
+        (by
+          have h' : n < l₁.length + l₂.length := by
+            simpa [List.length_append] using h₂
+          exact Nat.sub_lt_left_of_lt_add h₁ h') := by
+  induction l₁ generalizing n with
+  | nil =>
+      have h' : n < l₂.length := by
+        simpa [List.length_append] using h₂
+      simp [List.nthLe] 
+  | cons head tail ih =>
+      cases n with
+      | zero =>
+          cases (Nat.not_succ_le_zero _ h₁)
+      | succ n =>
+          have h₁' : tail.length ≤ n := by
+            simpa [Nat.succ_le_succ_iff] using h₁
+          have h₂' : n < (tail ++ l₂).length := by
+            simpa [List.length_append] using (Nat.lt_of_succ_lt_succ h₂)
+          simpa [List.nthLe, Nat.succ_sub_succ_eq_sub] using (ih (n := n) h₁' h₂')
+
+theorem nthLe_congr {l : List α} {n : Nat} {h₁ h₂ : n < l.length} :
+    l.nthLe n h₁ = l.nthLe n h₂ := by
+  induction l generalizing n with
+  | nil =>
+      cases (Nat.not_lt_zero _ h₁)
+  | cons head tail ih =>
+      cases n with
+      | zero =>
+          rfl
+      | succ n =>
+          have h₁' : n < tail.length := by
+            simpa using (Nat.lt_of_succ_lt_succ h₁)
+          have h₂' : n < tail.length := by
+            simpa using (Nat.lt_of_succ_lt_succ h₂)
+          simpa [List.nthLe] using (ih (n := n) h₁' h₂')
+
 theorem nth_eq_none_iff {l : List α} {n : Nat} : l.nth n = none ↔ l.length ≤ n := by
   induction l generalizing n with
   | nil =>
@@ -32,7 +120,7 @@ theorem nth_take {l : List α} {m n : Nat} (h : n < m) :
   | cons head tail ih =>
       cases m with
       | zero =>
-          exact (Nat.lt_asymm h (Nat.zero_le _)).elim
+          exact (Nat.not_lt_zero _ h).elim
       | succ m =>
           cases n with
           | zero =>
@@ -281,6 +369,7 @@ private lemma u_eq_take_map_w
   u = List.take u.length (List.map (@symbol.terminal T g₁.nt) w) :=
 by
   ext n
+  simp [List.get?_eq_nth]
   by_cases h : n < u.length
   ·
     have ass :
@@ -302,8 +391,8 @@ by
     rw [List.nth_take h]
     rw [List.nth_take h] at nth_equ
     have n_lt_wl : n < w.length := by
-      exact gt_of_ge_of_gt len h
-    have triv : n < (List.map sTN_of_sTN₁ u).length := by
+      exact lt_of_lt_of_le h len
+    have triv : n < (List.map (sTN_of_sTN₁ (g₁ := g₁) (g₂ := g₂)) u).length := by
       rw [List.length_map]
       exact h
     have trig : n < (List.map (@symbol.terminal T g₁.nt) w).length := by
@@ -315,30 +404,59 @@ by
     rw [List.nthLe_nth triv] at nth_equ
     rw [List.nthLe_nth trin] at nth_equ
     rw [Option.some_inj] at nth_equ
-    rw [List.nthLe_map] at nth_equ
-    · exact h
-    rw [List.nthLe_map] at nth_equ
-    · exact n_lt_wl
-    rw [List.nthLe_nth]
-    · exact h
-    rw [List.nthLe_nth]
-    · exact trig
-    apply congr_arg
-    norm_num
-    cases u.nthLe n h with
-    | terminal =>
-        unfold sTN_of_sTN₁ at nth_equ
-        simpa using nth_equ
-    | nonterminal =>
-        exfalso
-        exact symbol.no_confusion nth_equ
+    have h_map_u :
+        n < (List.map (sTN_of_sTN₁ (g₁ := g₁) (g₂ := g₂)) u).length := by
+      simpa [List.length_map] using h
+    rw [List.nthLe_map (h := h_map_u)] at nth_equ
+    rw [List.nthLe_map (h := trin)] at nth_equ
+    have n_lt_wl' : n < w.length := by
+      simpa [List.length_map] using trin
+    have h_u_map : n < u.length := by
+      simpa [List.length_map] using h_map_u
+    have h_w_map : n < w.length := by
+      simpa [List.length_map] using trin
+    have h_u_eq : u.nthLe n h_u_map = u.nthLe n h :=
+      List.nthLe_congr (h₁ := h_u_map) (h₂ := h)
+    have h_w_eq : w.nthLe n h_w_map = w.nthLe n n_lt_wl' :=
+      List.nthLe_congr (h₁ := h_w_map) (h₂ := n_lt_wl')
+    have nthLe_eq :
+        u.nthLe n h = (List.map (@symbol.terminal T g₁.nt) w).nthLe n trig := by
+      cases h_u : u.nthLe n h with
+      | terminal a =>
+          have nth_equ' :
+              (symbol.terminal (T := T) (N := Option (g₁.nt ⊕ g₂.nt)) a) =
+                symbol.terminal (T := T) (N := Option (g₁.nt ⊕ g₂.nt)) (w.nthLe n n_lt_wl') := by
+            simpa [sTN_of_sTN₁, h_u, h_u_eq, h_w_eq] using nth_equ
+          have ha : a = w.nthLe n n_lt_wl' :=
+            symbol.terminal.inj nth_equ'
+          have rhs :
+              (List.map (@symbol.terminal T g₁.nt) w).nthLe n trig =
+                symbol.terminal (w.nthLe n n_lt_wl') := by
+            simpa [List.length_map] using
+              (List.nthLe_map (f := @symbol.terminal T g₁.nt) (l := w) (n := n) (h := trig))
+          simpa [rhs, ha]
+      | nonterminal a =>
+          exfalso
+          have : symbol.nonterminal (T := T) (N := Option (g₁.nt ⊕ g₂.nt))
+              (some (Sum.inl (β := g₂.nt) a)) =
+              symbol.terminal (T := T) (N := Option (g₁.nt ⊕ g₂.nt)) (w.nthLe n n_lt_wl') := by
+            simpa [sTN_of_sTN₁, h_u, h_u_eq, h_w_eq] using nth_equ
+          cases this
+    have nth_eq : u.nth n = (List.map (@symbol.terminal T g₁.nt) w).nth n := by
+      calc
+        u.nth n = some (u.nthLe n h) := List.nthLe_nth (h := h)
+        _ = some ((List.map (@symbol.terminal T g₁.nt) w).nthLe n trig) := by
+          simpa [nthLe_eq]
+        _ = (List.map (@symbol.terminal T g₁.nt) w).nth n := (List.nthLe_nth (h := trig)).symm
+    simpa [nth_eq]
   ·
     have h' : u.length ≤ n := by
       exact Nat.le_of_not_lt h
     have h_u : u.nth n = none := by
       rw [List.nth_eq_none_iff]
       exact h'
-    have h_rhs : (List.take u.length (List.map symbol.terminal w)).nth n = none := by
+    have h_rhs :
+        (List.take u.length (List.map (@symbol.terminal T g₁.nt) w)).nth n = none := by
       rw [List.nth_eq_none_iff]
       rw [List.length_take]
       exact min_le_of_left_le h'
@@ -355,6 +473,7 @@ private lemma v_eq_drop_map_w
   v = List.drop u.length (List.map symbol.terminal w) :=
 by
   ext n
+  simp [List.get?_eq_nth]
   by_cases h : n < v.length
   ·
     have nth_equ := congr_fun (congr_arg List.nth hyp) n
@@ -362,11 +481,14 @@ by
     rw [List.nth_drop] at nth_equ
     rw [List.nth_drop] at nth_equ
     have hunltuv : u.length + n < u.length + v.length := by
-      apply add_lt_add_left h
+      exact Nat.add_lt_add_left h u.length
     have hunltw : u.length + n < w.length := by
       rw [←total_len]
       exact hunltuv
-    have hlen₁ : u.length + n < (List.map sTN_of_sTN₁ u ++ List.map sTN_of_sTN₂ v).length := by
+    have hlen₁ :
+        u.length + n <
+          (List.map (sTN_of_sTN₁ (g₁ := g₁) (g₂ := g₂)) u ++
+            List.map (sTN_of_sTN₂ (g₁ := g₁) (g₂ := g₂)) v).length := by
       rw [List.length_append, List.length_map, List.length_map]
       exact hunltuv
     have hlen₂ :
@@ -381,35 +503,75 @@ by
     rw [List.nthLe_nth h]
     rw [List.nthLe_nth hlen₂']
     rw [Option.some_inj] at *
-    have hlen₀ : (List.map sTN_of_sTN₁ u).length ≤ u.length + n := by
+    have hlen₀ : (List.map (sTN_of_sTN₁ (g₁ := g₁) (g₂ := g₂)) u).length ≤ u.length + n := by
       rw [List.length_map]
       exact le_self_add
-    have hlen : n < (List.map (@sTN_of_sTN₂ T g₁ g₂) v).length := by
+    have hlen : n < (List.map (sTN_of_sTN₂ (g₁ := g₁) (g₂ := g₂)) v).length := by
       rw [List.length_map]
       exact h
     have nth_equ_simplified :
         (List.map sTN_of_sTN₂ v).nthLe n hlen =
           (List.map symbol.terminal w).nthLe (u.length + n) hlen₂ := by
       rw [List.nthLe_append_right hlen₀] at nth_equ
-      convert nth_equ
-      rw [List.length_map]
-      symmetry
-      apply add_tsub_cancel_left
-    rw [List.nthLe_map] at nth_equ_simplified
-    cases v.nthLe n h with
-    | terminal =>
-        unfold sTN_of_sTN₂ at nth_equ_simplified
-        rw [List.nthLe_map] at nth_equ_simplified
-        · exact hunltw
-        rw [List.nthLe_map]
-        · exact hunltw
-        injection nth_equ_simplified with hx
-        apply congr_arg
-        exact hx
-    | nonterminal =>
+      have h_sub :
+          u.length + n - (List.map (sTN_of_sTN₁ (g₁ := g₁) (g₂ := g₂)) u).length = n := by
+        simp [List.length_map, Nat.add_sub_cancel_left]
+      simpa [h_sub] using nth_equ
+    have nth_equ_simplified' :
+        (List.map (sTN_of_sTN₂ (g₁ := g₁) (g₂ := g₂)) v).nthLe n hlen =
+          (List.map (@symbol.terminal T (Option (g₁.nt ⊕ g₂.nt))) w).nthLe (u.length + n) hlen₂ := by
+      simpa using nth_equ_simplified
+    have nth_equ_simplified'' :
+        sTN_of_sTN₂ (g₁ := g₁) (g₂ := g₂) (v.nthLe n h) =
+          symbol.terminal (T := T) (N := Option (g₁.nt ⊕ g₂.nt)) (w.nthLe (u.length + n) hunltw) := by
+      have hlen_w : u.length + n < w.length := by
+        exact hunltw
+      have hlen_w' : u.length + n < (List.map (@symbol.terminal T (Option (g₁.nt ⊕ g₂.nt))) w).length := by
+        simpa [List.length_map] using hlen_w
+      have hlen_v : n < (List.map (sTN_of_sTN₂ (g₁ := g₁) (g₂ := g₂)) v).length := by
+        simpa [List.length_map] using h
+      have nth_eq_left :
+          (List.map (sTN_of_sTN₂ (g₁ := g₁) (g₂ := g₂)) v).nthLe n hlen_v =
+            sTN_of_sTN₂ (v.nthLe n h) := by
+        simpa [List.length_map] using
+          (List.nthLe_map (f := sTN_of_sTN₂ (g₁ := g₁) (g₂ := g₂)) (l := v) (n := n) (h := hlen_v))
+      have nth_eq_right :
+          (List.map (@symbol.terminal T (Option (g₁.nt ⊕ g₂.nt))) w).nthLe (u.length + n) hlen_w' =
+            symbol.terminal (w.nthLe (u.length + n) hunltw) := by
+        simpa [List.length_map] using
+          (List.nthLe_map (f := @symbol.terminal T (Option (g₁.nt ⊕ g₂.nt))) (l := w)
+            (n := u.length + n) (h := hlen_w'))
+      simpa [nth_eq_left, nth_eq_right] using nth_equ_simplified'
+    cases h_v : v.nthLe n h with
+    | terminal a =>
+        have nth_equ_simplified''' :
+            symbol.terminal (T := T) (N := Option (g₁.nt ⊕ g₂.nt)) a =
+              symbol.terminal (T := T) (N := Option (g₁.nt ⊕ g₂.nt)) (w.nthLe (u.length + n) hunltw) := by
+          simpa [sTN_of_sTN₂, h_v] using nth_equ_simplified''
+        have ha : a = w.nthLe (u.length + n) hunltw :=
+          symbol.terminal.inj nth_equ_simplified'''
+        have nth_map_eq :
+            (List.map (@symbol.terminal T g₂.nt) w).nth (u.length + n) =
+              some (symbol.terminal (w.nthLe (u.length + n) hunltw)) := by
+          simpa [List.length_map] using
+            (List.nthLe_nth (l := List.map (@symbol.terminal T g₂.nt) w)
+              (n := u.length + n) (h := hlen₂'))
+        have nth_eq : v.nth n = (List.drop u.length (List.map (@symbol.terminal T g₂.nt) w)).nth n := by
+          calc
+            v.nth n = some (v.nthLe n h) := List.nthLe_nth (h := h)
+            _ = some (symbol.terminal (w.nthLe (u.length + n) hunltw)) := by
+              simpa [sTN_of_sTN₂, h_v, ha] using nth_equ_simplified''
+            _ = (List.drop u.length (List.map (@symbol.terminal T g₂.nt) w)).nth n := by
+              rw [List.nth_drop]
+              simpa [nth_map_eq]
+        simpa [nth_eq]
+    | nonterminal a =>
         exfalso
-        clear_except nth_equ_simplified
-        finish
+        have : symbol.nonterminal (T := T) (N := Option (g₁.nt ⊕ g₂.nt))
+            (some (Sum.inr (α := g₁.nt) a)) =
+            symbol.terminal (T := T) (N := Option (g₁.nt ⊕ g₂.nt)) (w.nthLe (u.length + n) hunltw) := by
+          simpa [sTN_of_sTN₂, h_v] using nth_equ_simplified''
+        cases this
   ·
     have h' : v.length ≤ n := by
       exact Nat.le_of_not_lt h
