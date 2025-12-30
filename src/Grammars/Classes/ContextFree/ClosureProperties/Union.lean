@@ -46,11 +46,7 @@ lifted_grammar.mk g₁ (union_grammar g₁ g₂) (some ∘ Sum.inl)
     norm_num
     unfold lift_string
     unfold lsTN_of_lsTN₁
-    apply congrFun
-    apply congrArg
-    ext1 x
-    cases x
-    all_goals rfl
+    five_steps
   )
   oN₁_of_N
   (by
@@ -111,11 +107,7 @@ lifted_grammar.mk g₁ (union_grammar g₁ g₂) (some ∘ Sum.inl)
                   Prod.mk.injEq, true_and
                 ]
                 unfold lift_string
-                apply congrFun
-                apply congrArg
-                ext1 x
-                cases x
-                all_goals rfl
+                five_steps
             | inr r_in =>
                 exfalso
                 rw [List.mem_map] at r_in
@@ -151,11 +143,7 @@ lifted_grammar.mk g₂ (union_grammar g₁ g₂) (some ∘ Sum.inr)
     norm_num
     unfold lift_string
     unfold lsTN_of_lsTN₂
-    apply congrFun
-    apply congrArg
-    ext1 x
-    cases x
-    all_goals rfl
+    five_steps
   )
   oN₂_of_N
   (by
@@ -230,12 +218,8 @@ lifted_grammar.mk g₂ (union_grammar g₁ g₂) (some ∘ Sum.inr)
                   Prod.mk.injEq
                 ]
                 constructor
-                ·  rfl
-                · apply congrFun
-                  apply congrArg
-                  ext1 x
-                  cases x
-                  all_goals rfl
+                · rfl
+                · five_steps
 
   )
   (by
@@ -262,11 +246,7 @@ by
     unfold lsTN_of_lsTN₁
     unfold lift_string
     ext1 w
-    apply congrFun
-    apply congrArg
-    ext1 x
-    cases x
-    all_goals rfl
+    five_steps
   rw [techni]
   exact lift_deri ass
 
@@ -284,11 +264,7 @@ by
     unfold lsTN_of_lsTN₂
     unfold lift_string
     ext1 w
-    apply congrFun
-    apply congrArg
-    ext1 x
-    cases x
-    all_goals rfl
+    five_steps
   rw [techni]
   exact lift_deri ass
 
@@ -301,39 +277,31 @@ by
     CF_derives
       (union_grammar g₁ g₂)
       [symbol.nonterminal none]
-      [symbol.nonterminal (some (Sum.inl g₁.initial))],
+      [symbol.nonterminal (some (Sum.inl g₁.initial))]
   := by
     apply CF_deri_of_tran
     refine ⟨(none, [symbol.nonterminal (some (Sum.inl (g₁.initial)))]), ?_, ?_, ?_⟩
-    ·
-      change (none, [symbol.nonterminal (some (Sum.inl g₁.initial))]) ∈ (
-        (none, [symbol.nonterminal (some (Sum.inl (g₁.initial)))]) ::
-        (none, [symbol.nonterminal (some (Sum.inr (g₂.initial)))]) ::
-        (List.map rule_of_rule₁ g₁.rules ++ List.map rule_of_rule₂ g₂.rules)
-      )
-      apply List.mem_cons_self
-    ·
-      exact []
-    ·
-      exact []
+    · exact []
+    · exact []
+    · constructor
+      · simp [union_grammar]
+      constructor
+      · simp
+      · simp
 
   have deri_rest :
     CF_derives
       (union_grammar g₁ g₂)
       [symbol.nonterminal (some (Sum.inl g₁.initial))]
-      (List.map symbol.terminal w),
+      (List.map symbol.terminal w)
   := by
     have beginning :
       [symbol.nonterminal (some (Sum.inl g₁.initial))] =
-      lsTN_of_lsTN₁ [symbol.nonterminal g₁.initial] := by
-      unfold lsTN_of_lsTN₁
-      change
-        [symbol.nonterminal (some (Sum.inl g₁.initial))] =
-        [sTN_of_sTN₁ (symbol.nonterminal g₁.initial)]
-      unfold sTN_of_sTN₁
+      lsTN_of_lsTN₁ (g₁ := g₁) (g₂ := g₂) [symbol.nonterminal g₁.initial] := by
+      simp [lsTN_of_lsTN₁, sTN_of_sTN₁]
     have ending :
       List.map symbol.terminal w =
-      lsTN_of_lsTN₁ (List.map symbol.terminal w) := by
+      lsTN_of_lsTN₁ (g₁ := g₁) (g₂ := g₂) (List.map symbol.terminal w) := by
       simp [lsTN_of_lsTN₁, sTN_of_sTN₁, List.map_map]
     rw [beginning, ending]
     exact deri₁_more (List.map symbol.terminal w) assum
@@ -355,40 +323,31 @@ by
     CF_derives
       (union_grammar g₁ g₂)
       [symbol.nonterminal none]
-      [symbol.nonterminal (some (Sum.inr g₂.initial))],
+      [symbol.nonterminal (some (Sum.inr g₂.initial))]
   := by
     apply CF_deri_of_tran
     refine ⟨(none, [symbol.nonterminal (some (Sum.inr (g₂.initial)))]), ?_, ?_, ?_⟩
-    ·
-      change (none, [symbol.nonterminal (some (Sum.inr g₂.initial))]) ∈ (
-        (none, [symbol.nonterminal (some (Sum.inl (g₁.initial)))]) ::
-        (none, [symbol.nonterminal (some (Sum.inr (g₂.initial)))]) ::
-        (List.map rule_of_rule₁ g₁.rules ++ List.map rule_of_rule₂ g₂.rules)
-      )
-      apply List.mem_cons_of_mem
-      apply List.mem_cons_self
-    ·
-      exact []
-    ·
-      exact []
+    · exact []
+    · exact []
+    · constructor
+      · simp [union_grammar]
+      constructor
+      · simp
+      · simp
 
   have deri_rest :
     CF_derives
       (union_grammar g₁ g₂)
       [symbol.nonterminal (some (Sum.inr g₂.initial))]
-      (List.map symbol.terminal w),
+      (List.map symbol.terminal w)
   := by
     have beginning :
       [symbol.nonterminal (some (Sum.inr g₂.initial))] =
-      lsTN_of_lsTN₂ [symbol.nonterminal g₂.initial] := by
-      unfold lsTN_of_lsTN₂
-      change
-        [symbol.nonterminal (some (Sum.inr g₂.initial))] =
-        [sTN_of_sTN₂ (symbol.nonterminal g₂.initial)]
-      unfold sTN_of_sTN₂
+      lsTN_of_lsTN₂ (g₁ := g₁) (g₂ := g₂) [symbol.nonterminal g₂.initial] := by
+      simp [lsTN_of_lsTN₂, sTN_of_sTN₂]
     have ending :
       List.map symbol.terminal w =
-      lsTN_of_lsTN₂ (List.map symbol.terminal w) := by
+      lsTN_of_lsTN₂ (g₁ := g₁) (g₂ := g₂) (List.map symbol.terminal w) := by
       simp [lsTN_of_lsTN₂, sTN_of_sTN₂, List.map_map]
     rw [beginning, ending]
     exact deri₂_more (List.map symbol.terminal w) assum
@@ -408,12 +367,13 @@ section lemmata_supset
 
 macro "good_singleton" : tactic =>
   `(tactic|
+    (--
     unfold good_string
     intro a in_singleton
     rw [List.mem_singleton] at in_singleton
     rw [in_singleton]
     unfold good_letter
-  )
+  ))
 
 private lemma in_language_left_case_of_union {w : List T}
     (hypo : CF_derives (union_grammar g₁ g₂)
@@ -430,13 +390,13 @@ by
 
   have bar :
     [symbol.nonterminal g₁.initial] =
-    (sink_string gg₁.sink_nt [symbol.nonterminal (some (Sum.inl g₁.initial))]),
+    (sink_string gg₁.sink_nt (T := T) [symbol.nonterminal (some (Sum.inl g₁.initial))])
   := by
     unfold sink_string
     rfl
   rw [bar]
 
-  have baz : List.map symbol.terminal w = sink_string gg₁.sink_nt (List.map symbol.terminal w),
+  have baz : List.map symbol.terminal w = sink_string gg₁.sink_nt (List.map symbol.terminal w)
   := by
     unfold sink_string
     rw [List.filterMap_map]
@@ -445,11 +405,7 @@ by
     convert_to List.map symbol.terminal w = List.filterMap (fun x => Option.some (symbol.terminal x)) w
     change List.map symbol.terminal w = List.filterMap (Option.some ∘ symbol.terminal) w
     clear hypo
-    induction w with
-    | nil =>
-        rfl
-    | cons d l ih =>
-        simp [List.filterMap, ih]
+    simp
   rw [baz]
 
   exact (sink_deri gg₁ [symbol.nonterminal (some (Sum.inl g₁.initial))] (List.map symbol.terminal w) hypo (by
@@ -472,13 +428,13 @@ by
 
   have bar :
     [symbol.nonterminal g₂.initial] =
-    (sink_string gg₂.sink_nt [symbol.nonterminal (some (Sum.inr g₂.initial))]),
+    (sink_string gg₂.sink_nt (T:=T) [symbol.nonterminal (some (Sum.inr g₂.initial))])
   := by
     unfold sink_string
     rfl
   rw [bar]
 
-  have baz : List.map symbol.terminal w = sink_string gg₂.sink_nt (List.map symbol.terminal w),
+  have baz : List.map symbol.terminal w = sink_string gg₂.sink_nt (List.map symbol.terminal w)
   := by
     unfold sink_string
     rw [List.filterMap_map]
@@ -487,11 +443,7 @@ by
     convert_to List.map symbol.terminal w = List.filterMap (fun x => Option.some (symbol.terminal x)) w
     change List.map symbol.terminal w = List.filterMap (Option.some ∘ symbol.terminal) w
     clear hypo
-    induction w with
-    | nil =>
-        rfl
-    | cons d l ih =>
-        simp [List.filterMap, ih]
+    simp
   rw [baz]
 
   exact (sink_deri gg₂ [symbol.nonterminal (some (Sum.inr g₂.initial))] (List.map symbol.terminal w) hypo (by
@@ -510,7 +462,7 @@ by
   refine And.intro ?_ ?_
   ·
     by_contra h
-    rw [←List.length_eq_zero] at h
+    rw [←List.length_eq_zero_iff] at h
     exact Nat.not_succ_le_self 1 (by
       calc
         1 = (u.length + 1) + v.length := len
@@ -522,7 +474,7 @@ by
     )
   ·
     by_contra h
-    rw [←List.length_eq_zero] at h
+    rw [←List.length_eq_zero_iff] at h
     exact Nat.not_succ_le_self 1 (by
       calc
         1 = (u.length + 1) + v.length := len
@@ -557,14 +509,14 @@ by
       unfold rule_of_rule₁ at imposs
       rw [←imposs] at rule_root
       unfold Prod.fst at rule_root
-      exact Option.no_confusion rule_root
+      cases rule_root
   | inr sbi =>
       rw [List.mem_map] at sbi
       rcases sbi with ⟨r₂, _, imposs⟩
       unfold rule_of_rule₂ at imposs
       rw [←imposs] at rule_root
       unfold Prod.fst at rule_root
-      exact Option.no_confusion rule_root
+      cases rule_root
 
 private lemma in_language_of_in_union (w : List T) :
   w ∈ CF_language (union_grammar g₁ g₂)   →   w ∈ CF_language g₁  ∨  w ∈ CF_language g₂   :=
@@ -574,7 +526,7 @@ by
   cases CF_tran_or_id_of_deri ass with
   | inl impossible =>
       exfalso
-      have zeroth := congr_arg (fun p => List.nth p 0) impossible
+      have zeroth := congr_arg (fun p => List.head p) impossible
       unfold List.nth at zeroth
       rw [List.nth_map] at zeroth
       cases w.nth 0 with
