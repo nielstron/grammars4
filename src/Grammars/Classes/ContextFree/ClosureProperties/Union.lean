@@ -525,8 +525,9 @@ by
 
   cases CF_tran_or_id_of_deri ass with
   | inl impossible =>
+      have ih : [symbol.nonterminal (union_grammar g₁ g₂).initial].head = symbol.nonterminal (union_grammar g₁ g₂).initial := by_cases
       exfalso
-      have zeroth := congr_arg (fun p => List.head p) impossible
+      have zeroth := congr_arg (fun p => p.head) impossible
       unfold List.nth at zeroth
       rw [List.nth_map] at zeroth
       cases w.nth 0 with
