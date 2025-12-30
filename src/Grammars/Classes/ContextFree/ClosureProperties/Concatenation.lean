@@ -553,9 +553,19 @@ by
         have nth_map_eq :
             (List.map (@symbol.terminal T g₂.nt) w).nth (u.length + n) =
               some (symbol.terminal (w.nthLe (u.length + n) hunltw)) := by
-          simpa [List.length_map] using
-            (List.nthLe_nth (l := List.map (@symbol.terminal T g₂.nt) w)
-              (n := u.length + n) (h := hlen₂'))
+          have hlen_w' : u.length + n < (List.map (@symbol.terminal T g₂.nt) w).length := by
+            simpa [List.length_map] using hunltw
+          calc
+            (List.map (@symbol.terminal T g₂.nt) w).nth (u.length + n) =
+                some ((List.map (@symbol.terminal T g₂.nt) w).nthLe (u.length + n) hlen_w') := by
+              simpa using
+                (List.nthLe_nth (l := List.map (@symbol.terminal T g₂.nt) w)
+                  (n := u.length + n) (h := hlen_w'))
+            _ = some (symbol.terminal (w.nthLe (u.length + n) hunltw)) := by
+              simpa [List.length_map] using
+                congrArg some
+                  (List.nthLe_map (f := @symbol.terminal T g₂.nt) (l := w)
+                    (n := u.length + n) (h := hlen_w'))
         have nth_eq : v.nth n = (List.drop u.length (List.map (@symbol.terminal T g₂.nt) w)).nth n := by
           calc
             v.nth n = some (v.nthLe n h) := List.nthLe_nth (h := h)
@@ -564,7 +574,13 @@ by
             _ = (List.drop u.length (List.map (@symbol.terminal T g₂.nt) w)).nth n := by
               rw [List.nth_drop]
               simpa [nth_map_eq]
-        simpa [nth_eq]
+        have nthLe_map_eq :
+            (List.map (@symbol.terminal T g₂.nt) w).nthLe (u.length + n) hlen₂' =
+              symbol.terminal (w.nthLe (u.length + n) hunltw) := by
+          simpa [List.length_map] using
+            (List.nthLe_map (f := @symbol.terminal T g₂.nt) (l := w)
+              (n := u.length + n) (h := hlen₂'))
+        simpa [nthLe_map_eq, ha]
     | nonterminal a =>
         exfalso
         have : symbol.nonterminal (T := T) (N := Option (g₁.nt ⊕ g₂.nt))
@@ -578,85 +594,67 @@ by
     have h_v : v.nth n = none := by
       rw [List.nth_eq_none_iff]
       exact h'
-    have h_rhs : (List.drop u.length (List.map symbol.terminal w)).nth n = none := by
+    have h_rhs :
+        (List.drop u.length (List.map (@symbol.terminal T g₂.nt) w)).nth n = none := by
       rw [List.nth_drop]
       rw [List.nth_eq_none_iff]
       rw [List.length_map]
       rw [←total_len]
-      exact add_le_add_left h'
+      simpa [Nat.add_comm, Nat.add_left_comm, Nat.add_assoc] using
+        (add_le_add_left h' u.length)
     simpa [h_v, h_rhs]
 
 private def sTN₁_of_sTN {g₁ g₂ : CF_grammar T} : symbol T (Option (g₁.nt ⊕ g₂.nt)) → Option (symbol T g₁.nt)
-| (symbol.terminal te) := some (symbol.terminal te)
-| (symbol.nonterminal nont) := Option.map symbol.nonterminal (oN₁_of_N nont)
+| (symbol.terminal te) => some (symbol.terminal te)
+| (symbol.nonterminal nont) => Option.map symbol.nonterminal (oN₁_of_N nont)
 
 private def sTN₂_of_sTN {g₁ g₂ : CF_grammar T} : symbol T (Option (g₁.nt ⊕ g₂.nt)) → Option (symbol T g₂.nt)
-| (symbol.terminal te) := some (symbol.terminal te)
-| (symbol.nonterminal nont) := Option.map symbol.nonterminal (oN₂_of_N nont)
+| (symbol.terminal te) => some (symbol.terminal te)
+| (symbol.nonterminal nont) => Option.map symbol.nonterminal (oN₂_of_N nont)
 
 private def lsTN₁_of_lsTN {g₁ g₂ : CF_grammar T} (lis : List (symbol T (Option (g₁.nt ⊕ g₂.nt)))) :
   List (symbol T g₁.nt) :=
-List.filter_map sTN₁_of_sTN lis
+List.filterMap sTN₁_of_sTN lis
 
 private def lsTN₂_of_lsTN {g₁ g₂ : CF_grammar T} (lis : List (symbol T (Option (g₁.nt ⊕ g₂.nt)))) :
   List (symbol T g₂.nt) :=
-List.filter_map sTN₂_of_sTN lis
+List.filterMap sTN₂_of_sTN lis
 
 private lemma self_of_sTN₁ {g₁ g₂ : CF_grammar T} (a : symbol T g₁.nt) :
-  sTN₁_of_sTN (@sTN_of_sTN₁ _ _ g₂ a) = a :=
+  sTN₁_of_sTN (@sTN_of_sTN₁ _ _ g₂ a) = some a :=
 by
-  cases a
-  rfl
+  cases a <;> simp [sTN₁_of_sTN, sTN_of_sTN₁, oN₁_of_N]
 
 private lemma self_of_sTN₂ {g₁ g₂ : CF_grammar T} (a : symbol T g₂.nt) :
-  sTN₂_of_sTN (@sTN_of_sTN₂ _ g₁ _ a) = a :=
+  sTN₂_of_sTN (@sTN_of_sTN₂ _ g₁ _ a) = some a :=
 by
-  cases a
-  rfl
+  cases a <;> simp [sTN₂_of_sTN, sTN_of_sTN₂, oN₂_of_N]
 
 private lemma self_of_lsTN₁ {g₁ g₂ : CF_grammar T} (stri : List (symbol T g₁.nt)) :
   lsTN₁_of_lsTN (@lsTN_of_lsTN₁ _ _ g₂ stri) = stri :=
 by
   unfold lsTN_of_lsTN₁
   unfold lsTN₁_of_lsTN
-  rw [List.filter_map_map]
-  change List.filter_map (fun x => sTN₁_of_sTN (sTN_of_sTN₁ x)) stri = stri
-  convert_to List.filter_map (fun x => some x) stri = stri
-  ·
-    have equal_functions :
-        (fun x : symbol T g₁.nt => sTN₁_of_sTN (sTN_of_sTN₁ x)) = fun x => some x := by
-      ext x
-      apply self_of_sTN₁
-    rw [←equal_functions]
-    apply congr_fun
-    apply congr_arg
-    ext x
-    apply congr_fun
-    rfl
-  ·
-    apply List.filter_map_some
+  rw [List.filterMap_map]
+  have hfun :
+      (sTN₁_of_sTN (g₁ := g₁) (g₂ := g₂) ∘ sTN_of_sTN₁ (g₁ := g₁) (g₂ := g₂)) =
+        (fun x => some x) := by
+    funext x
+    simpa using (self_of_sTN₁ (g₁ := g₁) (g₂ := g₂) x)
+  simpa [hfun] using (List.filterMap_some (l := stri))
 
 private lemma self_of_lsTN₂ {g₁ g₂ : CF_grammar T} (stri : List (symbol T g₂.nt)) :
   lsTN₂_of_lsTN (@lsTN_of_lsTN₂ _ g₁ _ stri) = stri :=
 by
   unfold lsTN_of_lsTN₂
   unfold lsTN₂_of_lsTN
-  rw [List.filter_map_map]
-  change List.filter_map (fun x => sTN₂_of_sTN (sTN_of_sTN₂ x)) stri = stri
-  convert_to List.filter_map (fun x => some x) stri = stri
-  ·
-    have equal_functions :
-        (fun x : symbol T g₂.nt => sTN₂_of_sTN (sTN_of_sTN₂ x)) = fun x => some x := by
-      ext x
-      apply self_of_sTN₂
-    rw [←equal_functions]
-    apply congr_fun
-    apply congr_arg
-    ext x
-    apply congr_fun
-    rfl
-  ·
-    apply List.filter_map_some
+  rw [List.filterMap_map]
+  have hfun :
+      (sTN₂_of_sTN (g₁ := g₁) (g₂ := g₂) ∘ sTN_of_sTN₂ (g₁ := g₁) (g₂ := g₂)) =
+        (fun x => some x) := by
+    funext x
+    simpa using (self_of_sTN₂ (g₁ := g₁) (g₂ := g₂) x)
+  simpa [hfun] using (List.filterMap_some (l := stri))
 
 private lemma in_concatenated_of_in_combined
     {g₁ g₂ : CF_grammar T}
@@ -664,12 +662,12 @@ private lemma in_concatenated_of_in_combined
     (hyp : w ∈ CF_language (combined_grammar g₁ g₂)) :
   w ∈ CF_language g₁ * CF_language g₂ :=
 by
-  rw Language.mem_mul,
+  rw [Language.mem_mul]
   change
     CF_derives
       (combined_grammar g₁ g₂)
       [symbol.nonterminal (combined_grammar g₁ g₂).initial]
-      (List.map symbol.terminal w) at hyp,
+      (List.map symbol.terminal w) at hyp
 
   cases CF_tran_or_id_of_deri hyp,
   {
@@ -1051,7 +1049,7 @@ by
               rw List.take_append,
             },
             unfold lsTN₁_of_lsTN,
-            rw List.filter_map_append_append,
+            rw List.filterMap_append_append,
             refl,
           },
           {
@@ -1065,12 +1063,12 @@ by
               rw List.length_map,
             },
             unfold lsTN₁_of_lsTN,
-            rw List.filter_map_append_append,
+            rw List.filterMap_append_append,
             change
-              List.filter_map sTN₁_of_sTN c ++ lsTN₁_of_lsTN (lsTN_of_lsTN₁ r₁.snd) ++
-                List.filter_map sTN₁_of_sTN (List.take (u.length - (c.length + 1)) d) =
-              List.filter_map sTN₁_of_sTN c ++ r₁.snd ++
-                List.filter_map sTN₁_of_sTN (List.take (u.length - (c.length + 1)) d),
+              List.filterMap sTN₁_of_sTN c ++ lsTN₁_of_lsTN (lsTN_of_lsTN₁ r₁.snd) ++
+                List.filterMap sTN₁_of_sTN (List.take (u.length - (c.length + 1)) d) =
+              List.filterMap sTN₁_of_sTN c ++ r₁.snd ++
+                List.filterMap sTN₁_of_sTN (List.take (u.length - (c.length + 1)) d),
             rw self_of_lsTN₁,
           },
         },
@@ -1103,7 +1101,7 @@ by
           omega,
         },
 
-        have c_converted_and_back : List.map sTN_of_sTN₁ (List.filter_map sTN₁_of_sTN c) = c,
+        have c_converted_and_back : List.map sTN_of_sTN₁ (List.filterMap sTN₁_of_sTN c) = c,
         {
           /-
             Simplified schema of this conversion (applies to some other conversions, too):
@@ -1117,7 +1115,7 @@ by
           rw min_eq_left (le_of_lt h_len) at taken_c_from_u,
           rw List.append_assoc at taken_c_from_u,
           rw List.take_left at taken_c_from_u,
-          convert_to List.map sTN_of_sTN₁ (List.filter_map sTN₁_of_sTN (List.take c.length (lsTN_of_lsTN₁ u))) = c,
+          convert_to List.map sTN_of_sTN₁ (List.filterMap sTN₁_of_sTN (List.take c.length (lsTN_of_lsTN₁ u))) = c,
           {
             rw taken_c_from_u,
           },
@@ -1130,7 +1128,7 @@ by
         },
 
         have d_converted_and_back :
-          List.map sTN_of_sTN₁ (List.filter_map sTN₁_of_sTN (List.take (
+          List.map sTN_of_sTN₁ (List.filterMap sTN₁_of_sTN (List.take (
             (List.map (@sTN_of_sTN₁ T g₁ g₂) u).length - (c.length + 1)
           ) d)) =
           List.take ((List.map (@sTN_of_sTN₁ T g₁ g₂) u).length - (c.length + 1)) d,
@@ -1156,7 +1154,7 @@ by
           rw ←translate_counts at taken_d_from_dropped_u,
           change
             List.map sTN_of_sTN₁ (
-              List.filter_map sTN₁_of_sTN (List.take ((@lsTN_of_lsTN₁ T g₁ g₂ u).length - (c.length + 1)) d)
+              List.filterMap sTN₁_of_sTN (List.take ((@lsTN_of_lsTN₁ T g₁ g₂ u).length - (c.length + 1)) d)
             ) = _,
           rw ←taken_d_from_dropped_u,
           change List.map sTN_of_sTN₁ (lsTN₁_of_lsTN (List.drop (c.length + 1) (List.map sTN_of_sTN₁ u))) = _,
@@ -1173,12 +1171,12 @@ by
             (lsTN₁_of_lsTN (c ++ (rule_of_rule₁ r₁).snd ++ d')).length =
             c.length + (rule_of_rule₁ r₁).snd.length + d'.length,
           unfold lsTN₁_of_lsTN,
-          rw List.filter_map_append_append,
+          rw List.filterMap_append_append,
           convert_to
             (List.map sTN_of_sTN₁ (
-              List.filter_map sTN₁_of_sTN c ++
-              List.filter_map sTN₁_of_sTN (rule_of_rule₁ r₁).snd ++
-              List.filter_map sTN₁_of_sTN d'
+              List.filterMap sTN₁_of_sTN c ++
+              List.filterMap sTN₁_of_sTN (rule_of_rule₁ r₁).snd ++
+              List.filterMap sTN₁_of_sTN d'
             )).length =
             c.length + (rule_of_rule₁ r₁).snd.length + d'.length,
           {
@@ -1187,7 +1185,7 @@ by
           rw List.map_append_append,
           rw c_converted_and_back,
           change
-            (c ++ _ ++ List.map sTN_of_sTN₁ (List.filter_map sTN₁_of_sTN (
+            (c ++ _ ++ List.map sTN_of_sTN₁ (List.filterMap sTN₁_of_sTN (
               List.take ((List.map (@sTN_of_sTN₁ T g₁ g₂) u).length - (c.length + 1)) d
             ))).length = _,
           rw d_converted_and_back,
@@ -1211,7 +1209,7 @@ by
             List.take (lsTN_of_lsTN₁ u').length (c ++ (rule_of_rule₁ r₁).snd ++ d),
           {
             unfold lsTN₁_of_lsTN,
-            rw List.filter_map_append_append,
+            rw List.filterMap_append_append,
             unfold lsTN_of_lsTN₁,
             rw List.map_append_append,
             rw c_converted_and_back,
@@ -1449,7 +1447,7 @@ by
             rw List.append_assoc,
             rw List.drop_append_of_le_length hlen_uc_orig,
             rw ←List.append_assoc,
-            rw List.filter_map_append_append,
+            rw List.filterMap_append_append,
             rw eq_c',
             refl,
           },
@@ -1457,11 +1455,11 @@ by
             unfold lsTN_of_lsTN₁,
             rw List.length_map,
             unfold lsTN₂_of_lsTN,
-            rw List.filter_map_append_append,
+            rw List.filterMap_append_append,
             change
-              List.filter_map sTN₂_of_sTN (List.drop u.length c) ++
-                lsTN₂_of_lsTN (lsTN_of_lsTN₂ r₂.snd) ++ List.filter_map sTN₂_of_sTN d =
-              List.filter_map sTN₂_of_sTN c' ++ r₂.snd ++ List.filter_map sTN₂_of_sTN d,
+              List.filterMap sTN₂_of_sTN (List.drop u.length c) ++
+                lsTN₂_of_lsTN (lsTN_of_lsTN₂ r₂.snd) ++ List.filterMap sTN₂_of_sTN d =
+              List.filterMap sTN₂_of_sTN c' ++ r₂.snd ++ List.filterMap sTN₂_of_sTN d,
             rw self_of_lsTN₂,
             rw eq_c',
           },
@@ -1485,10 +1483,10 @@ by
           List.drop (@lsTN_of_lsTN₁ T g₁ g₂ u).length (c ++ (rule_of_rule₂ r₂).snd ++ d),
         {
           change
-            List.map sTN_of_sTN₂ (List.filter_map sTN₂_of_sTN (
+            List.map sTN_of_sTN₂ (List.filterMap sTN₂_of_sTN (
               List.drop (lsTN_of_lsTN₁ u).length c ++ (rule_of_rule₂ r₂).snd ++ d)) =
             List.drop (lsTN_of_lsTN₁ u).length (c ++ (rule_of_rule₂ r₂).snd ++ d),
-          rw List.filter_map_append_append,
+          rw List.filterMap_append_append,
           rw List.map_append_append,
           rw List.append_assoc c,
           rw List.drop_append_of_le_length hlen_uc,
@@ -1596,9 +1594,9 @@ by
     },
     cases u_from_terminals with uₜ hut,
     rw hut,
-    rw List.filter_map_map,
-    convert_to List.map symbol.terminal (List.filter_map some uₜ) = List.map symbol.terminal uₜ,
-    rw List.filter_map_some,
+    rw List.filterMap_map,
+    convert_to List.map symbol.terminal (List.filterMap some uₜ) = List.map symbol.terminal uₜ,
+    rw List.filterMap_some,
   },
   split,
   {
@@ -1620,16 +1618,16 @@ by
     },
     cases v_from_terminals with vₜ hvt,
     rw hvt,
-    rw List.filter_map_map,
-    convert_to List.map symbol.terminal (List.filter_map some vₜ) = List.map symbol.terminal vₜ,
-    rw List.filter_map_some,
+    rw List.filterMap_map,
+    convert_to List.map symbol.terminal (List.filterMap some vₜ) = List.map symbol.terminal vₜ,
+    rw List.filterMap_some,
   },
   unfold liT_of_lsTN₃ at huvw,
-  rw List.filter_map_append at huvw,
+  rw List.filterMap_append at huvw,
   unfold lsTN_of_lsTN₁ at huvw,
   unfold lsTN_of_lsTN₂ at huvw,
   repeat {
-    rw List.filter_map_map at huvw,
+    rw List.filterMap_map at huvw,
   },
   have disappear_sTN_of_sTN₁ : @oT_of_sTN₃ T (combined_grammar g₁ g₂) ∘ sTN_of_sTN₁ = oT_of_sTN₃,
   {
@@ -1653,7 +1651,7 @@ by
     refl,
   },
   rw bundle_unbundle,
-  rw List.filter_map_some
+  rw List.filterMap_some
 
 
 private lemma in_combined_of_in_concatenated
