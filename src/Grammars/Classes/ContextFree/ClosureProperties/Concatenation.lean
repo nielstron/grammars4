@@ -8,7 +8,50 @@ namespace List
 variable {α : Type}
 
 def nth (l : List α) (n : Nat) : Option α :=
-  l.get? n
+  match l, n with
+  | [], _ => none
+  | a :: _, 0 => some a
+  | _ :: tail, Nat.succ k => nth tail k
+
+theorem nth_eq_none_iff {l : List α} {n : Nat} : l.nth n = none ↔ l.length ≤ n := by
+  induction l generalizing n with
+  | nil =>
+      cases n <;> simp [List.nth]
+  | cons head tail ih =>
+      cases n with
+      | zero =>
+          simp [List.nth]
+      | succ n =>
+          simpa [List.nth, Nat.succ_le_succ_iff] using (ih (n := n))
+
+theorem nth_take {l : List α} {m n : Nat} (h : n < m) :
+    (List.take m l).nth n = l.nth n := by
+  induction l generalizing m n with
+  | nil =>
+      simp [List.nth]
+  | cons head tail ih =>
+      cases m with
+      | zero =>
+          exact (Nat.lt_asymm h (Nat.zero_le _)).elim
+      | succ m =>
+          cases n with
+          | zero =>
+              simp [List.nth]
+          | succ n =>
+              have h' : n < m := Nat.lt_of_succ_lt_succ h
+              simp [List.nth, ih h']
+
+theorem nth_drop {l : List α} {m n : Nat} :
+    (List.drop m l).nth n = l.nth (m + n) := by
+  induction m generalizing l with
+  | zero =>
+      simp [List.nth]
+  | succ m ih =>
+      cases l with
+      | nil =>
+          simp [List.nth]
+      | cons head tail =>
+          simp [List.nth, ih, Nat.succ_add]
 
 end List
 
@@ -244,10 +287,15 @@ by
         List.map (sTN_of_sTN₁ (g₁ := g₁) (g₂ := g₂)) u =
           List.take u.length (List.map (@symbol.terminal T (Option (g₁.nt ⊕ g₂.nt))) w) := by
       convert hyp
-      have takenl :=
-        List.take_left
-          (List.map (sTN_of_sTN₁ (g₁ := g₁) (g₂ := g₂)) u)
-          (lsTN_of_lsTN₂ (g₁ := g₁) (g₂ := g₂) v)
+      have takenl :
+          List.take (List.length (List.map (sTN_of_sTN₁ (g₁ := g₁) (g₂ := g₂)) u))
+            (List.map (sTN_of_sTN₁ (g₁ := g₁) (g₂ := g₂)) u ++
+              lsTN_of_lsTN₂ (g₁ := g₁) (g₂ := g₂) v) =
+            List.map (sTN_of_sTN₁ (g₁ := g₁) (g₂ := g₂)) u := by
+        simpa using
+          (List.take_left
+            (l₁ := List.map (sTN_of_sTN₁ (g₁ := g₁) (g₂ := g₂)) u)
+            (l₂ := lsTN_of_lsTN₂ (g₁ := g₁) (g₂ := g₂) v))
       rw [List.length_map] at takenl
       exact takenl.symm
     have nth_equ := congr_fun (congr_arg List.nth ass) n
