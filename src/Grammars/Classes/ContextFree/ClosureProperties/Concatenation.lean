@@ -669,139 +669,93 @@ by
       [symbol.nonterminal (combined_grammar g₁ g₂).initial]
       (List.map symbol.terminal w) at hyp
 
-  cases CF_tran_or_id_of_deri hyp,
-  {
-    rename h refl_contr,
-    exfalso,
-    have hh := congr_fun (congr_arg List.nth refl_contr) 0,
-    rw List.nth at hh,
-
-    by_cases (List.map (@symbol.terminal T (combined_grammar g₁ g₂).nt) w).length = 0,
-    {
-      have empty_none : (List.map symbol.terminal w).nth 0 = none,
-      {
-        finish,
-      },
-      rw empty_none at hh,
-      exact Option.no_confusion hh,
-    },
-    rw List.nth_map at hh,
-    have hw0 : ∃ s, w.nth 0 = some s,
-    {
-      cases w.nth 0,
-      {
-        exfalso,
-        exact Option.no_confusion hh,
-      },
-      use val,
-    },
-    rcases hw0 with ⟨s, hs⟩,
-    rw hs at hh,
-    rw Option.map_some' at hh,
-    rw Option.some_inj at hh,
-    exact symbol.no_confusion hh,
-  },
-  rcases h with ⟨y, first_step, derivation⟩,
-  clear hyp,
+  have hcases :
+      ∃ y,
+        CF_transforms
+          (combined_grammar g₁ g₂)
+          [symbol.nonterminal (combined_grammar g₁ g₂).initial]
+          y ∧
+          CF_derives
+            (combined_grammar g₁ g₂)
+            y
+            (List.map symbol.terminal w) := by
+    cases CF_tran_or_id_of_deri hyp with
+    | inl refl_contr =>
+        exfalso
+        have hh := congr_fun (congr_arg List.nth refl_contr) 0
+        cases w with
+        | nil =>
+            simp at hh
+            cases hh
+        | cons head tail =>
+            simp at hh
+            have :
+                symbol.nonterminal (combined_grammar g₁ g₂).initial =
+                  symbol.terminal head := Option.some.inj hh
+            cases this
+    | inr h =>
+        exact h
+  rcases hcases with ⟨y, first_step, derivation⟩
+  clear hyp
 
   have only_option :
     y =
     [
       symbol.nonterminal (some (Sum.inl (g₁.initial))),
       symbol.nonterminal (some (Sum.inr (g₂.initial)))
-    ],
-  {
-    rcases first_step with ⟨first_rule, first_rule_in, p, q, bef, aft⟩,
-    have len_bef := congr_arg List.length bef,
-    rw [List.length_singleton, List.length_append, List.length_append, List.length_singleton] at len_bef,
-    have p_nil : p = [],
-    {
-      have p0 : p.length = 0,
-      {
-        linarith,
-      },
-      rw List.length_eq_zero at p0,
-      exact p0,
-    },
-    have q_nil : q = [],
-    {
-      have q0 : q.length = 0,
-      {
-        linarith,
-      },
-      rw List.length_eq_zero at q0,
-      exact q0,
-    },
-    have initial : first_rule.fst = none,
-    {
-      apply symbol.nonterminal.inj,
-      rw p_nil at bef,
-      rw q_nil at bef,
-      rw List.append_nil at bef,
-      rw List.nil_append at bef,
-      exact List.head_eq_of_cons_eq (eq.symm bef),
-    },
+    ] := by
+    rcases first_step with ⟨first_rule, p, q, first_rule_in, bef, aft⟩
+    have len_bef := congr_arg List.length bef
+    rw [List.length_singleton, List.length_append, List.length_append, List.length_singleton] at len_bef
+    have p_nil : p = [] := by
+      have p0 : p.length = 0 := by
+        linarith
+      rw [List.length_eq_zero_iff] at p0
+      exact p0
+    have q_nil : q = [] := by
+      have q0 : q.length = 0 := by
+        linarith
+      rw [List.length_eq_zero_iff] at q0
+      exact q0
+    have initial : first_rule.fst = none := by
+      apply symbol.nonterminal.inj
+      rw [p_nil, q_nil] at bef
+      rw [List.append_nil, List.nil_append] at bef
+      exact List.head_eq_of_cons_eq (Eq.symm bef)
     have only_rule :
-      first_rule = (none, [
-        symbol.nonterminal (some (Sum.inl (g₁.initial))),
-        symbol.nonterminal (some (Sum.inr (g₂.initial)))
-      ]),
-    {
-      change first_rule ∈ (
+        first_rule = (none, [
+          symbol.nonterminal (some (Sum.inl (g₁.initial))),
+          symbol.nonterminal (some (Sum.inr (g₂.initial)))
+        ]) := by
+      change first_rule ∈
         (none, [
           symbol.nonterminal (some (Sum.inl (g₁.initial))),
           symbol.nonterminal (some (Sum.inr (g₂.initial)))
-        ]) :: (
-          (List.map rule_of_rule₁ g₁.rules) ++ (List.map rule_of_rule₂ g₂.rules)
-        )
-      ) at first_rule_in,
-      cases first_rule_in,
-      {
-        exact first_rule_in,
-      },
-      exfalso,
-      change first_rule ∈ (List.map rule_of_rule₁ g₁.rules ++ List.map rule_of_rule₂ g₂.rules) at first_rule_in,
-      rw [List.mem_append] at first_rule_in,
-      cases first_rule_in,
-      {
-        delta rule_of_rule₁ at first_rule_in,
-        have rfst :
-          first_rule.fst ∈ List.map prod.fst
-            (List.map (
-                λ (r : g₁.nt × List (symbol T g₁.nt)),
-                (some (Sum.inl r.fst), lsTN_of_lsTN₁ r.snd)
-              ) g₁.rules),
-        {
-          exact List.mem_map_of_mem prod.fst first_rule_in,
-        },
-        rw initial at rfst,
-        convert rfst,
-        simp,
-      },
-      {
-        delta rule_of_rule₂ at first_rule_in,
-        have rfst :
-          first_rule.fst ∈ List.map prod.fst
-            (List.map (
-                λ (r : g₂.nt × List (symbol T g₂.nt)),
-                (some (Sum.inr r.fst), lsTN_of_lsTN₂ r.snd)
-              ) g₂.rules),
-        {
-          exact List.mem_map_of_mem prod.fst first_rule_in,
-        },
-        rw initial at rfst,
-        convert rfst,
-        simp,
-      },
-    },
-    rw [p_nil, q_nil, only_rule] at aft,
-    rw List.append_nil at aft,
-    rw List.nil_append at aft,
-    exact aft,
-  },
-  clear first_step,
-  rw only_option at derivation,
-  clear only_option y,
+        ]) ::
+          (List.map rule_of_rule₁ g₁.rules ++ List.map rule_of_rule₂ g₂.rules) at first_rule_in
+      cases List.eq_or_mem_of_mem_cons first_rule_in with
+      | inl first_rule_in =>
+          exact first_rule_in
+      | inr first_rule_in =>
+          exfalso
+          change first_rule ∈
+            (List.map rule_of_rule₁ g₁.rules ++ List.map rule_of_rule₂ g₂.rules) at first_rule_in
+          rw [List.mem_append] at first_rule_in
+          cases first_rule_in with
+          | inl first_rule_in =>
+              rw [List.mem_map] at first_rule_in
+              rcases first_rule_in with ⟨r₁, r₁_in, rfl⟩
+              cases initial
+          | inr first_rule_in =>
+              rw [List.mem_map] at first_rule_in
+              rcases first_rule_in with ⟨r₂, r₂_in, rfl⟩
+              cases initial
+    rw [p_nil, q_nil, only_rule] at aft
+    rw [List.append_nil, List.nil_append] at aft
+    exact aft
+  clear first_step
+  rw [only_option] at derivation
+  clear only_option y
 
   have complicated_induction :
     ∀ x : List (symbol T (combined_grammar g₁ g₂).nt),
@@ -813,10 +767,11 @@ by
         ]
         x
       →
-        ∃ u : List (symbol T g₁.nt), ∃ v : List (symbol T g₂.nt), and
-          (CF_derives g₁ [symbol.nonterminal g₁.initial] u)
-          (CF_derives g₂ [symbol.nonterminal g₂.initial] v)
-          ∧ (lsTN_of_lsTN₁ u ++ lsTN_of_lsTN₂ v = x),
+        ∃ u : List (symbol T g₁.nt), ∃ v : List (symbol T g₂.nt),
+          And
+            (CF_derives g₁ [symbol.nonterminal g₁.initial] u)
+            (CF_derives g₂ [symbol.nonterminal g₂.initial] v)
+            ∧ (lsTN_of_lsTN₁ u ++ lsTN_of_lsTN₂ v = x),
   {
     intros x ass,
     induction ass with a b trash orig ih,

@@ -29,6 +29,7 @@
 - `src/Grammars/Classes/ContextFree/ClosureProperties/Concatenation.lean` (continued partial port: added `List.nthLe` compatibility and `nthLe_congr`; in-progress rewrites in `u_eq_take_map_w`/`v_eq_drop_map_w`)
 - `src/Grammars/Classes/Unrestricted/ClosureProperties/Star.lean` (ported `specific_symbols` and early `construction` definitions plus three inequality lemmas to Lean 4 syntax)
 - `src/Grammars/Classes/ContextFree/ClosureProperties/Concatenation.lean` (Lean 4 fixes in `v_eq_drop_map_w`, updated `sTN₁_of_sTN`/`sTN₂_of_sTN` and `lsTN₁_of_lsTN`/`lsTN₂_of_lsTN` helpers, `filter_map` → `filterMap` conversions, explicit map typing in `h_rhs`)
+- `src/Grammars/Classes/ContextFree/ClosureProperties/Concatenation.lean` (continued Lean 4 port in `in_concatenated_of_in_combined`: rewrote `CF_tran_or_id_of_deri` handling, `only_option` proof, and updated `List.length_eq_zero_iff`/`Eq.symm`/`And` usage)
 
 ## Outstanding build blockers
 These files still fail `lake build` with Lean 3 syntax or missing API ports:
@@ -37,7 +38,8 @@ These files still fail `lake build` with Lean 3 syntax or missing API ports:
   - `self_of_lsTN₁`/`self_of_lsTN₂` still Lean 3 (`List.filter_map_map`/`List.filter_map_some`) and `List.filter_map` → `List.filterMap` rewrites pending
   - remaining parser fixes around `:=` vs `=>` in equation-style defs
   - downstream errors in `in_concatenated_of_in_combined` and `CF_of_CF_c_CF` remain after `v_eq_drop_map_w`/`self_of_lsTN₁/₂` are fixed
-  - `in_concatenated_of_in_combined` still contains large Lean 3 tactic blocks (commas/braces/`rename`/`exfalso`) and needs a full Lean 4 syntax pass
+  - `in_concatenated_of_in_combined` still contains large Lean 3 tactic blocks (commas/braces/`rename`/`exfalso`) and needs a full Lean 4 syntax pass, especially `complicated_induction`
+  - remaining errors in `CF_of_CF_c_CF` include `Set.eq_of_subSetOf_subset` and `Language` proof elaboration in the final subset arguments
 - `src/Grammars/Classes/Unrestricted/ClosureProperties/Concatenation.lean`
   - heavy Lean 3 syntax cleanup still in progress; many lemmas retain trailing commas and `by { ... }` blocks
   - remaining equation-style defs still need `:=` → `=>` conversions
