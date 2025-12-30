@@ -1,7 +1,7 @@
 import Grammars.Classes.ContextFree.Basics.Lifting
 
 
-variables {T : Type}
+variable {T : Type}
 
 private def union_grammar (g₁ g₂ : CF_grammar T) : CF_grammar T :=
 CF_grammar.mk (Option (g₁.nt ⊕ g₂.nt)) none (

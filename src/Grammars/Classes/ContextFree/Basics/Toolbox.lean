@@ -1,6 +1,6 @@
 import Grammars.Classes.ContextFree.Basics.Definition
 
-variables {T : Type} {g : CF_grammar T}
+variable {T : Type} {g : CF_grammar T}
 
 
 lemma CF_deri_of_tran {v w : List (symbol T g.nt)} :

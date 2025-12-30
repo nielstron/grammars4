@@ -79,8 +79,7 @@ by
         have empty_surrounding : pre = [] ∧ pos = [] := by
           rw [rule] at bef
           have bef_lengths := congr_arg List.length bef
-          simp [List.length_append, List.length_singleton, Nat.add_assoc, Nat.add_left_comm,
-            Nat.add_comm] at bef_lengths
+          simp [List.length_append] at bef_lengths
           have pre_zero : pre.length = 0 := by
             linarith
           have pos_zero : pos.length = 0 := by
@@ -130,8 +129,8 @@ by
     apply @CF_deri_of_tran
     refine ⟨((0 : Fin 1), []), [], [], ?_, ?_, ?_⟩
     · simp [cfg_empty_word]
-    · simpa [hyp, cfg_empty_word]
-    · simpa [hyp, cfg_empty_word]
+    · simp [cfg_empty_word]
+    · simp [hyp, cfg_empty_word]
 
 /-- Context-free grammar for a Language `{a}.star` where `a` is a given terminal symbol. -/
 def cfg_symbol_star (a : T) : CF_grammar T :=
