@@ -26,6 +26,7 @@ private def oN₂_of_N : (union_grammar g₁ g₂).nt → (Option g₂.nt)
 | (some (Sum.inr nonte)) => some nonte
 
 
+
 private def g₁g : @lifted_grammar T :=
 lifted_grammar.mk g₁ (union_grammar g₁ g₂) (some ∘ Sum.inl)
   (by
@@ -34,7 +35,7 @@ lifted_grammar.mk g₁ (union_grammar g₁ g₂) (some ∘ Sum.inl)
     rfl
   )
   (by
-    intro r h
+    intros r h
     apply List.mem_cons_of_mem
     apply List.mem_cons_of_mem
     apply List.mem_append_left
@@ -45,7 +46,11 @@ lifted_grammar.mk g₁ (union_grammar g₁ g₂) (some ∘ Sum.inl)
     norm_num
     unfold lift_string
     unfold lsTN_of_lsTN₁
-    five_steps
+    apply congrFun
+    apply congrArg
+    ext1 x
+    cases x
+    all_goals rfl
   )
   oN₁_of_N
   (by
@@ -60,7 +65,7 @@ lifted_grammar.mk g₁ (union_grammar g₁ g₂) (some ∘ Sum.inl)
             cases y with
             | none =>
                 right
-                rfl
+                simp [oN₁_of_N] at ass
             | some y =>
                 cases y with
                 | inl y =>
@@ -70,32 +75,29 @@ lifted_grammar.mk g₁ (union_grammar g₁ g₂) (some ∘ Sum.inl)
                     rfl
                 | inr y =>
                     simp [oN₁_of_N] at ass
-                    cases ass
         | inr x =>
             right
             rfl
   )
   (by
-    intro r
+    intros r
     rintro ⟨r_in, r_ntype⟩
     cases r_in with
     | head =>
         exfalso
-        rw [r_in] at r_ntype
         dsimp only at r_ntype
         cases r_ntype with
         | intro n₀ imposs =>
-            exact Option.no_confusion imposs
-    | tail r_in =>
+          simp [Function.comp] at imposs
+    | tail _ r_in  =>
         cases r_in with
         | head =>
             exfalso
-            rw [r_in] at r_ntype
             dsimp only at r_ntype
             cases r_ntype with
             | intro n₀ imposs =>
-                exact Option.no_confusion imposs
-        | tail r_in =>
+              simp [Function.comp] at imposs
+        | tail _ r_in =>
             change r ∈ (List.map rule_of_rule₁ g₁.rules ++ List.map rule_of_rule₂ g₂.rules) at r_in
             rw [List.mem_append] at r_in
             cases r_in with
@@ -104,11 +106,16 @@ lifted_grammar.mk g₁ (union_grammar g₁ g₂) (some ∘ Sum.inl)
                 rcases r_in with ⟨r₁, r₁_in, r₁_convert_r⟩
                 refine ⟨r₁, r₁_in, ?_⟩
                 rw [←r₁_convert_r]
-                simp only [
-                  lift_rule, rule_of_rule₁, lift_string, lsTN_of_lsTN₁,
-                  Prod.mk.inj_iff, eq_self_iff_true, true_and
+                simp [
+                  lift_rule, rule_of_rule₁, lsTN_of_lsTN₁,
+                  Prod.mk.injEq, true_and
                 ]
-                five_steps
+                unfold lift_string
+                apply congrFun
+                apply congrArg
+                ext1 x
+                cases x
+                all_goals rfl
             | inr r_in =>
                 exfalso
                 rw [List.mem_map] at r_in
@@ -118,8 +125,7 @@ lifted_grammar.mk g₁ (union_grammar g₁ g₂) (some ∘ Sum.inl)
                 dsimp only at r_ntype
                 cases r_ntype with
                 | intro n₁ contr =>
-                    rw [Option.some_inj] at contr
-                    exact Sum.noConfusion contr
+                    cases contr
   )
   (by
     intro
@@ -145,7 +151,11 @@ lifted_grammar.mk g₂ (union_grammar g₁ g₂) (some ∘ Sum.inr)
     norm_num
     unfold lift_string
     unfold lsTN_of_lsTN₂
-    five_steps
+    apply congrFun
+    apply congrArg
+    ext1 x
+    cases x
+    all_goals rfl
   )
   oN₂_of_N
   (by
@@ -163,12 +173,11 @@ lifted_grammar.mk g₂ (union_grammar g₁ g₂) (some ∘ Sum.inr)
             cases y with
             | none =>
                 right
-                rfl
+                cases ass
             | some y =>
                 cases y with
                 | inl y =>
                     simp [oN₂_of_N] at ass
-                    cases ass
                 | inr y =>
                     left
                     simp [oN₂_of_N] at ass
@@ -185,7 +194,7 @@ lifted_grammar.mk g₂ (union_grammar g₁ g₂) (some ∘ Sum.inr)
         dsimp only at r_ntype
         cases r_ntype with
         | intro n₀ imposs =>
-            exact Option.no_confusion imposs
+            cases imposs
     | inr r_in_ =>
         cases List.eq_or_mem_of_mem_cons r_in_ with
         | inl r_eq_ =>
@@ -194,7 +203,7 @@ lifted_grammar.mk g₂ (union_grammar g₁ g₂) (some ∘ Sum.inr)
             dsimp only at r_ntype
             cases r_ntype with
             | intro n₀ imposs =>
-                exact Option.no_confusion imposs
+                cases imposs
         | inr r_in__ =>
             rw [List.mem_append] at r_in__
             cases r_in__ with
@@ -207,18 +216,27 @@ lifted_grammar.mk g₂ (union_grammar g₁ g₂) (some ∘ Sum.inr)
                 dsimp only at r_ntype
                 cases r_ntype with
                 | intro n₂ contr =>
-                    rw [Option.some_inj] at contr
-                    exact Sum.noConfusion contr
+                    cases contr
             | inr r_in =>
                 rw [List.mem_map] at r_in
                 rcases r_in with ⟨r₂, r₂_in, r₂_convert_r⟩
                 refine ⟨r₂, r₂_in, ?_⟩
                 rw [←r₂_convert_r]
+                unfold rule_of_rule₂
+                unfold lift_rule
+                unfold lift_string
+                unfold lsTN_of_lsTN₂
                 simp only [
-                  lift_rule, rule_of_rule₂, lift_string, lsTN_of_lsTN₂,
-                  Prod.mk.inj_iff, eq_self_iff_true, true_and
+                  Prod.mk.injEq
                 ]
-                five_steps
+                constructor
+                ·  rfl
+                · apply congrFun
+                  apply congrArg
+                  ext1 x
+                  cases x
+                  all_goals rfl
+
   )
   (by
     intro
@@ -244,7 +262,11 @@ by
     unfold lsTN_of_lsTN₁
     unfold lift_string
     ext1 w
-    five_steps
+    apply congrFun
+    apply congrArg
+    ext1 x
+    cases x
+    all_goals rfl
   rw [techni]
   exact lift_deri ass
 
@@ -262,7 +284,11 @@ by
     unfold lsTN_of_lsTN₂
     unfold lift_string
     ext1 w
-    five_steps
+    apply congrFun
+    apply congrArg
+    ext1 x
+    cases x
+    all_goals rfl
   rw [techni]
   exact lift_deri ass
 

@@ -246,13 +246,16 @@ by
             apply ihr
             exact Or.inr in_y
 
+syntax (name := fiveStepTac) "five_steps" : tactic
 
 macro "five_steps" : tactic =>
+    let x := Lean.mkIdent `x
   `(tactic|
     apply congrFun
     apply congrArg
-    ext1
-    cases x <;> rfl)
+    ext1 $x
+    cases $x
+    all_goals rfl)
 
 
 variable {g₁ g₂ : CF_grammar T}
