@@ -768,154 +768,124 @@ by
         x
       →
         ∃ u : List (symbol T g₁.nt), ∃ v : List (symbol T g₂.nt),
-          And
-            (CF_derives g₁ [symbol.nonterminal g₁.initial] u)
-            (CF_derives g₂ [symbol.nonterminal g₂.initial] v)
-            ∧ (lsTN_of_lsTN₁ u ++ lsTN_of_lsTN₂ v = x),
-  {
-    intros x ass,
-    induction ass with a b trash orig ih,
-    {
-      use [[symbol.nonterminal g₁.initial], [symbol.nonterminal g₂.initial]],
-      split,
-      {
-        split;
-        apply CF_deri_self,
-      },
-      {
-        refl,
-      },
-    },
-    clear trash,
-    rcases orig with ⟨orig_rule, orig_in, c, d, bef, aft⟩,
-    rcases ih with ⟨u, v, ⟨ih₁, ih₂⟩, ih_concat⟩,
-    cases orig_in,
-    {
-      exfalso,
-      rw ←ih_concat at bef,
-      rw orig_in at bef,
-      clear_except bef,
-      dsimp only at bef,
-      have init_nt_in_bef_right : symbol.nonterminal none ∈ c ++ [symbol.nonterminal none] ++ d,
-      {
-        apply List.mem_append_left,
-        apply List.mem_append_right,
-        apply List.mem_singleton_self,
-      },
-      have init_nt_notin_bef_left : symbol.nonterminal none ∉ lsTN_of_lsTN₁ u ++ lsTN_of_lsTN₂ v,
-      {
-        rw [List.mem_append],
-        push_neg,
-        split,
-        {
-          rw List.mem_iff_nth_le,
-          push_neg,
-          unfold lsTN_of_lsTN₁,
-          intros n hn,
-          rw List.nthLe_map,
-          {
-            cases u.nthLe n _ with t s,
-            {
-              apply symbol.no_confusion,
-            },
-            {
-              unfold sTN_of_sTN₁,
-              intro hypo,
-              have impossible := symbol.nonterminal.inj hypo,
-              exact Option.no_confusion impossible,
-            },
-          },
-          {
-            rw List.length_map at hn,
-            exact hn,
-          },
-        },
-        {
-          rw List.mem_iff_nth_le,
-          push_neg,
-          unfold lsTN_of_lsTN₂,
-          intros n hn,
-          rw List.nthLe_map,
-          {
-            cases v.nthLe n _ with t s,
-            {
-              apply symbol.no_confusion,
-            },
-            {
-              unfold sTN_of_sTN₂,
-              intro hypo,
-              have impossible := symbol.nonterminal.inj hypo,
-              exact Option.no_confusion impossible,
-            },
-          },
-          {
-            rw List.length_map at hn,
-            exact hn,
-          },
-        },
-      },
-      rw bef at init_nt_notin_bef_left,
-      exact init_nt_notin_bef_left init_nt_in_bef_right,
-    },
-    clear derivation w,
-    change orig_rule ∈ (List.map rule_of_rule₁ g₁.rules ++ List.map rule_of_rule₂ g₂.rules) at orig_in,
-    rw [List.mem_append] at orig_in,
-    cases orig_in,
-    {
-      rw [List.mem_map] at orig_in,
-      rcases orig_in with ⟨r₁, r₁_in, r₁_conv⟩,
-      rw aft,
-      rw bef at ih_concat,
-      clear bef aft a b,
-      rw ←r₁_conv at ih_concat ⊢,
-      clear r₁_conv orig_rule,
-      have part_for_u := congr_arg (List.take (@lsTN_of_lsTN₁ T g₁ g₂ u).length) ih_concat,
-      have part_for_v := congr_arg (List.drop (@lsTN_of_lsTN₁ T g₁ g₂ u).length) ih_concat,
-      rw List.take_left at part_for_u,
-      rw List.drop_left at part_for_v,
+          (CF_derives g₁ [symbol.nonterminal g₁.initial] u ∧
+            CF_derives g₂ [symbol.nonterminal g₂.initial] v)
+            ∧ (lsTN_of_lsTN₁ u ++ lsTN_of_lsTN₂ v = x) := by
+    intro x ass
+    induction ass with
+    | refl =>
+        refine ⟨[symbol.nonterminal g₁.initial], [symbol.nonterminal g₂.initial], ?_, ?_⟩
+        · constructor <;> apply CF_deri_self
+        · rfl
+    | tail ass' orig ih =>
+        rcases orig with ⟨orig_rule, c, d, orig_in, bef, aft⟩
+        rcases ih with ⟨u, v, ⟨ih₁, ih₂⟩, ih_concat⟩
+        cases List.eq_or_mem_of_mem_cons orig_in with
+        | inl orig_in =>
+            subst orig_in
+            exfalso
+            rw [← ih_concat] at bef
+            dsimp only at bef
+            have init_nt_in_bef_right :
+                symbol.nonterminal none ∈ c ++ [symbol.nonterminal none] ++ d := by
+              apply List.mem_append_left
+              apply List.mem_append_right
+              apply List.mem_singleton_self
+            have init_nt_notin_bef_left :
+                symbol.nonterminal none ∉ lsTN_of_lsTN₁ u ++ lsTN_of_lsTN₂ v := by
+              rw [List.mem_append]
+              push_neg
+              constructor
+              ·
+                rw [List.mem_iff_nth_le]
+                push_neg
+                unfold lsTN_of_lsTN₁
+                intro n hn
+                rw [List.nthLe_map]
+                ·
+                  cases u.nthLe n _ with
+                  | terminal t =>
+                      apply symbol.no_confusion
+                  | nonterminal s =>
+                      unfold sTN_of_sTN₁
+                      intro hypo
+                      have impossible := symbol.nonterminal.inj hypo
+                      exact Option.no_confusion impossible
+                ·
+                  rw [List.length_map] at hn
+                  exact hn
+              ·
+                rw [List.mem_iff_nth_le]
+                push_neg
+                unfold lsTN_of_lsTN₂
+                intro n hn
+                rw [List.nthLe_map]
+                ·
+                  cases v.nthLe n _ with
+                  | terminal t =>
+                      apply symbol.no_confusion
+                  | nonterminal s =>
+                      unfold sTN_of_sTN₂
+                      intro hypo
+                      have impossible := symbol.nonterminal.inj hypo
+                      exact Option.no_confusion impossible
+                ·
+                  rw [List.length_map] at hn
+                  exact hn
+            rw [bef] at init_nt_notin_bef_left
+            exact init_nt_notin_bef_left init_nt_in_bef_right
+        | inr orig_in =>
+            clear derivation w
+            change orig_rule ∈
+              (List.map rule_of_rule₁ g₁.rules ++ List.map rule_of_rule₂ g₂.rules) at orig_in
+            rw [List.mem_append] at orig_in
+            cases orig_in with
+            | inl orig_in =>
+                rw [List.mem_map] at orig_in
+                rcases orig_in with ⟨r₁, r₁_in, r₁_conv⟩
+                rw [aft]
+                rw [bef] at ih_concat
+                clear bef aft a b
+                rw [← r₁_conv] at ih_concat ⊢
+                clear r₁_conv orig_rule
+                have part_for_u :=
+                  congr_arg (List.take (@lsTN_of_lsTN₁ T g₁ g₂ u).length) ih_concat
+                have part_for_v :=
+                  congr_arg (List.drop (@lsTN_of_lsTN₁ T g₁ g₂ u).length) ih_concat
+                rw [List.take_left] at part_for_u
+                rw [List.drop_left] at part_for_v
 
-      have h_len : (@lsTN_of_lsTN₁ T g₁ g₂ u).length > c.length,
-      {
-        by_contradiction contra,
-        push_neg at contra,
+                have h_len : (@lsTN_of_lsTN₁ T g₁ g₂ u).length > c.length := by
+                  by_contra contra
+                  push_neg at contra
 
-        have not_in : symbol.nonterminal (rule_of_rule₁ r₁).fst ∉ lsTN_of_lsTN₂ v,
-        {
-          unfold lsTN_of_lsTN₂,
-          rw [List.mem_map],
-          rintro ⟨s, -, imposs⟩,
-          cases s,
-          {
-            exact symbol.no_confusion imposs,
-          },
-          {
-            have inr_eq_inl := Option.some.inj (symbol.nonterminal.inj imposs),
-            exact Sum.no_confusion inr_eq_inl,
-          },
-        },
+                  have not_in : symbol.nonterminal (rule_of_rule₁ r₁).fst ∉ lsTN_of_lsTN₂ v := by
+                    unfold lsTN_of_lsTN₂
+                    rw [List.mem_map]
+                    rintro ⟨s, -, imposs⟩
+                    cases s with
+                    | terminal t =>
+                        exact symbol.no_confusion imposs
+                    | nonterminal s =>
+                        have inr_eq_inl := Option.some.inj (symbol.nonterminal.inj imposs)
+                        exact Sum.no_confusion inr_eq_inl
 
-        have yes_in : symbol.nonterminal (@rule_of_rule₁ T g₁ g₂ r₁).fst ∈ lsTN_of_lsTN₂ v,
-        {
-          have lcth := congr_fun (congr_arg List.nth ih_concat) c.length,
-          rw List.append_assoc c at lcth,
-          have clength :
-            (c ++ ([symbol.nonterminal (rule_of_rule₁ r₁).fst] ++ d)).nth c.length =
-            some (symbol.nonterminal (@rule_of_rule₁ T g₁ g₂ r₁).fst),
-          {
-            rw List.nth_append_right, swap,
-            {
-              refl,
-            },
-            rw Nat.sub_self,
-            refl,
-          },
-          rw clength at lcth,
-          rw List.nth_append_right contra at lcth,
-          exact List.nth_mem lcth,
-        },
+                  have yes_in :
+                      symbol.nonterminal (@rule_of_rule₁ T g₁ g₂ r₁).fst ∈ lsTN_of_lsTN₂ v := by
+                    have lcth := congr_fun (congr_arg List.nth ih_concat) c.length
+                    rw [List.append_assoc c] at lcth
+                    have clength :
+                        (c ++ ([symbol.nonterminal (rule_of_rule₁ r₁).fst] ++ d)).nth c.length =
+                          some (symbol.nonterminal (@rule_of_rule₁ T g₁ g₂ r₁).fst) := by
+                      rw [List.nth_append_right]
+                      · rw [Nat.sub_self]
+                        rfl
+                      · rfl
+                    rw [clength] at lcth
+                    rw [List.nth_append_right contra] at lcth
+                    exact List.nth_mem lcth
 
-        exact not_in yes_in,
-      },
+                  exact not_in yes_in
 
       -- nonterminal was rewritten in the left half of `a` ... upgrade `u`
       let d' : List (symbol T (combined_grammar g₁ g₂).nt) :=
@@ -1262,19 +1232,20 @@ by
         rw identity_of_suffixes,
         apply List.take_append_drop,
       },
-    },
-    {
-      rw [List.mem_map] at orig_in,
-      rcases orig_in with ⟨r₂, r₂_in, r₂_conv⟩,
-      rw aft,
-      rw bef at ih_concat,
-      clear bef aft a b,
-      rw ←r₂_conv at ih_concat ⊢,
-      clear r₂_conv orig_rule,
-      have part_for_u := congr_arg (List.take (@lsTN_of_lsTN₁ T g₁ g₂ u).length) ih_concat,
-      have part_for_v := congr_arg (List.drop (@lsTN_of_lsTN₁ T g₁ g₂ u).length) ih_concat,
-      rw List.take_left at part_for_u,
-      rw List.drop_left at part_for_v,
+            | inr orig_in =>
+                rw [List.mem_map] at orig_in
+                rcases orig_in with ⟨r₂, r₂_in, r₂_conv⟩
+                rw [aft]
+                rw [bef] at ih_concat
+                clear bef aft a b
+                rw [← r₂_conv] at ih_concat ⊢
+                clear r₂_conv orig_rule
+                have part_for_u :=
+                  congr_arg (List.take (@lsTN_of_lsTN₁ T g₁ g₂ u).length) ih_concat
+                have part_for_v :=
+                  congr_arg (List.drop (@lsTN_of_lsTN₁ T g₁ g₂ u).length) ih_concat
+                rw [List.take_left] at part_for_u
+                rw [List.drop_left] at part_for_v
 
       have hlen_vd : (@lsTN_of_lsTN₂ T g₁ g₂ v).length > d.length,
       {
@@ -1514,7 +1485,6 @@ by
         apply List.take_append_drop,
       },
     },
-  },
   specialize complicated_induction (List.map symbol.terminal w) derivation,
 
   rcases complicated_induction with ⟨u, v, ⟨hu, hv⟩, hw⟩,

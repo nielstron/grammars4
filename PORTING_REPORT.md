@@ -1,6 +1,7 @@
 # Lean 4 Porting Report
 
 ## Completed in this pass
+- Started Lean 4 conversion of the `complicated_induction` block in `src/Grammars/Classes/ContextFree/ClosureProperties/Concatenation.lean` (rewrote the outer structure to `by` + `induction`, and began porting the `List.eq_or_mem_of_mem_cons` split; still mid-conversion with Lean 3 syntax remaining).
 - No net code changes; started a Lean 4 conversion of `complicated_induction` in `src/Grammars/Classes/ContextFree/ClosureProperties/Concatenation.lean` but reverted to avoid partial/invalid syntax.
 - `src/Grammars/Classes/ContextFree/ClosureProperties/Intersection.lean` (ported remaining `begin` blocks in `intersection_inclusions` + `nnyCF_of_CF_i_CF` to `by` style)
 - `src/Grammars/Classes/ContextFree/ClosureProperties/Concatenation.lean` (ported `in_combined_of_in_concatenated` + `CF_of_CF_c_CF` to Lean 4 `by` style)
@@ -35,6 +36,7 @@
 ## Outstanding build blockers
 These files still fail `lake build` with Lean 3 syntax or missing API ports:
 - `src/Grammars/Classes/ContextFree/ClosureProperties/Concatenation.lean`
+  - `complicated_induction` still contains Lean 3 tactic syntax (`{ ... }`, trailing commas) and now fails parsing around the `have h_len`/`let` blocks in the `List.mem_append` `inl` branch; also needs `List.mem_iff_nth_le` replacement.
   - `v_eq_drop_map_w` still failing in the `terminal` case (map/drop to `nthLe` equality, proof irrelevance cleanup, and `symbol.terminal` type ascriptions)
   - `self_of_lsTN₁`/`self_of_lsTN₂` still Lean 3 (`List.filter_map_map`/`List.filter_map_some`) and `List.filter_map` → `List.filterMap` rewrites pending
   - remaining parser fixes around `:=` vs `=>` in equation-style defs
