@@ -4,6 +4,14 @@ import Grammars.Utilities.WrittenByOthers.TrimAssoc
 
 variable {T : Type}
 
+namespace List
+variable {α : Type}
+
+def nth (l : List α) (n : Nat) : Option α :=
+  l.get? n
+
+end List
+
 private def combined_grammar (gₗ gᵣ : CF_grammar T) : CF_grammar T :=
 CF_grammar.mk
   (Option (gₗ.nt ⊕ gᵣ.nt))
@@ -100,16 +108,19 @@ lifted_grammar.mk g₁ (combined_grammar g₁ g₂) (some ∘ Sum.inl) (by
           constructor
           · exact r₁_in
           rw [←r₁_convert_r]
-          simp [lift_rule, rule_of_rule₁, lift_string, lsTN_of_lsTN₁, lift_symbol, sTN_of_sTN₁]
+          cases r₁ with
+          | mk nt rhs =>
+              simp [lift_rule, rule_of_rule₁, lift_string, lsTN_of_lsTN₁, lift_symbol, sTN_of_sTN₁]
+              intro a ha
+              cases a <;> rfl
       | inr r_in =>
           exfalso
           rw [List.mem_map] at r_in
           rcases r_in with ⟨r₂, r₂_in, r₂_convert_r⟩
+          cases r₂_convert_r
           rcases r_ntype with ⟨n₁, r_ntype⟩
-          have : (some (Sum.inl n₁) : Option (g₁.nt ⊕ g₂.nt)) =
-              some (Sum.inr r₂.fst) := by
-            simpa [r₂_convert_r, rule_of_rule₂] using r_ntype
-          cases this
+          simp [rule_of_rule₂] at r_ntype
+          cases r_ntype
 ) (by
   intro
   rfl
@@ -185,10 +196,9 @@ lifted_grammar.mk g₂ (combined_grammar g₁ g₂) (some ∘ Sum.inr) (by
           rw [List.mem_map] at r_in
           rcases r_in with ⟨r₁, r₁_in, r₁_convert_r⟩
           rcases r_ntype with ⟨n₂, r_ntype⟩
-          have : (some (Sum.inr n₂) : Option (g₁.nt ⊕ g₂.nt)) =
-              some (Sum.inl r₁.fst) := by
-            simpa [r₁_convert_r, rule_of_rule₁] using r_ntype
-          cases this
+          cases r₁_convert_r
+          simp [rule_of_rule₁] at r_ntype
+          cases r_ntype
       | inr r_in =>
           rw [List.mem_map] at r_in
           rcases r_in with ⟨r₂, r₂_in, r₂_convert_r⟩
@@ -196,7 +206,11 @@ lifted_grammar.mk g₂ (combined_grammar g₁ g₂) (some ∘ Sum.inr) (by
           constructor
           · exact r₂_in
           rw [←r₂_convert_r]
-          simp [lift_rule, rule_of_rule₂, lift_string, lsTN_of_lsTN₂, lift_symbol, sTN_of_sTN₂]
+          cases r₂ with
+          | mk nt rhs =>
+              simp [lift_rule, rule_of_rule₂, lift_string, lsTN_of_lsTN₂, lift_symbol, sTN_of_sTN₂]
+              intro a ha
+              cases a <;> rfl
 ) (by
   intro
   rfl
@@ -208,7 +222,7 @@ private def oT_of_sTN₃ {g₃ : CF_grammar T} : symbol T g₃.nt → Option T
 | (symbol.nonterminal _) => none
 
 private def liT_of_lsTN₃ {g₃ : CF_grammar T} : List (symbol T g₃.nt) → List T :=
-List.filter_map oT_of_sTN₃
+List.filterMap oT_of_sTN₃
 
 private lemma u_eq_take_map_w
     {g₁ g₂ : CF_grammar T}
@@ -216,16 +230,24 @@ private lemma u_eq_take_map_w
     (v : List (symbol T g₂.nt))
     (w : List T)
     (len : u.length ≤ w.length)
-    (hyp : List.take u.length (List.map sTN_of_sTN₁ u ++ lsTN_of_lsTN₂ v) =
-           List.take u.length (List.map symbol.terminal w)) :
-  u = List.take u.length (List.map symbol.terminal w) :=
+    (hyp :
+      List.take u.length
+        (List.map (sTN_of_sTN₁ (g₁ := g₁) (g₂ := g₂)) u ++
+          lsTN_of_lsTN₂ (g₁ := g₁) (g₂ := g₂) v) =
+        List.take u.length (List.map (@symbol.terminal T (Option (g₁.nt ⊕ g₂.nt))) w)) :
+  u = List.take u.length (List.map (@symbol.terminal T g₁.nt) w) :=
 by
   ext n
   by_cases h : n < u.length
   ·
-    have ass : List.map sTN_of_sTN₁ u = List.take u.length (List.map symbol.terminal w) := by
+    have ass :
+        List.map (sTN_of_sTN₁ (g₁ := g₁) (g₂ := g₂)) u =
+          List.take u.length (List.map (@symbol.terminal T (Option (g₁.nt ⊕ g₂.nt))) w) := by
       convert hyp
-      have takenl := List.take_left (List.map sTN_of_sTN₁ u) (lsTN_of_lsTN₂ v)
+      have takenl :=
+        List.take_left
+          (List.map (sTN_of_sTN₁ (g₁ := g₁) (g₂ := g₂)) u)
+          (lsTN_of_lsTN₂ (g₁ := g₁) (g₂ := g₂) v)
       rw [List.length_map] at takenl
       exact takenl.symm
     have nth_equ := congr_fun (congr_arg List.nth ass) n
@@ -258,8 +280,7 @@ by
     cases u.nthLe n h with
     | terminal =>
         unfold sTN_of_sTN₁ at nth_equ
-        clear_except nth_equ
-        finish
+        simpa using nth_equ
     | nonterminal =>
         exfalso
         exact symbol.no_confusion nth_equ

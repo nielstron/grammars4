@@ -11,6 +11,7 @@
 - `src/Grammars/Classes/ContextFree/Basics/Inclusion.lean`
 - `src/Grammars/Classes/ContextFree/ClosureProperties/Bijection.lean`
 - `src/Grammars/Classes/ContextFree/ClosureProperties/Union.lean` (syntax + tactic port)
+- `src/Grammars/Classes/ContextFree/ClosureProperties/Union.lean` (Lean 4 proof fixes in `in_language_of_in_union`; file now builds)
 - `src/Grammars/Classes/ContextFree/ClosureProperties/Complement.lean`
 - `src/Grammars/Classes/ContextFree/ClosureProperties/Permutation.lean`
 - `src/Grammars/Classes/ContextFree/ClosureProperties/Reverse.lean`
@@ -33,7 +34,6 @@ These files still fail `lake build` with Lean 3 syntax or missing API ports:
   - still needs `rw` syntax updates (`rw [List.mem_map]` etc.), `begin` → `by`, and `List.filter_map` → `List.filterMap`
   - `in_concatenated_of_in_combined` still in Lean 3 block style and needs Lean 4 tactic syntax pass
   - remaining parser fixes around `:=` vs `=>` in equation-style defs
-- `src/Grammars/Classes/ContextFree/ClosureProperties/Union.lean` (now fails because `Concatenation.lean` fails)
 - `src/Grammars/Classes/Unrestricted/ClosureProperties/Concatenation.lean`
   - heavy Lean 3 syntax cleanup still in progress; many lemmas retain trailing commas and `by { ... }` blocks
   - remaining equation-style defs still need `:=` → `=>` conversions
@@ -51,6 +51,7 @@ These files still fail `lake build` with Lean 3 syntax or missing API ports:
 - Unused simp args in `src/Grammars/Classes/ContextFree/ClosureProperties/Bijection.lean`
 - Unused simp args in `src/Grammars/Classes/ContextFree/ClosureProperties/Reverse.lean`
 - Unused simp args and minor lints in `src/Grammars/Classes/ContextFree/Basics/Lifting.lean`
+- Unnecessary `simpa` warning in `src/Grammars/Classes/ContextFree/ClosureProperties/Union.lean`
 - Unused variable warning in `src/Grammars/Classes/Unrestricted/Basics/Lifting.lean`
 - Minor simp/lint suggestions in `src/Grammars/Classes/Unrestricted/ClosureProperties/Union.lean`
 - Deprecated `structure ... :=` and `variables` warnings in several definition files

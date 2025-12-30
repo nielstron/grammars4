@@ -525,38 +525,47 @@ by
 
   cases CF_tran_or_id_of_deri ass with
   | inl impossible =>
-      have ih : [symbol.nonterminal (union_grammar g₁ g₂).initial].head = symbol.nonterminal (union_grammar g₁ g₂).initial := by_cases
       exfalso
-      have zeroth := congr_arg (fun p => p.head) impossible
-      unfold List.nth at zeroth
-      rw [List.nth_map] at zeroth
-      cases w.nth 0 with
-      | none =>
-          rw [Option.map_none'] at zeroth
-          exact Option.no_confusion zeroth
-      | some =>
-          rw [Option.map_some'] at zeroth
-          exact symbol.no_confusion (Option.some.inj zeroth)
+      cases w with
+      | nil =>
+          cases impossible
+      | cons head tail =>
+          have zeroth := congr_arg List.head? impossible
+          have zeroth' :
+              Option.some (symbol.nonterminal (union_grammar g₁ g₂).initial) =
+                Option.some (symbol.terminal head) := by
+            simpa using zeroth
+          have : symbol.nonterminal (union_grammar g₁ g₂).initial = symbol.terminal head :=
+            Option.some.inj zeroth'
+          cases this
   | inr h =>
       rcases h with ⟨S₁, deri_head, deri_tail⟩
-      rcases deri_head with ⟨rule, ruleok, u, v, h_bef, h_aft⟩
+      rcases deri_head with ⟨rule, u, v, ruleok, h_bef, h_aft⟩
 
       rw [h_aft] at deri_tail
       cases both_empty u v (symbol.nonterminal rule.fst) h_bef with
       | intro u_nil v_nil =>
-          cases ruleok with
+          cases List.eq_or_mem_of_mem_cons ruleok with
           | inl g₁S =>
               left
-              rw [g₁S] at *
-              rw [u_nil, v_nil, List.nil_append] at deri_tail
-              exact in_language_left_case_of_union deri_tail
+              have deri_tail' :
+                  CF_derives
+                    (union_grammar g₁ g₂)
+                    [symbol.nonterminal (some (Sum.inl g₁.initial))]
+                    (List.map symbol.terminal w) := by
+                simpa [g₁S, u_nil, v_nil, List.nil_append, List.append_nil] using deri_tail
+              exact in_language_left_case_of_union deri_tail'
           | inr r_rest =>
-              cases r_rest with
+              cases List.eq_or_mem_of_mem_cons r_rest with
               | inl g₂S =>
                   right
-                  rw [g₂S] at *
-                  rw [u_nil, v_nil, List.nil_append] at deri_tail
-                  exact in_language_right_case_of_union deri_tail
+                  have deri_tail' :
+                      CF_derives
+                        (union_grammar g₁ g₂)
+                        [symbol.nonterminal (some (Sum.inr g₂.initial))]
+                        (List.map symbol.terminal w) := by
+                    simpa [g₂S, u_nil, v_nil, List.nil_append, List.append_nil] using deri_tail
+                  exact in_language_right_case_of_union deri_tail'
               | inr r_imposs =>
                   exact in_language_impossible_case_of_union w rule u v u_nil v_nil h_bef r_imposs
 
