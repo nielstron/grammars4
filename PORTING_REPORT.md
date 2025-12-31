@@ -1,6 +1,7 @@
 # Lean 4 Porting Report
 
 ## Completed in this pass
+- `src/Grammars/Classes/ContextFree/ClosureProperties/Concatenation.lean` (added `List.nth_mem` helper; continued Lean 4 rewrite in `complicated_induction` `h_len` branch, refactoring the `lcth`/`nth_append_right` reasoning and introducing casted `List.nth` steps to keep `rule_of_rule₁` types aligned)
 - Started Lean 4 conversion of the `complicated_induction` block in `src/Grammars/Classes/ContextFree/ClosureProperties/Concatenation.lean` (rewrote the outer structure to `by` + `induction`, and began porting the `List.eq_or_mem_of_mem_cons` split; still mid-conversion with Lean 3 syntax remaining).
 - No net code changes; started a Lean 4 conversion of `complicated_induction` in `src/Grammars/Classes/ContextFree/ClosureProperties/Concatenation.lean` but reverted to avoid partial/invalid syntax.
 - `src/Grammars/Classes/ContextFree/ClosureProperties/Concatenation.lean` (added Lean 4 `List.mem_iff_nth_le` lemma to replace missing core lemma)
@@ -49,6 +50,7 @@ These files still fail `lake build` with Lean 3 syntax or missing API ports:
   - missing Lean 4 replacements for `List.nth_append_right` and associated `List.nth` rewrite steps in the `h_len` contradiction (line ~914), plus a mismatch between `c_cast`/`d_cast` and the original `c ++ ... ++ d` `nth` target in the rewrite step.
   - `cases orig_in` still lacks a proper `inr` branch structure (Lean 4 parser error near the `let d'` block; `Alternative inr has not been provided`).
   - `complicated_induction` `r₁` branch still has Lean 4 tactic-mode issues: `have`/`let` in tactic blocks causing `unexpected token 'have'`, unresolved casts between `c`/`d` and `c_cast`/`d_cast`, and `List.nth_mem` missing (needs a replacement lemma for `List.nth`/`Option` membership).
+  - `complicated_induction` `r₁` branch still failing in the `h_len` contradiction subproof: `lcth_cast` rewrite to `some` is not yet lining up with the `clength`/`clength_combined` statement, and the `c ++ symbol.nonterminal ... :: d` type mismatch (combined vs Option) still triggers HAppend errors.
   - `v_eq_drop_map_w` still failing in the `terminal` case (map/drop to `nthLe` equality, proof irrelevance cleanup, and `symbol.terminal` type ascriptions)
   - `self_of_lsTN₁`/`self_of_lsTN₂` still Lean 3 (`List.filter_map_map`/`List.filter_map_some`) and `List.filter_map` → `List.filterMap` rewrites pending
   - remaining parser fixes around `:=` vs `=>` in equation-style defs

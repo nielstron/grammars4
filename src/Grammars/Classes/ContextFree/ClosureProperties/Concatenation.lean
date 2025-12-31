@@ -43,6 +43,21 @@ theorem nthLe_nth {l : List α} {n : Nat} (h : n < l.length) : l.nth n = some (l
             simpa using (Nat.lt_of_succ_lt_succ h)
           simpa [List.nth, List.nthLe] using (ih (n := n) h')
 
+theorem nth_mem {l : List α} {n : Nat} {a : α} (h : l.nth n = some a) : a ∈ l := by
+  induction l generalizing n with
+  | nil =>
+      cases n <;> cases h
+  | cons head tail ih =>
+      cases n with
+      | zero =>
+          have : head = a := by
+            simpa [List.nth] using h
+          simpa [this]
+      | succ n =>
+          have h' : tail.nth n = some a := by
+            simpa [List.nth] using h
+          exact List.mem_cons_of_mem _ (ih (n := n) h')
+
 theorem nthLe_map {f : α → β} {l : List α} {n : Nat}
     (h : n < (List.map f l).length) :
     (List.map f l).nthLe n h =
@@ -915,39 +930,43 @@ by
                   have yes_in :
                       symbol.nonterminal (@rule_of_rule₁ T g₁ g₂ r₁).fst ∈ lsTN_of_lsTN₂ v := by
                     have lcth := congr_fun (congr_arg List.nth ih_concat) c.length
-                    rw [List.append_assoc c] at lcth
-                    have c_cast : List (symbol T (Option (g₁.nt ⊕ g₂.nt))) := by
-                      simpa [combined_grammar] using c
-                    have d_cast : List (symbol T (Option (g₁.nt ⊕ g₂.nt))) := by
-                      simpa [combined_grammar] using d
-                    have lcth_cast :
-                        (lsTN_of_lsTN₁ u ++ lsTN_of_lsTN₂ v).nth c.length =
-                          (c_cast ++ ([symbol.nonterminal (rule_of_rule₁ r₁).fst] ++ d_cast)).nth c.length := by
-                      simpa [combined_grammar] using lcth
-                    have c_cast_len : c_cast.length = c.length := by
-                      simpa [c_cast] using (rfl : c.length = c.length)
                     have clength :
                         List.nth
-                          (c_cast ++
-                            ([symbol.nonterminal (rule_of_rule₁ r₁).fst] ++ d_cast)) c.length =
+                          ((c : List (symbol T (Option (g₁.nt ⊕ g₂.nt)))) ++
+                            [symbol.nonterminal (rule_of_rule₁ r₁).fst] ++
+                              (d : List (symbol T (Option (g₁.nt ⊕ g₂.nt))))) c.length =
                           some (symbol.nonterminal (@rule_of_rule₁ T g₁ g₂ r₁).fst) := by
-                      have h : c_cast.length ≤ c.length := by
-                        simpa [c_cast_len] using (le_rfl : c.length ≤ c.length)
+                      have h : (c : List (symbol T (Option (g₁.nt ⊕ g₂.nt)))).length ≤ c.length := by
+                        simpa using (le_rfl : c.length ≤ c.length)
                       calc
                         List.nth
-                            (c_cast ++ ([symbol.nonterminal (rule_of_rule₁ r₁).fst] ++ d_cast)) c.length =
+                            ((c : List (symbol T (Option (g₁.nt ⊕ g₂.nt)))) ++
+                              [symbol.nonterminal (rule_of_rule₁ r₁).fst] ++
+                                (d : List (symbol T (Option (g₁.nt ⊕ g₂.nt))))) c.length =
                             List.nth
-                              ([symbol.nonterminal (rule_of_rule₁ r₁).fst] ++ d_cast)
-                              (c.length - c_cast.length) := by
+                              ([symbol.nonterminal (rule_of_rule₁ r₁).fst] ++
+                                (d : List (symbol T (Option (g₁.nt ⊕ g₂.nt)))))
+                              (c.length - (c : List (symbol T (Option (g₁.nt ⊕ g₂.nt)))).length) := by
                           simpa using
                             (List.nth_append_right
-                              (l₁ := c_cast)
-                              (l₂ := [symbol.nonterminal (rule_of_rule₁ r₁).fst] ++ d_cast)
+                              (l₁ := (c : List (symbol T (Option (g₁.nt ⊕ g₂.nt)))))
+                              (l₂ :=
+                                [symbol.nonterminal (rule_of_rule₁ r₁).fst] ++
+                                  (d : List (symbol T (Option (g₁.nt ⊕ g₂.nt)))))
                               (n := c.length)
                               h)
                         _ = some (symbol.nonterminal (@rule_of_rule₁ T g₁ g₂ r₁).fst) := by
-                          simp [List.nth, c_cast_len]
-                    rw [clength] at lcth_cast
+                          simp [List.nth]
+                    have lcth_cast := lcth
+                    have clength_combined :
+                        List.nth
+                          (c ++
+                            symbol.nonterminal
+                                ((rule_of_rule₁ r₁).fst : (combined_grammar g₁ g₂).nt) :: d)
+                            c.length =
+                          some (symbol.nonterminal (@rule_of_rule₁ T g₁ g₂ r₁).fst) := by
+                      simpa [combined_grammar] using clength
+                    simp [clength_combined] at lcth_cast
                     rw [List.nth_append_right
                       (l₁ := lsTN_of_lsTN₁ u)
                       (l₂ := lsTN_of_lsTN₂ v)
