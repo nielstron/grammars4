@@ -11,32 +11,6 @@ description: Use when developing Lean 4 proofs, facing type class synthesis erro
 
 **Success = `lake build` passes + zero sorries + zero custom axioms.** Theorems with sorries/axioms are scaffolding, not results.
 
-## Quick Reference
-
-| **Resource** | **What You Get** | **Where to Find** |
-|--------------|------------------|-------------------|
-| **Interactive Commands** | 10 slash commands for search, analysis, optimization, repair | Type `/lean` in Claude Code ([full guide](../../COMMANDS.md)) |
-| **Automation Scripts** | 19 tools for search, verification, refactoring, repair | Plugin `scripts/` directory ([scripts/README.md](../../scripts/README.md)) |
-| **Subagents** | 4 specialized agents for batch tasks (optional) | [subagent-workflows.md](references/subagent-workflows.md) |
-| **LSP Server** | 30x faster feedback with instant proof state (optional) | [lean-lsp-server.md](references/lean-lsp-server.md) |
-| **Reference Files** | 18 detailed guides (phrasebook, tactics, patterns, errors, repair, performance) | [List below](#reference-files) |
-
-## When to Use
-
-Use for ANY Lean 4 development: pure/applied math, program verification, mathlib contributions.
-
-**Critical for:** Type class synthesis errors, sorry/axiom management, mathlib search, measure theory/probability work.
-
-## Tools & Workflows
-
-**7 slash commands** for search, analysis, and optimization - type `/lean` in Claude Code. See [COMMANDS.md](../../COMMANDS.md) for full guide with examples and workflows.
-
-**16 automation scripts** for search, verification, and refactoring. See [scripts/README.md](../../scripts/README.md) for complete documentation.
-
-**Lean LSP Server** (optional) provides 30x faster feedback with instant proof state and parallel tactic testing. See [lean-lsp-server.md](references/lean-lsp-server.md) for setup and workflows.
-
-**Subagent delegation** (optional, Claude Code users) enables batch automation. See [subagent-workflows.md](references/subagent-workflows.md) for patterns.
-
 ## Build-First Principle
 
 **ALWAYS compile before committing.** Run `lake build` to verify. "Compiles" ≠ "Complete" - files can compile with sorries/axioms but aren't done until those are eliminated.
