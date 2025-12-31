@@ -101,6 +101,38 @@ theorem nthLe_congr {l : List α} {n : Nat} {h₁ h₂ : n < l.length} :
             simpa using (Nat.lt_of_succ_lt_succ h₂)
           simpa [List.nthLe] using (ih (n := n) h₁' h₂')
 
+theorem mem_iff_nth_le {l : List α} {a : α} :
+    a ∈ l ↔ ∃ n, ∃ h : n < l.length, l.nthLe n h = a := by
+  induction l with
+  | nil =>
+      simp
+  | cons head tail ih =>
+      constructor
+      · intro h
+        cases h with
+        | head =>
+            refine ⟨0, by simp, ?_⟩
+            rfl
+        | tail _ htail =>
+            rcases ih.mp htail with ⟨n, hn, hval⟩
+            refine ⟨n + 1, ?_, ?_⟩
+            · simpa using Nat.succ_lt_succ hn
+            · simpa [List.nthLe] using hval
+      · intro h
+        rcases h with ⟨n, hn, hval⟩
+        cases n with
+        | zero =>
+            have : head = a := by
+              simpa [List.nthLe] using hval
+            simpa [this]
+        | succ n =>
+            right
+            have hn' : n < tail.length := by
+              simpa using (Nat.lt_of_succ_lt_succ hn)
+            have hval' : tail.nthLe n hn' = a := by
+              simpa [List.nthLe] using hval
+            exact ih.mpr ⟨n, hn', hval'⟩
+
 theorem nth_eq_none_iff {l : List α} {n : Nat} : l.nth n = none ↔ l.length ≤ n := by
   induction l generalizing n with
   | nil =>
@@ -801,37 +833,33 @@ by
                 push_neg
                 unfold lsTN_of_lsTN₁
                 intro n hn
+                have hn' : n < u.length := by
+                  simpa [List.length_map] using hn
                 rw [List.nthLe_map]
-                ·
-                  cases u.nthLe n _ with
-                  | terminal t =>
-                      apply symbol.no_confusion
-                  | nonterminal s =>
-                      unfold sTN_of_sTN₁
-                      intro hypo
-                      have impossible := symbol.nonterminal.inj hypo
-                      exact Option.no_confusion impossible
-                ·
-                  rw [List.length_map] at hn
-                  exact hn
+                cases u.nthLe n hn' with
+                | terminal t =>
+                    intro h
+                    cases h
+                | nonterminal s =>
+                    unfold sTN_of_sTN₁
+                    intro h
+                    cases h
               ·
                 rw [List.mem_iff_nth_le]
                 push_neg
                 unfold lsTN_of_lsTN₂
                 intro n hn
+                have hn' : n < v.length := by
+                  simpa [List.length_map] using hn
                 rw [List.nthLe_map]
-                ·
-                  cases v.nthLe n _ with
-                  | terminal t =>
-                      apply symbol.no_confusion
-                  | nonterminal s =>
-                      unfold sTN_of_sTN₂
-                      intro hypo
-                      have impossible := symbol.nonterminal.inj hypo
-                      exact Option.no_confusion impossible
-                ·
-                  rw [List.length_map] at hn
-                  exact hn
+                cases v.nthLe n hn' with
+                | terminal t =>
+                    intro h
+                    cases h
+                | nonterminal s =>
+                    unfold sTN_of_sTN₂
+                    intro h
+                    cases h
             rw [bef] at init_nt_notin_bef_left
             exact init_nt_notin_bef_left init_nt_in_bef_right
         | inr orig_in =>
@@ -845,9 +873,9 @@ by
                 rcases orig_in with ⟨r₁, r₁_in, r₁_conv⟩
                 rw [aft]
                 rw [bef] at ih_concat
-                clear bef aft a b
+                clear bef aft
                 rw [← r₁_conv] at ih_concat ⊢
-                clear r₁_conv orig_rule
+                clear r₁_conv
                 have part_for_u :=
                   congr_arg (List.take (@lsTN_of_lsTN₁ T g₁ g₂ u).length) ih_concat
                 have part_for_v :=

@@ -3,6 +3,13 @@
 ## Completed in this pass
 - Started Lean 4 conversion of the `complicated_induction` block in `src/Grammars/Classes/ContextFree/ClosureProperties/Concatenation.lean` (rewrote the outer structure to `by` + `induction`, and began porting the `List.eq_or_mem_of_mem_cons` split; still mid-conversion with Lean 3 syntax remaining).
 - No net code changes; started a Lean 4 conversion of `complicated_induction` in `src/Grammars/Classes/ContextFree/ClosureProperties/Concatenation.lean` but reverted to avoid partial/invalid syntax.
+- `src/Grammars/Classes/ContextFree/ClosureProperties/Concatenation.lean` (added Lean 4 `List.mem_iff_nth_le` lemma to replace missing core lemma)
+- `src/Grammars/Classes/ContextFree/ClosureProperties/Concatenation.lean` (fixed `List.mem_iff_nth_le` binder syntax for Lean 4 parsing)
+- `src/Grammars/Classes/ContextFree/ClosureProperties/Concatenation.lean` (fixed `mem_iff_nth_le` constructor patterns to Lean 4 `List.Mem` shape)
+- `src/Grammars/Classes/ContextFree/ClosureProperties/Concatenation.lean` (replaced `symbol.no_confusion`/`Option.no_confusion` with `cases`-based contradictions)
+- `src/Grammars/Classes/ContextFree/ClosureProperties/Concatenation.lean` (reworked `nthLe_map` usage to avoid extra goals in `init_nt_notin_bef_left`)
+- `src/Grammars/Classes/ContextFree/ClosureProperties/Concatenation.lean` (removed stale `clear` bindings in `complicated_induction` branch)
+- `src/Grammars/Classes/ContextFree/ClosureProperties/Concatenation.lean` (fixed `clear` to avoid dropping `orig_rule` dependencies)
 - `src/Grammars/Classes/ContextFree/ClosureProperties/Intersection.lean` (ported remaining `begin` blocks in `intersection_inclusions` + `nnyCF_of_CF_i_CF` to `by` style)
 - `src/Grammars/Classes/ContextFree/ClosureProperties/Concatenation.lean` (ported `in_combined_of_in_concatenated` + `CF_of_CF_c_CF` to Lean 4 `by` style)
 - `src/Grammars/Classes/ContextSensitive/ClosureProperties/Concatenation.lean` (Lean 4 syntax pass: `Sum` constructors and `by` blocks)
