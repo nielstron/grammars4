@@ -40,6 +40,7 @@
 - `src/Grammars/Classes/ContextFree/ClosureProperties/Concatenation.lean` (Lean 4 fixes in `v_eq_drop_map_w`, updated `sTN₁_of_sTN`/`sTN₂_of_sTN` and `lsTN₁_of_lsTN`/`lsTN₂_of_lsTN` helpers, `filter_map` → `filterMap` conversions, explicit map typing in `h_rhs`)
 - `src/Grammars/Classes/ContextFree/ClosureProperties/Concatenation.lean` (continued Lean 4 port in `in_concatenated_of_in_combined`: rewrote `CF_tran_or_id_of_deri` handling, `only_option` proof, and updated `List.length_eq_zero_iff`/`Eq.symm`/`And` usage)
 - `src/Grammars/Classes/ContextFree/ClosureProperties/Concatenation.lean` (replaced `symbol.no_confusion`/`Sum.no_confusion` with `cases`, switched `.nth` to `List.nth`, and added `c_cast`/`d_cast` casts in the `h_len` contradiction branch)
+- `src/Grammars/Classes/ContextFree/ClosureProperties/Concatenation.lean` (added `List.nth_append_right` lemma; began Lean 4 rewrite of the `complicated_induction` `r₁` case, converting `let/use/split` to bullets and adding `c_cast`/`d_cast` and `lcth_cast` casts; still mid-port)
 
 ## Outstanding build blockers
 These files still fail `lake build` with Lean 3 syntax or missing API ports:
@@ -47,6 +48,7 @@ These files still fail `lake build` with Lean 3 syntax or missing API ports:
   - `complicated_induction` still contains Lean 3 tactic syntax (`{ ... }`, trailing commas) and now fails parsing around the `have h_len`/`let` blocks in the `List.mem_append` `inl` branch; also needs `List.mem_iff_nth_le` replacement.
   - missing Lean 4 replacements for `List.nth_append_right` and associated `List.nth` rewrite steps in the `h_len` contradiction (line ~914), plus a mismatch between `c_cast`/`d_cast` and the original `c ++ ... ++ d` `nth` target in the rewrite step.
   - `cases orig_in` still lacks a proper `inr` branch structure (Lean 4 parser error near the `let d'` block; `Alternative inr has not been provided`).
+  - `complicated_induction` `r₁` branch still has Lean 4 tactic-mode issues: `have`/`let` in tactic blocks causing `unexpected token 'have'`, unresolved casts between `c`/`d` and `c_cast`/`d_cast`, and `List.nth_mem` missing (needs a replacement lemma for `List.nth`/`Option` membership).
   - `v_eq_drop_map_w` still failing in the `terminal` case (map/drop to `nthLe` equality, proof irrelevance cleanup, and `symbol.terminal` type ascriptions)
   - `self_of_lsTN₁`/`self_of_lsTN₂` still Lean 3 (`List.filter_map_map`/`List.filter_map_some`) and `List.filter_map` → `List.filterMap` rewrites pending
   - remaining parser fixes around `:=` vs `=>` in equation-style defs
