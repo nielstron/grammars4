@@ -1,6 +1,7 @@
 # Lean 4 Porting Report
 
 ## Completed in this pass
+- `src/Grammars/Classes/ContextFree/ClosureProperties/Concatenation.lean` (re-indented the `complicated_induction` `r₁` branch, replaced remaining `symmetry` uses, removed several `clear_except`s, repaired the `rule_of_rule₁` qualifier, and added explicit casts for the `u'` concatenation)
 - `src/Grammars/Classes/ContextFree/ClosureProperties/Concatenation.lean` (added `List.nth_mem` helper; continued Lean 4 rewrite in `complicated_induction` `h_len` branch, refactoring the `lcth`/`nth_append_right` reasoning and introducing casted `List.nth` steps to keep `rule_of_rule₁` types aligned)
 - Started Lean 4 conversion of the `complicated_induction` block in `src/Grammars/Classes/ContextFree/ClosureProperties/Concatenation.lean` (rewrote the outer structure to `by` + `induction`, and began porting the `List.eq_or_mem_of_mem_cons` split; still mid-conversion with Lean 3 syntax remaining).
 - No net code changes; started a Lean 4 conversion of `complicated_induction` in `src/Grammars/Classes/ContextFree/ClosureProperties/Concatenation.lean` but reverted to avoid partial/invalid syntax.
@@ -84,4 +85,4 @@ These files still fail `lake build` with Lean 3 syntax or missing API ports:
 - `lake build Grammars.Classes.ContextSensitive.ClosureProperties.Concatenation` currently fails in `src/Grammars/Classes/Unrestricted/ClosureProperties/Concatenation.lean` due to remaining `begin`/`end` and parser errors.
 - `lake build Grammars.Classes.Unrestricted.ClosureProperties.Concatenation` currently fails with many Lean 4 syntax errors (trailing commas, `:=` vs `=>`, `by { ... }`) and a few proof obligations in the `correspondence_for_terminals` and `unwrapping_nst` sections.
 - `lean build src/Grammars/Classes/ContextFree/ClosureProperties/Union.lean` fails with `Expected exactly one file name` (Lean CLI expects a single file argument; `lake build` succeeds for file checks).
-- `lake build src/Grammars/Classes/ContextFree/ClosureProperties/Concatenation.lean` still fails in `complicated_induction` (unsolved goals), plus a Lean 3 syntax error at line 774 and downstream type errors at lines 1656/1679/1707.
+- `lake build src/Grammars/Classes/ContextFree/ClosureProperties/Concatenation.lean` still fails in `complicated_induction` (remaining `clear_except` cleanup, a `HAppend` type mismatch around `u'` concatenation, and multiple unsolved goals in the `r₁`/`r₂` cases), plus downstream theorem errors around lines 1603+.

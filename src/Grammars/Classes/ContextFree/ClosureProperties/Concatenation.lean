@@ -957,16 +957,12 @@ by
                               h)
                         _ = some (symbol.nonterminal (@rule_of_rule₁ T g₁ g₂ r₁).fst) := by
                           simp [List.nth]
-                    have lcth_cast := lcth
                     have clength_combined :
-                        List.nth
-                          (c ++
-                            [symbol.nonterminal
-                                ((rule_of_rule₁ r₁).fst : (combined_grammar g₁ g₂).nt)] ++ d)
-                            c.length =
+                        List.nth (c ++ [symbol.nonterminal (rule_of_rule₁ r₁).fst] ++ d) c.length =
                           some (symbol.nonterminal (@rule_of_rule₁ T g₁ g₂ r₁).fst) := by
-                      simpa [combined_grammar] using clength
-                    simp [clength_combined] at lcth_cast
+                      simpa using clength
+                    have lcth_cast := lcth
+                    rw [clength_combined] at lcth_cast
                     rw [List.nth_append_right
                       (l₁ := lsTN_of_lsTN₁ u)
                       (l₂ := lsTN_of_lsTN₂ v)
@@ -976,269 +972,269 @@ by
 
                   exact not_in yes_in
 
-      -- nonterminal was rewritten in the left half of `a` ... upgrade `u`
-      have d' : List (symbol T (combined_grammar g₁ g₂).nt) :=
-        List.take ((@lsTN_of_lsTN₁ T g₁ g₂ u).length - (c.length + 1)) d
-      have u' : List (symbol T g₁.nt) :=
-        lsTN₁_of_lsTN (c ++ (rule_of_rule₁ r₁).snd ++ d')
-      refine ⟨u', v, ?_, ?_⟩
-      · refine ⟨?_, ih₂⟩
-        change
-          CF_derives g₁ [symbol.nonterminal g₁.initial]
-            (lsTN₁_of_lsTN (
-              c ++ (rule_of_rule₁ r₁).snd ++
-                (List.take ((lsTN_of_lsTN₁ u).length - (c.length + 1)) d)
-            ))
-        apply CF_deri_of_deri_tran ih₁
-        convert_to
-          CF_transforms
-            g₁
-            (lsTN₁_of_lsTN (
-              List.take (lsTN_of_lsTN₁ u).length (c ++ [symbol.nonterminal (rule_of_rule₁ r₁).fst] ++ d)
-            ))
-            (lsTN₁_of_lsTN (c ++ (rule_of_rule₁ r₁).snd ++ List.take ((lsTN_of_lsTN₁ u).length - (c.length + 1)) d))
-        · rw [←part_for_u, self_of_lsTN₁]
-        refine ⟨r₁, ?_, ?_⟩
-        · exact r₁_in
-        refine ⟨lsTN₁_of_lsTN c, lsTN₁_of_lsTN (List.take (u.length - (c.length + 1)) d), ?_⟩
-        constructor
-        ·
-          convert_to
-            lsTN₁_of_lsTN (
-              c ++ [symbol.nonterminal (rule_of_rule₁ r₁).fst] ++
-                (List.take (u.length - (c.length + 1)) d)
-            ) =
-              lsTN₁_of_lsTN c ++ [symbol.nonterminal r₁.fst] ++
-                lsTN₁_of_lsTN (List.take (u.length - (c.length + 1)) d)
-          ·
-            apply congr_arg
-            have trivi_len : (lsTN_of_lsTN₁ u).length = u.length := by
-              unfold lsTN_of_lsTN₁
-              rw [List.length_map]
-            rw [trivi_len]
-            have another_trivi_len :
-                c.length + 1 = (c ++ [symbol.nonterminal (rule_of_rule₁ r₁).fst]).length := by
-              rw [List.length_append, List.length_singleton]
-            rw [another_trivi_len]
-            have borrow_and_return :
-                u.length =
-                  (c ++ [symbol.nonterminal (rule_of_rule₁ r₁).fst]).length +
-                    (u.length - (c ++ [symbol.nonterminal (rule_of_rule₁ r₁).fst]).length) := by
-              symmetry
-              clear_except h_len
-              apply Nat.add_sub_of_le
-              rw [List.length_append, List.length_singleton]
-              unfold lsTN_of_lsTN₁ at h_len
-              rw [List.length_map] at h_len
-              rw [Nat.succ_le_iff]
-              exact h_len
-            convert_to
-              List.take
-                ((c ++ [symbol.nonterminal (rule_of_rule₁ r₁).fst]).length +
-                  (u.length - (c ++ [symbol.nonterminal (rule_of_rule₁ r₁).fst]).length))
-                (c ++ [symbol.nonterminal (rule_of_rule₁ r₁).fst] ++ d) =
-                c ++ [symbol.nonterminal (rule_of_rule₁ r₁).fst] ++
-                  List.take (u.length - (c ++ [symbol.nonterminal (rule_of_rule₁ r₁).fst]).length) d
-            ·
-              apply congr_fun
-              apply congr_arg
-              exact borrow_and_return
-            rw [List.take_append]
-          unfold lsTN₁_of_lsTN
-          rw [List.filterMap_append_append]
-          rfl
-        ·
-          convert_to
-            lsTN₁_of_lsTN (c ++ (rule_of_rule₁ r₁).snd ++ (List.take (u.length - (c.length + 1)) d)) =
-              lsTN₁_of_lsTN c ++ r₁.snd ++ lsTN₁_of_lsTN (List.take (u.length - (c.length + 1)) d)
-          ·
-            apply congr_arg
-            trim
-            unfold lsTN_of_lsTN₁
-            rw [List.length_map]
-          unfold lsTN₁_of_lsTN
-          rw [List.filterMap_append_append]
-          change
-            List.filterMap sTN₁_of_sTN c ++ lsTN₁_of_lsTN (lsTN_of_lsTN₁ r₁.snd) ++
-              List.filterMap sTN₁_of_sTN (List.take (u.length - (c.length + 1)) d) =
-              List.filterMap sTN₁_of_sTN c ++ r₁.snd ++
-                List.filterMap sTN₁_of_sTN (List.take (u.length - (c.length + 1)) d)
-          rw [self_of_lsTN₁]
-      ·
-        have trivi_min :
-            min ((@lsTN_of_lsTN₁ T g₁ g₂ u).length - (c.length + 1)) d.length =
-              (@lsTN_of_lsTN₁ T g₁ g₂ u).length - (c.length + 1) := by
-          apply min_eq_left
-          unfold lsTN_of_lsTN₁
-          rw [List.length_map]
-          clear_except part_for_u
-          unfold lsTN_of_lsTN₁ at part_for_u
-          have lengs := congr_arg List.length part_for_u
-          rw [List.length_map] at lengs
-          rw [List.length_take] at lengs
-          rw [List.length_append] at lengs
-          rw [List.length_append] at lengs
-          rw [List.length_singleton] at lengs
-          have uleng_le : u.length ≤ c.length + 1 + d.length := by
-            rw [←min_eq_left_iff]
-            exact lengs.symm
-          clear_except uleng_le
-          omega
-        have c_converted_and_back :
-            List.map sTN_of_sTN₁ (List.filterMap sTN₁_of_sTN c) = c := by
-          /-
-            Simplified schema of this conversion (applies to some other conversions, too):
-            we have `g ∘ f = id` but `f ∘ g` does not annihilate (in general)
-            we need `(f ∘ g)(c) = c` for a specific `c`
-            which we can express as `c = f(x)` and then
-            we calculate `f(g(c)) = f(g(f(x))) = f(x) = c` hooray!
-          -/
-          have taken_c_from_u := congr_arg (List.take c.length) part_for_u
-          rw [List.take_take] at taken_c_from_u
-          rw [min_eq_left (le_of_lt h_len)] at taken_c_from_u
-          rw [List.append_assoc] at taken_c_from_u
-          rw [List.take_left] at taken_c_from_u
-          convert_to
-            List.map sTN_of_sTN₁ (List.filterMap sTN₁_of_sTN (List.take c.length (lsTN_of_lsTN₁ u))) = c
-          · rw [taken_c_from_u]
-          unfold lsTN_of_lsTN₁
-          rw [←List.map_take]
-          change List.map sTN_of_sTN₁ (lsTN₁_of_lsTN (lsTN_of_lsTN₁ (List.take c.length u))) = _
-          rw [self_of_lsTN₁]
-          rw [List.map_take]
-          exact taken_c_from_u
-        have d_converted_and_back :
-            List.map sTN_of_sTN₁ (List.filterMap sTN₁_of_sTN (List.take (
-              (List.map (@sTN_of_sTN₁ T g₁ g₂) u).length - (c.length + 1)
-            ) d)) =
-              List.take ((List.map (@sTN_of_sTN₁ T g₁ g₂) u).length - (c.length + 1)) d := by
-          have taken_d_from_dropped_u := congr_arg (List.drop (c.length + 1)) part_for_u
-          have for_the_decomposition :
-              (@lsTN_of_lsTN₁ T g₁ g₂ u).length =
-                (c.length + 1) + ((@lsTN_of_lsTN₁ T g₁ g₂ u).length - (c.length + 1)) := by
-            symmetry
-            apply Nat.add_sub_of_le
-            exact Nat.succ_le_of_lt h_len
-          rw [for_the_decomposition] at taken_d_from_dropped_u
-          rw [List.drop_take] at taken_d_from_dropped_u
-          have translate_counts :
-              c.length + 1 = (c ++ [symbol.nonterminal (rule_of_rule₁ r₁).fst]).length := by
-            rw [List.length_append, List.length_singleton]
-          rw [translate_counts] at taken_d_from_dropped_u
-          rw [List.drop_left] at taken_d_from_dropped_u
-          rw [←translate_counts] at taken_d_from_dropped_u
-          change
-            List.map sTN_of_sTN₁ (
-              List.filterMap sTN₁_of_sTN (List.take ((@lsTN_of_lsTN₁ T g₁ g₂ u).length - (c.length + 1)) d)
-            ) = _
-          rw [←taken_d_from_dropped_u]
-          change List.map sTN_of_sTN₁ (lsTN₁_of_lsTN (List.drop (c.length + 1) (List.map sTN_of_sTN₁ u))) = _
-          rw [←List.map_drop]
-          change List.map sTN_of_sTN₁ (lsTN₁_of_lsTN (lsTN_of_lsTN₁ (List.drop (c.length + 1) u))) = _
-          rw [self_of_lsTN₁]
-          rw [List.map_drop]
-          exact taken_d_from_dropped_u
-        have len_u' :
-            u'.length =
-              c.length + (@rule_of_rule₁ T g₁ g₂ r₁).snd.length + d'.length := by
-          change
-            (lsTN₁_of_lsTN (c ++ (rule_of_rule₁ r₁).snd ++ d')).length =
-              c.length + (rule_of_rule₁ r₁).snd.length + d'.length
-          unfold lsTN₁_of_lsTN
-          rw [List.filterMap_append_append]
-          convert_to
-            (List.map sTN_of_sTN₁ (
-              List.filterMap sTN₁_of_sTN c ++
-              List.filterMap sTN₁_of_sTN (rule_of_rule₁ r₁).snd ++
-              List.filterMap sTN₁_of_sTN d'
-            )).length =
-              c.length + (rule_of_rule₁ r₁).snd.length + d'.length
-          · rw [List.length_map]
-          rw [List.map_append_append]
-          rw [c_converted_and_back]
-          change
-            (c ++ _ ++ List.map sTN_of_sTN₁ (List.filterMap sTN₁_of_sTN (
-              List.take ((List.map (@sTN_of_sTN₁ T g₁ g₂) u).length - (c.length + 1)) d
-            ))).length = _
-          rw [d_converted_and_back]
-          change (c ++ List.map sTN_of_sTN₁ (lsTN₁_of_lsTN (lsTN_of_lsTN₁ r₁.snd)) ++ d').length = _
-          rw [self_of_lsTN₁]
-          rw [List.length_append]
-          rw [List.length_append]
-          rfl
-        have express_u'_as_crd :
-            lsTN_of_lsTN₁ u' =
-              List.take (@lsTN_of_lsTN₁ T g₁ g₂ u').length (c ++ (rule_of_rule₁ r₁).snd ++ d) := by
-          change
-            lsTN_of_lsTN₁ (lsTN₁_of_lsTN (c ++ (rule_of_rule₁ r₁).snd ++
-              (List.take ((lsTN_of_lsTN₁ u).length - (c.length + 1)) d))) =
-              List.take (lsTN_of_lsTN₁ u').length (c ++ (rule_of_rule₁ r₁).snd ++ d)
-          convert_to
-            c ++ (rule_of_rule₁ r₁).snd ++ (List.take ((lsTN_of_lsTN₁ u).length - (c.length + 1)) d) =
-              List.take (lsTN_of_lsTN₁ u').length (c ++ (rule_of_rule₁ r₁).snd ++ d)
-          ·
-            unfold lsTN₁_of_lsTN
-            rw [List.filterMap_append_append]
-            unfold lsTN_of_lsTN₁
-            rw [List.map_append_append]
-            rw [c_converted_and_back]
-            rw [d_converted_and_back]
-            change c ++ List.map sTN_of_sTN₁ (lsTN₁_of_lsTN (lsTN_of_lsTN₁ r₁.snd)) ++ _ = _
-            rw [self_of_lsTN₁]
-            rfl
-          have len_add_sub :
-              (@lsTN_of_lsTN₁ T g₁ g₂ u').length =
-                (c ++ (rule_of_rule₁ r₁).snd).length +
-                  ((@lsTN_of_lsTN₁ T g₁ g₂ u').length - (c ++ (rule_of_rule₁ r₁).snd).length) := by
-            symmetry
-            apply Nat.add_sub_of_le
-            unfold lsTN_of_lsTN₁
-            rw [List.length_map]
-            rw [len_u']
-            rw [List.length_append]
-            apply le_self_add
-          rw [len_add_sub]
-          rw [List.take_append]
-          trim
-          rw [List.length_append]
-          apply congr_arg2 <;> rfl
-        rw [express_u'_as_crd]
-        have identity_of_suffixes :
-            List.drop (@lsTN_of_lsTN₁ T g₁ g₂ u).length (c ++ [symbol.nonterminal (rule_of_rule₁ r₁).fst] ++ d) =
-              List.drop (@lsTN_of_lsTN₁ T g₁ g₂ u').length (c ++ (rule_of_rule₁ r₁).snd ++ d) := by
-          clear_except h_len trivi_min len_u'
-          have h_len_ :
-              (c ++ [symbol.nonterminal (rule_of_rule₁ r₁).fst]).length ≤ (@lsTN_of_lsTN₁ T g₁ g₂ u).length := by
-            rw [List.length_append, List.length_singleton]
-            apply Nat.succ_le_of_lt
-            exact h_len
-          have intermediate :
-              List.drop (@lsTN_of_lsTN₁ T g₁ g₂ u).length (c ++ [symbol.nonterminal (rule_of_rule₁ r₁).fst] ++ d) =
-                List.drop ((@lsTN_of_lsTN₁ T g₁ g₂ u).length - (c.length + 1)) d := by
-            convert_to
-              List.drop
-                ((c ++ [symbol.nonterminal (rule_of_rule₁ r₁).fst]).length +
-                  ((lsTN_of_lsTN₁ u).length - (c ++ [symbol.nonterminal (rule_of_rule₁ r₁).fst]).length))
-                (c ++ [symbol.nonterminal (rule_of_rule₁ r₁).fst] ++ d) =
-                List.drop ((lsTN_of_lsTN₁ u).length - (c.length + 1)) d
-            ·
-              symmetry
-              apply congr_arg2 <;> try rfl
-              apply Nat.add_sub_of_le
-              exact h_len_
-            rw [List.drop_append]
-            apply congr_arg2 <;> try rfl
-            rw [List.length_append, List.length_singleton]
-                rw [intermediate]
-                change _ = List.drop (List.map sTN_of_sTN₁ u').length (c ++ (rule_of_rule₁ r₁).snd ++ d)
-                rw [List.length_map]
-                rw [len_u']
-                rw [← List.length_append]
-                rw [List.drop_append]
-                rw [List.length_take]
-                rw [trivi_min]
-                rw [part_for_v, identity_of_suffixes]
-                apply List.take_append_drop
+                -- nonterminal was rewritten in the left half of `a` ... upgrade `u`
+                have d' : List (symbol T (combined_grammar g₁ g₂).nt) :=
+                  List.take ((@lsTN_of_lsTN₁ T g₁ g₂ u).length - (c.length + 1)) d
+                have u' : List (symbol T g₁.nt) :=
+                  lsTN₁_of_lsTN (
+                    (c : List (symbol T (Option (g₁.nt ⊕ g₂.nt)))) ++
+                      (@rule_of_rule₁ T g₁ g₂ r₁).snd ++
+                      (d' : List (symbol T (Option (g₁.nt ⊕ g₂.nt))))
+                  )
+                refine ⟨u', v, ?_, ?_⟩
+                · refine ⟨?_, ih₂⟩
+                  change
+                    CF_derives g₁ [symbol.nonterminal g₁.initial]
+                      (lsTN₁_of_lsTN (
+                        c ++ (@rule_of_rule₁ T g₁ g₂ r₁).snd ++
+                          (List.take ((lsTN_of_lsTN₁ u).length - (c.length + 1)) d)
+                      ))
+                  apply CF_deri_of_deri_tran ih₁
+                  convert_to
+                    CF_transforms
+                      g₁
+                      (lsTN₁_of_lsTN (
+                        List.take (lsTN_of_lsTN₁ u).length (c ++ [symbol.nonterminal (rule_of_rule₁ r₁).fst] ++ d)
+                      ))
+                      (lsTN₁_of_lsTN (c ++ (@rule_of_rule₁ T g₁ g₂ r₁).snd ++ List.take ((lsTN_of_lsTN₁ u).length - (c.length + 1)) d))
+                  · rw [←part_for_u, self_of_lsTN₁]
+                  refine ⟨r₁, ?_, ?_⟩
+                  · exact r₁_in
+                  refine ⟨lsTN₁_of_lsTN c, lsTN₁_of_lsTN (List.take (u.length - (c.length + 1)) d), ?_⟩
+                  constructor
+                  ·
+                    convert_to
+                      lsTN₁_of_lsTN (
+                        c ++ [symbol.nonterminal (rule_of_rule₁ r₁).fst] ++
+                          (List.take (u.length - (c.length + 1)) d)
+                      ) =
+                        lsTN₁_of_lsTN c ++ [symbol.nonterminal r₁.fst] ++
+                          lsTN₁_of_lsTN (List.take (u.length - (c.length + 1)) d)
+                    ·
+                      apply congr_arg
+                      have trivi_len : (lsTN_of_lsTN₁ u).length = u.length := by
+                        unfold lsTN_of_lsTN₁
+                        rw [List.length_map]
+                      rw [trivi_len]
+                      have another_trivi_len :
+                          c.length + 1 = (c ++ [symbol.nonterminal (rule_of_rule₁ r₁).fst]).length := by
+                        rw [List.length_append, List.length_singleton]
+                      rw [another_trivi_len]
+                      have borrow_and_return :
+                          u.length =
+                            (c ++ [symbol.nonterminal (rule_of_rule₁ r₁).fst]).length +
+                              (u.length - (c ++ [symbol.nonterminal (rule_of_rule₁ r₁).fst]).length) := by
+                          symm
+                          apply Nat.add_sub_of_le
+                          rw [List.length_append, List.length_singleton]
+                          unfold lsTN_of_lsTN₁ at h_len
+                          rw [List.length_map] at h_len
+                          rw [Nat.succ_le_iff]
+                          exact h_len
+                      convert_to
+                        List.take
+                          ((c ++ [symbol.nonterminal (rule_of_rule₁ r₁).fst]).length +
+                            (u.length - (c ++ [symbol.nonterminal (rule_of_rule₁ r₁).fst]).length))
+                          (c ++ [symbol.nonterminal (rule_of_rule₁ r₁).fst] ++ d) =
+                          c ++ [symbol.nonterminal (rule_of_rule₁ r₁).fst] ++
+                            List.take (u.length - (c ++ [symbol.nonterminal (rule_of_rule₁ r₁).fst]).length) d
+                      ·
+                        apply congr_fun
+                        apply congr_arg
+                        exact borrow_and_return
+                      rw [List.take_append]
+                    unfold lsTN₁_of_lsTN
+                    rw [List.filterMap_append_append]
+                    rfl
+                  ·
+                    convert_to
+                      lsTN₁_of_lsTN (c ++ (@rule_of_rule₁ T g₁ g₂ r₁).snd ++ (List.take (u.length - (c.length + 1)) d)) =
+                        lsTN₁_of_lsTN c ++ r₁.snd ++ lsTN₁_of_lsTN (List.take (u.length - (c.length + 1)) d)
+                    ·
+                      apply congr_arg
+                      trim
+                      unfold lsTN_of_lsTN₁
+                      rw [List.length_map]
+                    unfold lsTN₁_of_lsTN
+                    rw [List.filterMap_append_append]
+                    change
+                      List.filterMap sTN₁_of_sTN c ++ lsTN₁_of_lsTN (lsTN_of_lsTN₁ r₁.snd) ++
+                        List.filterMap sTN₁_of_sTN (List.take (u.length - (c.length + 1)) d) =
+                        List.filterMap sTN₁_of_sTN c ++ r₁.snd ++
+                          List.filterMap sTN₁_of_sTN (List.take (u.length - (c.length + 1)) d)
+                    rw [self_of_lsTN₁]
+                ·
+                  have trivi_min :
+                      min ((@lsTN_of_lsTN₁ T g₁ g₂ u).length - (c.length + 1)) d.length =
+                        (@lsTN_of_lsTN₁ T g₁ g₂ u).length - (c.length + 1) := by
+                    apply min_eq_left
+                    unfold lsTN_of_lsTN₁
+                    rw [List.length_map]
+                    unfold lsTN_of_lsTN₁ at part_for_u
+                    have lengs := congr_arg List.length part_for_u
+                    rw [List.length_map] at lengs
+                    rw [List.length_take] at lengs
+                    rw [List.length_append] at lengs
+                    rw [List.length_append] at lengs
+                    rw [List.length_singleton] at lengs
+                    have uleng_le : u.length ≤ c.length + 1 + d.length := by
+                      rw [←min_eq_left_iff]
+                      exact lengs.symm
+                    omega
+                  have c_converted_and_back :
+                      List.map sTN_of_sTN₁ (List.filterMap sTN₁_of_sTN c) = c := by
+                    /-
+                      Simplified schema of this conversion (applies to some other conversions, too):
+                      we have `g ∘ f = id` but `f ∘ g` does not annihilate (in general)
+                      we need `(f ∘ g)(c) = c` for a specific `c`
+                      which we can express as `c = f(x)` and then
+                      we calculate `f(g(c)) = f(g(f(x))) = f(x) = c` hooray!
+                    -/
+                    have taken_c_from_u := congr_arg (List.take c.length) part_for_u
+                    rw [List.take_take] at taken_c_from_u
+                    rw [min_eq_left (le_of_lt h_len)] at taken_c_from_u
+                    rw [List.append_assoc] at taken_c_from_u
+                    rw [List.take_left] at taken_c_from_u
+                    convert_to
+                      List.map sTN_of_sTN₁ (List.filterMap sTN₁_of_sTN (List.take c.length (lsTN_of_lsTN₁ u))) = c
+                    · rw [taken_c_from_u]
+                    unfold lsTN_of_lsTN₁
+                    rw [←List.map_take]
+                    change List.map sTN_of_sTN₁ (lsTN₁_of_lsTN (lsTN_of_lsTN₁ (List.take c.length u))) = _
+                    rw [self_of_lsTN₁]
+                    rw [List.map_take]
+                    exact taken_c_from_u
+                  have d_converted_and_back :
+                      List.map sTN_of_sTN₁ (List.filterMap sTN₁_of_sTN (List.take (
+                        (List.map (@sTN_of_sTN₁ T g₁ g₂) u).length - (c.length + 1)
+                      ) d)) =
+                        List.take ((List.map (@sTN_of_sTN₁ T g₁ g₂) u).length - (c.length + 1)) d := by
+                    have taken_d_from_dropped_u := congr_arg (List.drop (c.length + 1)) part_for_u
+                    have for_the_decomposition :
+                        (@lsTN_of_lsTN₁ T g₁ g₂ u).length =
+                          (c.length + 1) + ((@lsTN_of_lsTN₁ T g₁ g₂ u).length - (c.length + 1)) := by
+                      symm
+                      apply Nat.add_sub_of_le
+                      exact Nat.succ_le_of_lt h_len
+                    rw [for_the_decomposition] at taken_d_from_dropped_u
+                    rw [List.drop_take] at taken_d_from_dropped_u
+                    have translate_counts :
+                        c.length + 1 = (c ++ [symbol.nonterminal (rule_of_rule₁ r₁).fst]).length := by
+                      rw [List.length_append, List.length_singleton]
+                    rw [translate_counts] at taken_d_from_dropped_u
+                    rw [List.drop_left] at taken_d_from_dropped_u
+                    rw [←translate_counts] at taken_d_from_dropped_u
+                    change
+                      List.map sTN_of_sTN₁ (
+                        List.filterMap sTN₁_of_sTN (List.take ((@lsTN_of_lsTN₁ T g₁ g₂ u).length - (c.length + 1)) d)
+                      ) = _
+                    rw [←taken_d_from_dropped_u]
+                    change List.map sTN_of_sTN₁ (lsTN₁_of_lsTN (List.drop (c.length + 1) (List.map sTN_of_sTN₁ u))) = _
+                    rw [←List.map_drop]
+                    change List.map sTN_of_sTN₁ (lsTN₁_of_lsTN (lsTN_of_lsTN₁ (List.drop (c.length + 1) u))) = _
+                    rw [self_of_lsTN₁]
+                    rw [List.map_drop]
+                    exact taken_d_from_dropped_u
+                  have len_u' :
+                      u'.length =
+                        c.length + (@rule_of_rule₁ T g₁ g₂ r₁).snd.length + d'.length := by
+                    change
+                      (lsTN₁_of_lsTN (c ++ (@rule_of_rule₁ T g₁ g₂ r₁).snd ++ d')).length =
+                        c.length + (@rule_of_rule₁ T g₁ g₂ r₁).snd.length + d'.length
+                    unfold lsTN₁_of_lsTN
+                    rw [List.filterMap_append_append]
+                    convert_to
+                      (List.map sTN_of_sTN₁ (
+                        List.filterMap sTN₁_of_sTN c ++
+                        List.filterMap sTN₁_of_sTN (@rule_of_rule₁ T g₁ g₂ r₁).snd ++
+                        List.filterMap sTN₁_of_sTN d'
+                      )).length =
+                        c.length + (@rule_of_rule₁ T g₁ g₂ r₁).snd.length + d'.length
+                    · rw [List.length_map]
+                    rw [List.map_append_append]
+                    rw [c_converted_and_back]
+                    change
+                      (c ++ _ ++ List.map sTN_of_sTN₁ (List.filterMap sTN₁_of_sTN (
+                        List.take ((List.map (@sTN_of_sTN₁ T g₁ g₂) u).length - (c.length + 1)) d
+                      ))).length = _
+                    rw [d_converted_and_back]
+                    change (c ++ List.map sTN_of_sTN₁ (lsTN₁_of_lsTN (lsTN_of_lsTN₁ r₁.snd)) ++ d').length = _
+                    rw [self_of_lsTN₁]
+                    rw [List.length_append]
+                    rw [List.length_append]
+                    rfl
+                  have express_u'_as_crd :
+                      lsTN_of_lsTN₁ u' =
+                        List.take (@lsTN_of_lsTN₁ T g₁ g₂ u').length (c ++ (@rule_of_rule₁ T g₁ g₂ r₁).snd ++ d) := by
+                    change
+                      lsTN_of_lsTN₁ (lsTN₁_of_lsTN (c ++ (@rule_of_rule₁ T g₁ g₂ r₁).snd ++
+                        (List.take ((lsTN_of_lsTN₁ u).length - (c.length + 1)) d))) =
+                        List.take (lsTN_of_lsTN₁ u').length (c ++ (@rule_of_rule₁ T g₁ g₂ r₁).snd ++ d)
+                    convert_to
+                      c ++ (@rule_of_rule₁ T g₁ g₂ r₁).snd ++ (List.take ((lsTN_of_lsTN₁ u).length - (c.length + 1)) d) =
+                        List.take (lsTN_of_lsTN₁ u').length (c ++ (@rule_of_rule₁ T g₁ g₂ r₁).snd ++ d)
+                    ·
+                      unfold lsTN₁_of_lsTN
+                      rw [List.filterMap_append_append]
+                      unfold lsTN_of_lsTN₁
+                      rw [List.map_append_append]
+                      rw [c_converted_and_back]
+                      rw [d_converted_and_back]
+                      change c ++ List.map sTN_of_sTN₁ (lsTN₁_of_lsTN (lsTN_of_lsTN₁ r₁.snd)) ++ _ = _
+                      rw [self_of_lsTN₁]
+                      rfl
+                    have len_add_sub :
+                        (@lsTN_of_lsTN₁ T g₁ g₂ u').length =
+                          (c ++ (@rule_of_rule₁ T g₁ g₂ r₁).snd).length +
+                            ((@lsTN_of_lsTN₁ T g₁ g₂ u').length - (c ++ (@rule_of_rule₁ T g₁ g₂ r₁).snd).length) := by
+                      symm
+                      apply Nat.add_sub_of_le
+                      unfold lsTN_of_lsTN₁
+                      rw [List.length_map]
+                      rw [len_u']
+                      rw [List.length_append]
+                      apply le_self_add
+                    rw [len_add_sub]
+                    rw [List.take_append]
+                    trim
+                    rw [List.length_append]
+                    apply congr_arg2 <;> rfl
+                  rw [express_u'_as_crd]
+                  have identity_of_suffixes :
+                      List.drop (@lsTN_of_lsTN₁ T g₁ g₂ u).length (c ++ [symbol.nonterminal (rule_of_rule₁ r₁).fst] ++ d) =
+                        List.drop (@lsTN_of_lsTN₁ T g₁ g₂ u').length (c ++ (@rule_of_rule₁ T g₁ g₂ r₁).snd ++ d) := by
+                    have h_len_ :
+                        (c ++ [symbol.nonterminal (rule_of_rule₁ r₁).fst]).length ≤ (@lsTN_of_lsTN₁ T g₁ g₂ u).length := by
+                      rw [List.length_append, List.length_singleton]
+                      apply Nat.succ_le_of_lt
+                      exact h_len
+                    have intermediate :
+                        List.drop (@lsTN_of_lsTN₁ T g₁ g₂ u).length (c ++ [symbol.nonterminal (rule_of_rule₁ r₁).fst] ++ d) =
+                          List.drop ((@lsTN_of_lsTN₁ T g₁ g₂ u).length - (c.length + 1)) d := by
+                      convert_to
+                        List.drop
+                          ((c ++ [symbol.nonterminal (rule_of_rule₁ r₁).fst]).length +
+                            ((lsTN_of_lsTN₁ u).length - (c ++ [symbol.nonterminal (rule_of_rule₁ r₁).fst]).length))
+                          (c ++ [symbol.nonterminal (rule_of_rule₁ r₁).fst] ++ d) =
+                          List.drop ((lsTN_of_lsTN₁ u).length - (c.length + 1)) d
+                      ·
+                        symm
+                        apply congr_arg2 <;> try rfl
+                        apply Nat.add_sub_of_le
+                        exact h_len_
+                      rw [List.drop_append]
+                      apply congr_arg2 <;> try rfl
+                      rw [List.length_append, List.length_singleton]
+                    rw [intermediate]
+                    change _ = List.drop (List.map sTN_of_sTN₁ u').length (c ++ (@rule_of_rule₁ T g₁ g₂ r₁).snd ++ d)
+                    rw [List.length_map]
+                    rw [len_u']
+                    rw [← List.length_append]
+                    rw [List.drop_append]
+                    rw [List.length_take]
+                    rw [trivi_min]
+                    rw [part_for_v, identity_of_suffixes]
+                    apply List.take_append_drop
             ·
                 rw [List.mem_map] at orig_in_right
                 rcases orig_in_right with ⟨r₂, r₂_in, r₂_conv⟩
