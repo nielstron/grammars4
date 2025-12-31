@@ -893,17 +893,23 @@ by
                     rintro ⟨s, -, imposs⟩
                     cases s with
                     | terminal t =>
-                        exact symbol.no_confusion imposs
+                        cases imposs
                     | nonterminal s =>
                         have inr_eq_inl := Option.some.inj (symbol.nonterminal.inj imposs)
-                        exact Sum.no_confusion inr_eq_inl
+                        cases inr_eq_inl
 
                   have yes_in :
                       symbol.nonterminal (@rule_of_rule₁ T g₁ g₂ r₁).fst ∈ lsTN_of_lsTN₂ v := by
                     have lcth := congr_fun (congr_arg List.nth ih_concat) c.length
                     rw [List.append_assoc c] at lcth
+                    have c_cast : List (symbol T (Option (g₁.nt ⊕ g₂.nt))) := by
+                      simpa [combined_grammar] using c
+                    have d_cast : List (symbol T (Option (g₁.nt ⊕ g₂.nt))) := by
+                      simpa [combined_grammar] using d
                     have clength :
-                        (c ++ ([symbol.nonterminal (rule_of_rule₁ r₁).fst] ++ d)).nth c.length =
+                        List.nth
+                          (c_cast ++
+                            ([symbol.nonterminal (rule_of_rule₁ r₁).fst] ++ d_cast)) c.length =
                           some (symbol.nonterminal (@rule_of_rule₁ T g₁ g₂ r₁).fst) := by
                       rw [List.nth_append_right]
                       · rw [Nat.sub_self]
