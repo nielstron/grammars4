@@ -88,7 +88,7 @@ theorem nthLe_append_right {l₁ l₂ : List α} {n : Nat}
   | nil =>
       have h' : n < l₂.length := by
         simpa [List.length_append] using h₂
-      simp [List.nthLe] 
+      simp [List.nthLe]
   | cons head tail ih =>
       cases n with
       | zero =>
@@ -704,6 +704,11 @@ by
     simpa using (self_of_sTN₁ (g₁ := g₁) (g₂ := g₂) x)
   simpa [hfun] using (List.filterMap_some (l := stri))
 
+variable {g₁ g₂ : CF_grammar T}
+def combined_rule_of_rule₁ (r : g₁.nt × (List (symbol T g₁.nt))) :
+  ((combined_grammar g₁ g₂).nt) × (List (symbol T (combined_grammar g₁ g₂).nt)) :=
+(some (Sum.inl (Prod.fst r)), lsTN_of_lsTN₁ (Prod.snd r))
+
 private lemma self_of_lsTN₂ {g₁ g₂ : CF_grammar T} (stri : List (symbol T g₂.nt)) :
   lsTN₂_of_lsTN (@lsTN_of_lsTN₂ _ g₁ _ stri) = stri :=
 by
@@ -975,20 +980,15 @@ by
                 -- nonterminal was rewritten in the left half of `a` ... upgrade `u`
                 have d' : List (symbol T (combined_grammar g₁ g₂).nt) :=
                   List.take ((@lsTN_of_lsTN₁ T g₁ g₂ u).length - (c.length + 1)) d
-                have u' : List (symbol T g₁.nt) :=
-                  lsTN₁_of_lsTN (
-                    (c : List (symbol T (Option (g₁.nt ⊕ g₂.nt)))) ++
-                      (@rule_of_rule₁ T g₁ g₂ r₁).snd ++
-                      (d' : List (symbol T (Option (g₁.nt ⊕ g₂.nt))))
-                  )
+                have u' := lsTN₁_of_lsTN (c ++ (combined_rule_of_rule₁ (g₁ := g₁) (g₂ := g₂) r₁).snd ++ d')
                 refine ⟨u', v, ?_, ?_⟩
                 · refine ⟨?_, ih₂⟩
-                  change
-                    CF_derives g₁ [symbol.nonterminal g₁.initial]
-                      (lsTN₁_of_lsTN (
-                        c ++ (@rule_of_rule₁ T g₁ g₂ r₁).snd ++
-                          (List.take ((lsTN_of_lsTN₁ u).length - (c.length + 1)) d)
-                      ))
+                  -- change
+                  --   CF_derives g₁ [symbol.nonterminal g₁.initial]
+                  --     (lsTN₁_of_lsTN (
+                  --       c ++ (combined_rule_of_rule₁ (g₁ := g₁) (g₂ := g₂) r₁).snd ++
+                  --         (List.take ((lsTN_of_lsTN₁ u).length - (c.length + 1)) d)
+                  --     ))
                   apply CF_deri_of_deri_tran ih₁
                   convert_to
                     CF_transforms
@@ -998,7 +998,6 @@ by
                       ))
                       (lsTN₁_of_lsTN (c ++ (@rule_of_rule₁ T g₁ g₂ r₁).snd ++ List.take ((lsTN_of_lsTN₁ u).length - (c.length + 1)) d))
                   · rw [←part_for_u, self_of_lsTN₁]
-                  refine ⟨r₁, ?_, ?_⟩
                   · exact r₁_in
                   refine ⟨lsTN₁_of_lsTN c, lsTN₁_of_lsTN (List.take (u.length - (c.length + 1)) d), ?_⟩
                   constructor
@@ -1240,9 +1239,9 @@ by
                 rcases orig_in_right with ⟨r₂, r₂_in, r₂_conv⟩
                 rw [aft]
                 rw [bef] at ih_concat
-                clear bef aft a b
+                clear bef aft
                 rw [← r₂_conv] at ih_concat ⊢
-                clear r₂_conv orig_rule
+                clear r₂_conv orig_in orig_rule
                 have part_for_u :=
                   congr_arg (List.take (@lsTN_of_lsTN₁ T g₁ g₂ u).length) ih_concat
                 have part_for_v :=
@@ -1465,11 +1464,13 @@ by
 
                   rw [part_for_u, identity_of_prefixes, express_v'_as_crd]
                   apply List.take_append_drop
-  specialize complicated_induction (List.map symbol.terminal w) derivation,
+  specialize complicated_induction (List.map symbol.terminal w) derivation
 
-  rcases complicated_induction with ⟨u, v, ⟨hu, hv⟩, hw⟩,
-  use liT_of_lsTN₃ u,
-  use liT_of_lsTN₃ v,
+  rcases complicated_induction with ⟨u, v, ⟨hu, hv⟩, hw⟩
+  use liT_of_lsTN₃ u
+  use hu
+  use liT_of_lsTN₃ v
+  use hv
   have huvw :
     @liT_of_lsTN₃ T
       (combined_grammar g₁ g₂)
@@ -1654,7 +1655,7 @@ theorem CF_of_CF_c_CF (L₁ : Language T) (L₂ : Language T) :
 by
   rintro ⟨⟨g₁, eq_L₁⟩, ⟨g₂, eq_L₂⟩⟩
   refine ⟨combined_grammar g₁ g₂, ?_⟩
-  apply Set.eq_of_subSetOf_subset
+  apply Set.eq_of_subset_of_subset
   ·
     -- prove `L₁ * L₂ ⊇` here
     intro w hyp
