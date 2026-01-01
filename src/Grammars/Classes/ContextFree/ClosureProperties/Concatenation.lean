@@ -772,7 +772,7 @@ private lemma lsTN_of_lsTN₂_of_good {g₁ g₂ : CF_grammar T}
     cases a with
     | terminal t =>
       have htail := ih hw_tail
-      simpa [lsTN₂_of_lsTN, lsTN_of_lsTN₂] using htail
+      simpa [lsTN_of_lsTN₂, lsTN₂_of_lsTN, List.map_cons, sTN_of_sTN₂, sTN₂_of_sTN] using htail
     | nonterminal n =>
       rcases hw_a with ⟨n₀, hn₀⟩
       cases n with
@@ -781,12 +781,12 @@ private lemma lsTN_of_lsTN₂_of_good {g₁ g₂ : CF_grammar T}
       | some s =>
         cases s with
         | inl n₁ =>
-          simp [oN₂_of_N] at hn₀
+          exfalso
+          tauto
         | inr n₂ =>
-          simp [oN₂_of_N] at hn₀
-          cases hn₀
           have htail := ih hw_tail
-          simpa [lsTN₂_of_lsTN, lsTN_of_lsTN₂] using htail
+          simpa [lsTN_of_lsTN₂, lsTN₂_of_lsTN, List.map_cons, sTN_of_sTN₂, sTN₂_of_sTN,
+            List.filterMap_cons, oN₂_of_N] using htail
 
 -- Helper lemmas to convert derivations from combined grammar back to original grammars
 private lemma derives_g1_of_derives_combined {g₁ g₂ : CF_grammar T}
