@@ -813,32 +813,30 @@ private lemma lsTN_of_lsTN₂_terminals {g₁ g₂ : CF_grammar T}
     (ts : List T)
     (h : lsTN_of_lsTN₂ (g₁ := g₁) v = List.map symbol.terminal ts) :
     ∃ ts', v = List.map symbol.terminal ts' := by
+  use ts
+  unfold lsTN_of_lsTN₂ at h
+  -- Prove by induction on u and ts simultaneously
   induction v generalizing ts with
   | nil =>
-    use []
-    rfl
+    cases ts with
+    | nil => rfl
+    | cons _ _ => simp at h
   | cons head tail ih =>
-    unfold lsTN_of_lsTN₂ at h
-    simp at h
-    cases head with
-    | terminal t =>
-      unfold sTN_of_sTN₂ at h
-      cases ts with
-      | nil => simp at h
-      | cons t' ts' =>
+    cases ts with
+    | nil => simp at h
+    | cons t ts' =>
+      simp at h
+      cases head with
+      | terminal t' =>
+        unfold sTN_of_sTN₂ at h
         simp at h
         obtain ⟨ht, htail⟩ := h
         subst ht
-        obtain ⟨ts_tail, htail_eq⟩ := ih ts' htail
-        use t' :: ts_tail
-        simp [htail_eq]
-    | nonterminal n =>
-      unfold sTN_of_sTN₂ at h
-      cases ts with
-      | nil => simp at h
-      | cons t ts' =>
+        have := ih ts' htail
+        simp [this]
+      | nonterminal n =>
+        unfold sTN_of_sTN₂ at h
         simp at h
-        cases h.1
 
 -- Helper to show v is all terminals from the concat equation
 private lemma v_all_terminals_of_concat {g₁ g₂ : CF_grammar T}
@@ -847,22 +845,30 @@ private lemma v_all_terminals_of_concat {g₁ g₂ : CF_grammar T}
     (w : List T)
     (hw : lsTN_of_lsTN₁ u ++ lsTN_of_lsTN₂ v = List.map symbol.terminal w) :
     v = List.map symbol.terminal (liT_of_lsTN₃ v) := by
-  -- Split w so that lsTN_of_lsTN₂ v = List.map symbol.terminal w2
-  obtain ⟨w2, hw2⟩ : ∃ w2, lsTN_of_lsTN₂ v = List.map symbol.terminal w2 := by
-    use List.drop (lsTN_of_lsTN₁ u).length w
-    have eq1 : lsTN_of_lsTN₂ v = List.drop (lsTN_of_lsTN₁ u).length (lsTN_of_lsTN₁ u ++ lsTN_of_lsTN₂ v) := by
+  -- Split w into w1 and w2 such that lsTN_of_lsTN₁ u = List.map symbol.terminal w1
+  obtain ⟨w1, hw1⟩ : ∃ w1, lsTN_of_lsTN₂ v = List.map symbol.terminal w1 := by
+    use List.drop (lsTN_of_lsTN₁ (g₁:=g₁) (g₂:=g₂) u).length w
+    have eq1 : lsTN_of_lsTN₂ v = List.drop (lsTN_of_lsTN₁  (g₁:=g₁) (g₂:=g₂) u).length (lsTN_of_lsTN₁ u ++ lsTN_of_lsTN₂ v) := by
       rw [List.drop_left]
     rw [hw] at eq1
-    rw [List.drop_map] at eq1
+    simp only [List.map_drop]
     exact eq1
-  obtain ⟨ts, hts⟩ := lsTN_of_lsTN₂_terminals v w2 hw2
+  obtain ⟨ts, hts⟩ := lsTN_of_lsTN₂_terminals v w1 hw1
+  -- Now show that liT_of_lsTN₃ u = ts
   rw [hts]
-  unfold liT_of_lsTN₃
-  rw [List.filterMap_map]
   congr 1
-  ext x
+  unfold liT_of_lsTN₃
   unfold oT_of_sTN₃
-  rfl
+  clear hw
+  clear hw1
+  clear hts
+  induction ts generalizing u with
+  | nil => simp
+  | cons head tail tail_ih =>
+    specialize tail_ih (List.map symbol.terminal tail)
+    simp only [List.map_cons, Option.some.injEq, List.filterMap_cons_some,
+      List.cons.injEq, true_and]
+    apply tail_ih
 
 -- Helper lemmas to show that derivations lead to words in the language
 private lemma in_language_of_derives {g : CF_grammar T}
