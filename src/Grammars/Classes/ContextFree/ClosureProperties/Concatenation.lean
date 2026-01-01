@@ -1054,14 +1054,129 @@ lemma concatenation_can_be_split {g: CF_grammar T} (x : List (symbol T g.nt)) (s
     -- Inductive case: we have rel --[rule]--> trans and ih gives us the split for rel
     rcases ih with ⟨u, v, hu, hv, huv⟩
     rcases trans with ⟨rule, c, d, rule_in, bef, aft⟩
-    rw [← huv] at bef
-    clear huv rel
+    have bef' : c ++ [symbol.nonterminal rule.fst] ++ d = u ++ v := by
+      rw [← bef, huv]
+    clear huv rel bef
     -- The rule application happens either in u or in v
     -- We determine which by checking if the nonterminal being replaced is in the first part
-    -- TODO: Complete by case analysis on whether c.length < u.length
     by_cases left_side: (c.length < u.length)
-    · sorry
-    · sorry
+    · -- Case 1: The transformation happens within u (c.length < u.length)
+      -- We have: bef' : c ++ [nonterminal rule.fst] ++ d = u ++ v
+      -- Since c.length < u.length, we can split u as: u = c ++ [nonterminal rule.fst] ++ d'
+      -- where d = d' ++ v
+      obtain ⟨d', hd'⟩ : ∃ d', u = c ++ [symbol.nonterminal rule.fst] ++ d' ∧ d = d' ++ v := by
+        -- Since c.length < u.length, c is a proper prefix of u
+        have h_c_prefix : c = List.take c.length u := by
+          have this1 : List.take c.length (u ++ v) = c := by
+            rw [← bef']
+            have : List.take c.length (c ++ [symbol.nonterminal rule.fst] ++ d) = c := by
+              calc List.take c.length (c ++ [symbol.nonterminal rule.fst] ++ d)
+                  = List.take c.length (c ++ ([symbol.nonterminal rule.fst] ++ d)) := by rw [List.append_assoc]
+                _ = List.take c.length c := by rw [List.take_append_of_le_length (Nat.le_refl _)]
+                _ = c := by rw [List.take_length]
+            exact this
+          have this2 := congr_arg (List.take c.length) bef'
+          simp [List.take_append_of_le_length (Nat.le_of_lt left_side)] at this2
+          exact this2
+        -- Split u = c ++ rest
+        set rest := List.drop c.length u with hrest_def
+        have hu_split : u = c ++ rest := by
+          calc u = List.take c.length u ++ List.drop c.length u := (List.take_append_drop c.length u).symm
+               _ = c ++ rest := by rw [← h_c_prefix]
+        -- Now c ++ [nonterminal] ++ d = c ++ rest ++ v
+        have h_rest_eq : [symbol.nonterminal rule.fst] ++ d = rest ++ v := by
+          have : c ++ [symbol.nonterminal rule.fst] ++ d = c ++ rest ++ v := by
+            rw [← hu_split]; exact bef'
+          have : c ++ ([symbol.nonterminal rule.fst] ++ d) = c ++ (rest ++ v) := by
+            rw [← List.append_assoc, ← List.append_assoc]; exact this
+          exact List.append_cancel_left this
+        -- rest must start with [nonterminal rule.fst]
+        have hrest_nonempty : rest ≠ [] := by
+          intro h
+          rw [h] at h_rest_eq
+          simp at h_rest_eq
+          have len_eq : u.length = c.length := by rw [hu_split, h]; simp
+          linarith
+        obtain ⟨hd_rest, tl_rest, h_rest_cons⟩ := List.exists_cons_of_ne_nil hrest_nonempty
+        have h_hd : hd_rest = symbol.nonterminal rule.fst := by
+          have h_cons : [symbol.nonterminal rule.fst] ++ d = (hd_rest :: tl_rest) ++ v := by
+            rw [← h_rest_cons]; exact h_rest_eq
+          have : symbol.nonterminal rule.fst :: d = hd_rest :: (tl_rest ++ v) := by
+            simpa using h_cons
+          exact List.head_eq_of_cons_eq this.symm
+        -- So rest = [nonterminal] ++ tl_rest, and d = tl_rest ++ v
+        use tl_rest
+        constructor
+        · calc u = c ++ rest := hu_split
+               _ = c ++ (hd_rest :: tl_rest) := by rw [h_rest_cons]
+               _ = c ++ (symbol.nonterminal rule.fst :: tl_rest) := by rw [h_hd]
+               _ = c ++ [symbol.nonterminal rule.fst] ++ tl_rest := by simp
+        · have h_cons : [symbol.nonterminal rule.fst] ++ d = [symbol.nonterminal rule.fst] ++ (tl_rest ++ v) := by
+            calc [symbol.nonterminal rule.fst] ++ d = rest ++ v := h_rest_eq
+                 _ = (hd_rest :: tl_rest) ++ v := by rw [h_rest_cons]
+                 _ = (symbol.nonterminal rule.fst :: tl_rest) ++ v := by rw [h_hd]
+                 _ = [symbol.nonterminal rule.fst] ++ (tl_rest ++ v) := by rfl
+          exact List.append_cancel_left h_cons
+
+      -- The transformation produces: x = c ++ rule.snd ++ d = c ++ rule.snd ++ d' ++ v
+      use c ++ rule.snd ++ d', v
+      refine ⟨?_, ?_, ?_⟩
+      · -- Prove CF_derives g [s] (c ++ rule.snd ++ d')
+        rw [hd'.1] at hu
+        exact CF_deri_of_deri_tran hu ⟨rule, c, d', rule_in, rfl, rfl⟩
+      · -- v is unchanged
+        exact hv
+      · -- Prove c ++ rule.snd ++ d' ++ v = x
+        calc c ++ rule.snd ++ d' ++ v = c ++ rule.snd ++ (d' ++ v) := by rw [List.append_assoc]
+             _ = c ++ rule.snd ++ d := by rw [← hd'.2]
+             _ = _ := aft.symm
+
+    · -- Case 2: The transformation happens within v (u.length ≤ c.length)
+      -- We have: bef' : c ++ [nonterminal rule.fst] ++ d = u ++ v
+      -- Since u.length ≤ c.length, we can split c as: c = u ++ c'
+      -- where v = c' ++ [nonterminal rule.fst] ++ d
+      have h_u_le_c : u.length ≤ c.length := Nat.ge_of_not_lt left_side
+      obtain ⟨c', hc'⟩ : ∃ c', c = u ++ c' ∧ v = c' ++ [symbol.nonterminal rule.fst] ++ d := by
+        -- u is a prefix of c
+        have h_u_prefix : u = List.take u.length c := by
+          have this1 : List.take u.length (u ++ v) = u := List.take_left
+          have this2 : c ++ [symbol.nonterminal rule.fst] ++ d = u ++ v := bef'
+          calc u = List.take u.length (u ++ v) := this1.symm
+               _ = List.take u.length (c ++ [symbol.nonterminal rule.fst] ++ d) := by rw [← this2]
+               _ = List.take u.length (c ++ ([symbol.nonterminal rule.fst] ++ d)) := by rw [List.append_assoc]
+               _ = List.take u.length c := by rw [List.take_append_of_le_length h_u_le_c]
+        set c' := List.drop u.length c with hc'_def
+        use c'
+        constructor
+        · calc c = List.take u.length c ++ List.drop u.length c := (List.take_append_drop u.length c).symm
+               _ = u ++ c' := by rw [← h_u_prefix]
+        · have hc_split : c = u ++ c' := by
+            calc c = List.take u.length c ++ List.drop u.length c := (List.take_append_drop u.length c).symm
+                 _ = u ++ c' := by rw [← h_u_prefix]
+          have this1 : u ++ c' ++ [symbol.nonterminal rule.fst] ++ d = u ++ v := by
+            calc u ++ c' ++ [symbol.nonterminal rule.fst] ++ d
+                = c ++ [symbol.nonterminal rule.fst] ++ d := by rw [← hc_split]
+              _ = u ++ v := bef'
+          have h_assoc : u ++ (c' ++ [symbol.nonterminal rule.fst] ++ d) = u ++ v := by
+            have : u ++ c' ++ [symbol.nonterminal rule.fst] ++ d = u ++ (c' ++ [symbol.nonterminal rule.fst] ++ d) := by
+              simp [List.append_assoc]
+            rw [← this]; exact this1
+          have h_symm : u ++ v = u ++ (c' ++ [symbol.nonterminal rule.fst] ++ d) := h_assoc.symm
+          exact List.append_cancel_left h_symm
+
+      -- The transformation produces: x = c ++ rule.snd ++ d = u ++ c' ++ rule.snd ++ d
+      use u, c' ++ rule.snd ++ d
+      refine ⟨?_, ?_, ?_⟩
+      · -- u is unchanged
+        exact hu
+      · -- Prove CF_derives g [t] (c' ++ rule.snd ++ d)
+        rw [hc'.2] at hv
+        exact CF_deri_of_deri_tran hv ⟨rule, c', d, rule_in, rfl, rfl⟩
+      · -- Prove u ++ (c' ++ rule.snd ++ d) = x
+        calc u ++ (c' ++ rule.snd ++ d)
+            = u ++ c' ++ rule.snd ++ d := by simp [List.append_assoc]
+          _ = c ++ rule.snd ++ d := by rw [← hc'.1]
+          _ = _ := aft.symm
 
 private lemma in_concatenated_of_in_combined
     {g₁ g₂ : CF_grammar T}
