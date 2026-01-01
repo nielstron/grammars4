@@ -2,6 +2,7 @@ import Grammars.Classes.ContextFree.Basics.Pumping
 import Grammars.Classes.ContextFree.Basics.Elementary
 import Grammars.Classes.ContextFree.ClosureProperties.Concatenation
 import Grammars.Classes.ContextFree.ClosureProperties.Permutation
+import Grammars.Utilities.ListUtils
 
 
 section defs_over_fin3
@@ -23,13 +24,13 @@ private lemma neq_cb : c_ ≠ b_ := neq_bc.symm
 
 
 private def lang_eq_any : Language (Fin 3) :=
-λ w, ∃ n m : ℕ, w = List.repeat a_ n ++ List.repeat b_ n ++ List.repeat c_ m
+fun w => ∃ n m : ℕ, w = List.replicate n a_ ++ List.replicate n b_ ++ List.replicate m c_
 
 private def lang_any_eq : Language (Fin 3) :=
-λ w, ∃ n m : ℕ, w = List.repeat a_ n ++ List.repeat b_ m ++ List.repeat c_ m
+fun w => ∃ n m : ℕ, w = List.replicate n a_ ++ List.replicate m b_ ++ List.replicate m c_
 
 private def lang_eq_eq : Language (Fin 3) :=
-λ w, ∃ n : ℕ, w = List.repeat a_ n ++ List.repeat b_ n ++ List.repeat c_ n
+fun w => ∃ n : ℕ, w = List.replicate n a_ ++ List.replicate n b_ ++ List.replicate n c_
 
 end defs_over_fin3
 
@@ -38,26 +39,26 @@ section not_CF
 
 private lemma false_of_uvvxyyz
     {_a _b _c : Fin 3} {n : ℕ} {u v x y z : List (Fin 3)}
-    (elimin : ∀ s : Fin 3,  s ≠ _a  →  s ≠ _b  →  s ≠ _c  → false)
+    (elimin : ∀ s : Fin 3,  s ≠ _a  →  s ≠ _b  →  s ≠ _c  → False)
     (no_a : _a ∉ v ++ y) (nonempty : (v ++ y).length > 0)
     (counts_ab : ∀ (w : List (Fin 3)), w ∈ lang_eq_eq → List.count_in w _a = List.count_in w _b)
     (counts_ac : ∀ (w : List (Fin 3)), w ∈ lang_eq_eq → List.count_in w _a = List.count_in w _c)
     (counted_a : List.count_in (u ++ v ++ x ++ y ++ z ++ (v ++ y)) _a = n + 1 + List.count_in (v ++ y) _a)
     (counted_b : List.count_in (u ++ v ++ x ++ y ++ z ++ (v ++ y)) _b = n + 1 + List.count_in (v ++ y) _b)
     (counted_c : List.count_in (u ++ v ++ x ++ y ++ z ++ (v ++ y)) _c = n + 1 + List.count_in (v ++ y) _c)
-    (pumping : u ++ v ^ 2 ++ x ++ y ^ 2 ++ z ∈ lang_eq_eq) :
-  false :=
+    (pumping : u ++ List.n_times v 2 ++ x ++ List.n_times y 2 ++ z ∈ lang_eq_eq) :
+  False :=
 by
   have extra_not_a : _b ∈ (v ++ y) ∨ _c ∈ (v ++ y) := by
     let first_letter := (v ++ y).nthLe 0 nonempty
     have first_letter_b_or_c : first_letter = _b ∨ first_letter = _c := by
       have first_letter_not_a : first_letter ≠ _a := by
-        by_contradiction contra
+        by_contra contra
         have yes_a : _a ∈ v ++ y := by
           rw [← contra]
           apply List.nthLe_mem
         exact no_a yes_a
-      by_contradiction contr
+      by_contra contr
       push_neg at contr
       cases contr with
       | intro first_letter_not_b first_letter_not_c =>
@@ -72,15 +73,14 @@ by
         right
         rw [← first_letter_c]
         apply List.nthLe_mem
-  have hab := counts_ab (u ++ v ^ 2 ++ x ++ y ^ 2 ++ z) pumping
-  have hac := counts_ac (u ++ v ^ 2 ++ x ++ y ^ 2 ++ z) pumping
+  have hab := counts_ab (u ++ List.n_times v 2 ++ x ++ List.n_times y 2 ++ z) pumping
+  have hac := counts_ac (u ++ List.n_times v 2 ++ x ++ List.n_times y 2 ++ z) pumping
   cases pumping with
   | intro n' pump' =>
-      have count_a : List.count_in (u ++ v ^ 2 ++ x ++ y ^ 2 ++ z) _a = n + 1 := by
+      have count_a : List.count_in (u ++ List.n_times v 2 ++ x ++ List.n_times y 2 ++ z) _a = n + 1 := by
         unfold List.n_times
         simp [- List.append_assoc]
-        repeat
-          rw [List.count_in_append]
+        repeat          rw [List.count_in_append]
         have rearrange :
             List.count_in u _a + (List.count_in v _a + List.count_in v _a) + List.count_in x _a +
               (List.count_in y _a + List.count_in y _a) + List.count_in z _a =
@@ -97,19 +97,17 @@ by
           push_neg at no_a
           exact List.count_in_zero_of_notin no_a.right
         rw [rearrange]
-        repeat
-          rw [← List.count_in_append]
+        repeat          rw [← List.count_in_append]
         rw [counted_a]
         rw [List.count_in_append]
         rw [zero_in_v]
         rw [zero_in_y]
       cases extra_not_a with
       | inl extra_b =>
-          have count_b : List.count_in (u ++ v ^ 2 ++ x ++ y ^ 2 ++ z) _b > n + 1 := by
+          have count_b : List.count_in (u ++ List.n_times v 2 ++ x ++ List.n_times y 2 ++ z) _b > n + 1 := by
             unfold List.n_times
             simp [- List.append_assoc]
-            repeat
-              rw [List.count_in_append]
+            repeat              rw [List.count_in_append]
             have big_equality :
                 List.count_in u _b + (List.count_in v _b + List.count_in v _b) + List.count_in x _b +
                   (List.count_in y _b + List.count_in y _b) + List.count_in z _b =
@@ -118,21 +116,19 @@ by
                     (List.count_in v _b + List.count_in y _b) := by
               ring
             rw [big_equality]
-            repeat
-              rw [← List.count_in_append]
+            repeat              rw [← List.count_in_append]
             rw [counted_b]
             have at_least_one_b : List.count_in (v ++ y) _b > 0 := by
               exact List.count_in_pos_of_in extra_b
             linarith
           rw [count_a] at hab
           rw [hab] at count_b
-          exact has_lt.lt.false count_b
+          exact (lt_irrefl _ count_b)
       | inr extra_c =>
-          have count_c : List.count_in (u ++ v ^ 2 ++ x ++ y ^ 2 ++ z) _c > n + 1 := by
+          have count_c : List.count_in (u ++ List.n_times v 2 ++ x ++ List.n_times y 2 ++ z) _c > n + 1 := by
             unfold List.n_times
             simp [- List.append_assoc]
-            repeat
-              rw [List.count_in_append]
+            repeat              rw [List.count_in_append]
             have big_equality :
                 List.count_in u _c + (List.count_in v _c + List.count_in v _c) + List.count_in x _c +
                   (List.count_in y _c + List.count_in y _c) + List.count_in z _c =
@@ -141,15 +137,14 @@ by
                     (List.count_in v _c + List.count_in y _c) := by
               ring
             rw [big_equality]
-            repeat
-              rw [← List.count_in_append]
+            repeat              rw [← List.count_in_append]
             rw [counted_c]
             have at_least_one_c : List.count_in (v ++ y) _c > 0 := by
               exact List.count_in_pos_of_in extra_c
             linarith
           rw [count_a] at hac
           rw [hac] at count_c
-          exact has_lt.lt.false count_c
+          exact (lt_irrefl _ count_c)
 
 private lemma notCF_lang_eq_eq : ¬ is_CF lang_eq_eq := by
   intro h,
