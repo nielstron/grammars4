@@ -163,28 +163,22 @@ private lemma notCF_lang_eq_eq : ¬ is_CF lang_eq_eq := by
   specialize pumping 2
 
   have not_all_letters : a_ ∉ (v ++ y) ∨ b_ ∉ (v ++ y) ∨ c_ ∉ (v ++ y) := by
-    by_contradiction contr
+    by_contra contr
     push_neg at contr
     rcases contr with ⟨hva, -, hvc⟩
     have vxy_long : (v ++ x ++ y).length > n := by
-      by_contradiction contr
+      by_contra contr
       push_neg at contr
       have total_length_exactly : u.length + (v ++ x ++ y).length + z.length = 3 * n + 3 := by
         have total_length := congr_arg List.length concatenating
-        repeat
-          rw [List.length_append] at total_length
-        repeat
-          rw [List.length_replicate] at total_length
-        ring_nf at total_length
-        rw [← add_assoc x.length] at total_length
-        rw [← add_assoc v.length] at total_length
-        rw [← add_assoc v.length] at total_length
-        rw [← add_assoc u.length] at total_length
-        rw [← List.length_append_append] at total_length
-        exact total_length.symm
+        simp only [List.length_append, List.length_replicate] at total_length
+        have vxy_len : (v ++ x ++ y).length = v.length + x.length + y.length := by
+          simp only [List.length_append]
+        rw [vxy_len]
+        omega
       have u_short : u.length ≤ n := by
         -- in contradiction with `hva: a_ ∈ v ++ y`
-        by_contradiction u_too_much
+        by_contra u_too_much
         push_neg at u_too_much
         have relaxed_a : a_ ∈ v ++ x ++ y ++ z := by
           cases (List.mem_append.1 hva) with
@@ -206,8 +200,7 @@ private lemma notCF_lang_eq_eq : ¬ is_CF lang_eq_eq := by
         obtain ⟨h_nth_a_pr, h_nth_a⟩ :
             ∃ proofoo, (v ++ x ++ y ++ z).nthLe ((nₐ + u.length) - u.length) proofoo = a_ := by
           rw [Nat.add_sub_cancel nₐ u.length]
-          use hnₐ
-          exact h_nthₐ
+          exact ⟨hnₐ, h_nthₐ⟩
         have lt_len : (nₐ + u.length) < (u ++ (v ++ x ++ y ++ z)).length := by
           rw [List.length_append]
           linarith
@@ -220,8 +213,7 @@ private lemma notCF_lang_eq_eq : ¬ is_CF lang_eq_eq := by
           have rebracket : u ++ (v ++ (x ++ (y ++ z))) = u ++ (v ++ x ++ y ++ z) := by
             simp only [List.append_assoc]
           rw [concatenating, rebracket]
-          use lt_len
-          exact h_nth_a
+          exact ⟨lt_len, h_nth_a⟩
         cases orig_nth_le_eq_a with
         | intro rrr_nth_le_eq_a_pr rrr_nth_le_eq_a =>
             rw [@List.nthLe_append_right (Fin 3)
@@ -283,13 +275,12 @@ private lemma notCF_lang_eq_eq : ¬ is_CF lang_eq_eq := by
               exact mth_is_c
             cases orig_mth_is_c with
             | intro _ mth_is_c =>
-                by_contradiction mle
+                by_contra mle
                 push_neg at mle
                 have m_lt_len :
                     m < (List.replicate (n + 1) a_ ++ List.replicate (n + 1) b_).length := by
-                  rw [List.length_append, List.length_replicate, List.length_replicate]
-                  ring_nf
-                  exact mle
+                  simp only [List.length_append, List.length_replicate]
+                  omega
                 rw [List.nthLe_append _ m_lt_len] at mth_is_c
                 have c_in_ra_rb :
                     c_ ∈ (List.replicate (n + 1) a_ ++ List.replicate (n + 1) b_) := by
@@ -318,12 +309,12 @@ private lemma notCF_lang_eq_eq : ¬ is_CF lang_eq_eq := by
         rw [w_prop]
         repeat
           rw [List.count_in_append]
-        rw [List.count_in_repeat_neq neq_ab]
-        rw [List.count_in_repeat_neq neq_ba]
-        rw [List.count_in_repeat_neq neq_ca]
-        rw [List.count_in_repeat_neq neq_cb]
-        rw [List.count_in_repeat_eq a_]
-        rw [List.count_in_repeat_eq b_]
+        rw [List.count_in_replicate_neq neq_ab]
+        rw [List.count_in_replicate_neq neq_ba]
+        rw [List.count_in_replicate_neq neq_ca]
+        rw [List.count_in_replicate_neq neq_cb]
+        rw [List.count_in_replicate_eq a_]
+        rw [List.count_in_replicate_eq b_]
         repeat
           rw [add_zero]
         rw [zero_add]
@@ -334,12 +325,12 @@ private lemma notCF_lang_eq_eq : ¬ is_CF lang_eq_eq := by
         rw [w_prop]
         repeat
           rw [List.count_in_append]
-        rw [List.count_in_repeat_neq neq_ac]
-        rw [List.count_in_repeat_neq neq_ca]
-        rw [List.count_in_repeat_neq neq_ba]
-        rw [List.count_in_repeat_neq neq_bc]
-        rw [List.count_in_repeat_eq a_]
-        rw [List.count_in_repeat_eq c_]
+        rw [List.count_in_replicate_neq neq_ac]
+        rw [List.count_in_replicate_neq neq_ca]
+        rw [List.count_in_replicate_neq neq_ba]
+        rw [List.count_in_replicate_neq neq_bc]
+        rw [List.count_in_replicate_eq a_]
+        rw [List.count_in_replicate_eq c_]
         repeat
           rw [add_zero]
         rw [zero_add]
@@ -349,15 +340,15 @@ private lemma notCF_lang_eq_eq : ¬ is_CF lang_eq_eq := by
     exact counts_ac w w_in
   have counts_ba : ∀ w ∈ lang_eq_eq, List.count_in w b_ = List.count_in w a_ := by
     intro w w_in
-    symmetry
+    symm
     exact counts_ab w w_in
   have counts_ca : ∀ w ∈ lang_eq_eq, List.count_in w c_ = List.count_in w a_ := by
     intro w w_in
-    symmetry
+    symm
     exact counts_ac w w_in
   have counts_cb : ∀ w ∈ lang_eq_eq, List.count_in w c_ = List.count_in w b_ := by
     intro w w_in
-    symmetry
+    symm
     exact counts_bc w w_in
 
   have counted_letter : ∀ s,
@@ -372,27 +363,27 @@ private lemma notCF_lang_eq_eq : ¬ is_CF lang_eq_eq := by
       List.count_in (u ++ v ++ x ++ y ++ z ++ (v ++ y)) a_ =
         n + 1 + List.count_in (v ++ y) a_ := by
     rw [counted_letter]
-    rw [List.count_in_repeat_eq a_]
-    rw [List.count_in_repeat_neq neq_ba]
-    rw [List.count_in_repeat_neq neq_ca]
+    rw [List.count_in_replicate_eq a_]
+    rw [List.count_in_replicate_neq neq_ba]
+    rw [List.count_in_replicate_neq neq_ca]
   have counted_b :
       List.count_in (u ++ v ++ x ++ y ++ z ++ (v ++ y)) b_ =
         n + 1 + List.count_in (v ++ y) b_ := by
     rw [counted_letter]
-    rw [List.count_in_repeat_eq b_]
-    rw [List.count_in_repeat_neq neq_cb]
-    rw [List.count_in_repeat_neq neq_ab]
+    rw [List.count_in_replicate_eq b_]
+    rw [List.count_in_replicate_neq neq_cb]
+    rw [List.count_in_replicate_neq neq_ab]
     rw [zero_add]
   have counted_c :
       List.count_in (u ++ v ++ x ++ y ++ z ++ (v ++ y)) c_ =
         n + 1 + List.count_in (v ++ y) c_ := by
     rw [counted_letter]
-    rw [List.count_in_repeat_eq c_]
-    rw [List.count_in_repeat_neq neq_ac]
-    rw [List.count_in_repeat_neq neq_bc]
-    rw [zero_add]
+    rw [List.count_in_replicate_eq c_]
+    rw [List.count_in_replicate_neq neq_ac]
+    rw [List.count_in_replicate_neq neq_bc]
+    omega
 
-  have elimin_abc : ∀ s : Fin 3, s ≠ a_ → s ≠ b_ → s ≠ c_ → false := by
+  have elimin_abc : ∀ s : Fin 3, s ≠ a_ → s ≠ b_ → s ≠ c_ → False := by
     intro s hsa hsb hsc
     fin_cases s
     · rw [a_] at hsa
@@ -409,13 +400,13 @@ private lemma notCF_lang_eq_eq : ¬ is_CF lang_eq_eq := by
   | inr foo =>
       cases foo with
       | inl no_b =>
-          have elimin_bca : ∀ s : Fin 3, s ≠ b_ → s ≠ c_ → s ≠ a_ → false := by
+          have elimin_bca : ∀ s : Fin 3, s ≠ b_ → s ≠ c_ → s ≠ a_ → False := by
             intro s hsb hsc hsa
             exact elimin_abc s hsa hsb hsc
           exact false_of_uvvxyyz elimin_bca no_b nonempty counts_bc counts_ba
             counted_b counted_c counted_a pumping
       | inr no_c =>
-          have elimin_cab : ∀ s : Fin 3, s ≠ c_ → s ≠ a_ → s ≠ b_ → false := by
+          have elimin_cab : ∀ s : Fin 3, s ≠ c_ → s ≠ a_ → s ≠ b_ → False := by
             intro s hsc hsa hsb
             exact elimin_abc s hsa hsb hsc
           exact false_of_uvvxyyz elimin_cab no_c nonempty counts_ca counts_cb
@@ -438,11 +429,11 @@ private lemma CF_lang_aux_ab : is_CF lang_aux_ab := by
     [
       (S_, [a, S, b]),
       (S_, ([] : List (symbol (Fin 3) (Fin 1))))
-    ],
-  use g,
-  apply Set.eq_of_subSetOf_subset
+    ]
+  use g
+  apply Set.eq_of_subset_of_subset
   · intro w ass
-    change CF_derives g [S] (List.map symbol.terminal w) at ass,
+    change CF_derives g [S] (List.map symbol.terminal w) at ass
     have indu :
         ∀ v : List (symbol (Fin 3) (Fin 1)),
           CF_derives g [S] v →
@@ -455,8 +446,8 @@ private lemma CF_lang_aux_ab : is_CF lang_aux_ab := by
           use 0
           right
           rfl
-      | tail u u' orig hyp_ih =>
-          rcases orig with ⟨r, rin, p, q, bef, aft⟩
+      | tail u' orig hyp_ih =>
+          rcases orig with ⟨r, p, q, rin, bef, aft⟩
           cases hyp_ih with
           | intro k ih =>
               cases ih with
@@ -480,18 +471,18 @@ private lemma CF_lang_aux_ab : is_CF lang_aux_ab := by
               | inr ih =>
                   have both_rule_rewrite_S : symbol.nonterminal r.fst = S := by
                     cases rin with
-                    | inl rin =>
-                        rw [rin]
-                    | inr rin =>
+                    | head =>
+                        rfl
+                    | tail _ rin =>
                         cases rin with
-                        | inl rin =>
-                            rw [rin]
-                        | inr rin =>
+                        | head =>
+                            rfl
+                        | tail _ rin =>
                             cases rin
                   rw [bef] at ih
                   rw [both_rule_rewrite_S] at ih
                   have p_len : p.length = k := by
-                    by_contradiction contra
+                    by_contra contra
                     have kth_eq := congr_fun (congr_arg List.nth ih) p.length
                     have plengthth_is_S : (p ++ [S] ++ q).nth p.length = some S := by
                       rw [List.append_assoc]
@@ -560,26 +551,21 @@ private lemma CF_lang_aux_ab : is_CF lang_aux_ab := by
                     rw [List.append_left_inj] at ih_reduced
                     exact ih_reduced
                   cases rin with
-                  | inl rin =>
+                  | head =>
                       use k + 1
                       right
-                      rw [aft, rin]
-                      convert_to
-                        p ++ (S_, [a, S, b]).snd ++ q =
-                          List.replicate k a ++ [a] ++ [S] ++ [b] ++ List.replicate k b := by
-                        rw [List.replicate_add, add_comm, List.replicate_add]
-                        simp only [List.replicate, List.append_assoc]
+                      rw [aft]
+                      -- In head case, r = (S_, [a, S, b])
                       rw [pa, qb]
-                      simp only [List.append_assoc, List.cons_append, List.singleton_append]
-                  | inr rin =>
+                      simp only [List.replicate_add, List.replicate, List.append_assoc, List.cons_append]
+                  | tail _ rin =>
                       cases rin with
-                      | inl rin =>
+                      | head =>
                           use k
                           left
-                          rw [aft, rin, List.append_nil, pa, qb]
-                      | inr rin =>
-                          exfalso
-                          exact rin
+                          rw [aft, List.append_nil, pa, qb]
+                      | tail _ rin =>
+                          nomatch rin
     cases indu (List.map symbol.terminal w) ass with
     | intro n instantiated =>
         clear indu
@@ -688,9 +674,13 @@ private lemma CF_lang_eq_any : is_CF lang_eq_any := by
     ext1 w
     constructor
     · rintro ⟨n, m, hnm⟩
-      refine ⟨List.replicate n a_ ++ List.replicate n b_, List.replicate m c_, ⟨n, rfl⟩, ⟨m, rfl⟩, ?_⟩
-      exact hnm.symm
-    · rintro ⟨u, v, ⟨n, u_eq⟩, ⟨m, v_eq⟩, eq_w⟩
+      refine ⟨List.replicate n a_ ++ List.replicate n b_, List.replicate m c_, ?_, ?_, ?_⟩
+      · exact ⟨n, rfl⟩
+      · exact ⟨m, rfl⟩
+      · exact hnm.symm
+    · rintro ⟨u, v, hu, hv, eq_w⟩
+      obtain ⟨n, u_eq⟩ := hu
+      obtain ⟨m, v_eq⟩ := hv
       use n, m
       rw [← eq_w, ← u_eq, ← v_eq]
   rw [concatenated]
@@ -720,7 +710,7 @@ private def permut : Equiv.Perm (Fin 3) := Equiv.mk
     fin_cases x <;> rfl)
 
 private lemma CF_lang_aux_bc : is_CF lang_aux_bc := by
-  have permuted : lang_aux_bc = permuteLang lang_aux_ab permut := by
+  have permuted : lang_aux_bc = Grammars.permuteLang lang_aux_ab permut := by
     have compos : permut ∘ permut.symm = id := by
       simp
     ext1 w
@@ -737,8 +727,7 @@ private lemma CF_lang_aux_bc : is_CF lang_aux_bc := by
             rw [compos] at other_case
             rw [List.map_id] at other_case
             rw [other_case]
-          rw [List.map_append, List.map_replicate, List.map_replicate]
-          apply congr_arg2 <;> rfl
+          simp only [List.map_append, List.map_replicate]
   rw [permuted]
   exact CF_of_permute_CF permut lang_aux_ab CF_lang_aux_ab
 
@@ -747,9 +736,11 @@ private lemma CF_lang_any_eq : is_CF lang_any_eq := by
     ext1 w
     constructor
     · rintro ⟨n, m, hnm⟩
-      refine ⟨List.replicate n a_, List.replicate m b_ ++ List.replicate m c_, ⟨n, rfl⟩, ⟨m, rfl⟩, ?_⟩
-      rw [← List.append_assoc]
-      exact hnm.symm
+      refine ⟨List.replicate n a_, List.replicate m b_ ++ List.replicate m c_, ?_, ?_, ?_⟩
+      · exact ⟨n, rfl⟩
+      · exact ⟨m, rfl⟩
+      · rw [← List.append_assoc]
+        exact hnm.symm
     · rintro ⟨u, v, ⟨n, hu⟩, ⟨m, hv⟩, h⟩
       use n, m
       rw [List.append_assoc, ← h, ← hu, ← hv]
@@ -809,7 +800,8 @@ by
     have foo : (n₁ - 1) < (List.replicate n₁ a_).length := by
       rw [List.length_replicate]
       exact Nat.sub_lt n₁pos (Nat.succ_pos 0)
-    rw [List.nthLe_append n₁_le_len₁ foo]
+    have h_lt : (n₁ - 1) < (List.replicate n₁ a_ ++ (List.replicate n₁ b_ ++ List.replicate m₁ c_)).length := n₁_le_len₁
+    rw [List.nthLe_append foo]
     exact List.nthLe_replicate a_ foo
   have n₁th₂ :
       (List.replicate n₂ a_ ++ (List.replicate m₂ b_ ++ List.replicate m₂ c_)).nthLe (n₁ - 1) n₁_le_len₂ ≠
@@ -873,7 +865,8 @@ by
     have foo : (n₂ - 1) < (List.replicate n₂ a_).length := by
       rw [List.length_replicate]
       exact Nat.sub_lt n₂pos (Nat.succ_pos 0)
-    rw [List.nthLe_append n₂_le_len₂ foo]
+    have h_lt : (n₂ - 1) < (List.replicate n₂ a_ ++ (List.replicate m₂ b_ ++ List.replicate m₂ c_)).length := n₂_le_len₂
+    rw [List.nthLe_append foo]
     exact List.nthLe_replicate a_ foo
   have n₂th₁ :
       (List.replicate n₁ a_ ++ (List.replicate n₁ b_ ++ List.replicate m₁ c_)).nthLe (n₂ - 1) n₂_le_len₁ ≠
