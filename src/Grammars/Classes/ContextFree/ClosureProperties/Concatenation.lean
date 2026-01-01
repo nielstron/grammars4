@@ -1,5 +1,6 @@
 import Grammars.Classes.ContextFree.Basics.Lifting
 import Grammars.Utilities.WrittenByOthers.TrimAssoc
+import LeanCopilot
 
 
 variable {T : Type}
@@ -726,7 +727,6 @@ by
     simpa using (self_of_sTN₂ (g₁ := g₁) (g₂ := g₂) x)
   simp [hfun]
 
-
 -- Helper lemmas to convert derivations from combined grammar back to original grammars
 private lemma derives_g1_of_derives_combined {g₁ g₂ : CF_grammar T}
     (u' : List (symbol T (combined_grammar g₁ g₂).nt))
@@ -734,7 +734,25 @@ private lemma derives_g1_of_derives_combined {g₁ g₂ : CF_grammar T}
     ∃ u : List (symbol T g₁.nt),
       CF_derives g₁ [symbol.nonterminal g₁.initial] u ∧
       lsTN_of_lsTN₁ u = u' := by
-  sorry
+  induction h with
+  | refl =>
+    use [symbol.nonterminal g₁.initial]
+    tauto
+  | tail rel step ih =>
+    obtain ⟨u, h₁, h₂⟩ := ih
+    unfold CF_transforms at step
+    obtain ⟨r', u', v', h'⟩ := step
+    subst h₂
+    simp_all only [List.append_assoc, List.cons_append, List.nil_append]
+    obtain ⟨fst, snd⟩ := r'
+    obtain ⟨left, right⟩ := h'
+    obtain ⟨left_1, right⟩ := right
+    subst right
+    simp_all only
+    use lsTN₁_of_lsTN (g₁:= g₁) (g₂:= g₂) (u' ++ snd ++ v')
+    constructor
+    · sorry
+    · simp; sorry
 
 private lemma derives_g2_of_derives_combined {g₁ g₂ : CF_grammar T}
     (v' : List (symbol T (combined_grammar g₁ g₂).nt))
@@ -945,7 +963,10 @@ lemma concatenation_can_be_split {g: CF_grammar T} (x : List (symbol T g.nt)) (s
     clear huv rel
     -- The rule application happens either in u or in v
     -- We determine which by checking if the nonterminal being replaced is in the first part
-    sorry  -- TODO: Complete by case analysis on whether c.length < u.length
+    -- TODO: Complete by case analysis on whether c.length < u.length
+    by_cases left_side: (c.length < u.length)
+    · sorry
+    · sorry
 
 private lemma in_concatenated_of_in_combined
     {g₁ g₂ : CF_grammar T}
