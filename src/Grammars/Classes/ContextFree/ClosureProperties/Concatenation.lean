@@ -806,13 +806,19 @@ private lemma derives_g1_of_derives_combined {g₁ g₂ : CF_grammar T}
   refine ⟨lsTN₁_of_lsTN (g₁ := g₁) (g₂ := g₂) u', ?_, ?_⟩
   ·
     have hstart :
-        sink_string lg.sink_nt [symbol.nonterminal (some (Sum.inl g₁.initial))] =
+        sink_string (T:=T) lg.sink_nt [symbol.nonterminal (some (Sum.inl g₁.initial))] =
           [symbol.nonterminal g₁.initial] := by
-      simp [sink_string, sink_symbol, lg, oN₁_of_N]
+      tauto
     have hend :
         sink_string lg.sink_nt u' =
           lsTN₁_of_lsTN (g₁ := g₁) (g₂ := g₂) u' := by
-      simp [sink_string, sink_symbol, lsTN₁_of_lsTN, sTN₁_of_sTN, lg, oN₁_of_N]
+      simp only [sink_string, lsTN₁_of_lsTN, lg]
+      apply congrFun
+      apply congrArg
+      unfold sTN₁_of_sTN
+      funext x
+      cases x
+      repeat' rfl
     simpa [hstart, hend] using hder
   ·
     exact lsTN_of_lsTN₁_of_good (g₁ := g₁) (g₂ := g₂) u' hgood'
@@ -834,13 +840,19 @@ private lemma derives_g2_of_derives_combined {g₁ g₂ : CF_grammar T}
   refine ⟨lsTN₂_of_lsTN (g₁ := g₁) (g₂ := g₂) v', ?_, ?_⟩
   ·
     have hstart :
-        sink_string lg.sink_nt [symbol.nonterminal (some (Sum.inr g₂.initial))] =
+        sink_string (T:=T) lg.sink_nt [symbol.nonterminal (some (Sum.inr g₂.initial))] =
           [symbol.nonterminal g₂.initial] := by
-      simp [sink_string, sink_symbol, lg, oN₂_of_N]
+      tauto
     have hend :
         sink_string lg.sink_nt v' =
           lsTN₂_of_lsTN (g₁ := g₁) (g₂ := g₂) v' := by
-      simp [sink_string, sink_symbol, lsTN₂_of_lsTN, sTN₂_of_sTN, lg, oN₂_of_N]
+      simp only [sink_string, lsTN₂_of_lsTN, lg]
+      apply congrFun
+      apply congrArg
+      unfold sTN₂_of_sTN
+      funext x
+      cases x
+      repeat' rfl
     simpa [hstart, hend] using hder
   ·
     exact lsTN_of_lsTN₂_of_good (g₁ := g₁) (g₂ := g₂) v' hgood'
