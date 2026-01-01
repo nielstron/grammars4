@@ -2,7 +2,7 @@ import Grammars.Classes.ContextSensitive.Basics.Definition
 
 
 /-- Context-free grammar that generates words over the alphabet `T` (a type of terminals). -/
-structure CF_grammar (T : Type) :=
+structure CF_grammar (T : Type) where
 (nt : Type)                                -- type of nonterminals
 (initial : nt)                             -- initial symbol
 (rules : List (nt × List (symbol T nt)))   -- rewrite rules
