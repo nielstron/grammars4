@@ -727,6 +727,67 @@ by
     simpa using (self_of_sTN₂ (g₁ := g₁) (g₂ := g₂) x)
   simp [hfun]
 
+private lemma lsTN_of_lsTN₁_of_good {g₁ g₂ : CF_grammar T}
+    (w : List (symbol T (combined_grammar g₁ g₂).nt))
+    (hw : good_string (lg := g₁g g₁ g₂) w) :
+    lsTN_of_lsTN₁ (g₁ := g₁) (g₂ := g₂) (lsTN₁_of_lsTN (g₁ := g₁) (g₂ := g₂) w) = w := by
+  induction w with
+  | nil => rfl
+  | cons a tail ih =>
+    have hw_a : good_letter (lg := g₁g g₁ g₂) a := by
+      exact hw a (by simp)
+    have hw_tail : good_string (lg := g₁g g₁ g₂) tail := by
+      intro b hb
+      exact hw b (by simp [hb])
+    cases a with
+    | terminal t =>
+      have htail := ih hw_tail
+      simpa [lsTN_of_lsTN₁, lsTN₁_of_lsTN, List.map_cons, sTN_of_sTN₁, sTN₁_of_sTN] using htail
+    | nonterminal n =>
+      have htail := ih hw_tail
+      rcases hw_a with ⟨n₀, hn₀⟩
+      cases n with
+      | none =>
+        cases hn₀
+      | some s =>
+        cases s with
+        | inl n₁ =>
+          simpa [lsTN_of_lsTN₁, lsTN₁_of_lsTN, List.map_cons, sTN_of_sTN₁, sTN₁_of_sTN, List.filterMap_cons, oN₁_of_N] using htail
+        | inr n₂ =>
+          exfalso
+          tauto
+
+private lemma lsTN_of_lsTN₂_of_good {g₁ g₂ : CF_grammar T}
+    (w : List (symbol T (combined_grammar g₁ g₂).nt))
+    (hw : good_string (lg := g₂g g₁ g₂) w) :
+    lsTN_of_lsTN₂ (g₁ := g₁) (g₂ := g₂) (lsTN₂_of_lsTN (g₁ := g₁) (g₂ := g₂) w) = w := by
+  induction w with
+  | nil => rfl
+  | cons a tail ih =>
+    have hw_a : good_letter (lg := g₂g g₁ g₂) a := by
+      exact hw a (by simp)
+    have hw_tail : good_string (lg := g₂g g₁ g₂) tail := by
+      intro b hb
+      exact hw b (by simp [hb])
+    cases a with
+    | terminal t =>
+      have htail := ih hw_tail
+      simpa [lsTN₂_of_lsTN, lsTN_of_lsTN₂] using htail
+    | nonterminal n =>
+      rcases hw_a with ⟨n₀, hn₀⟩
+      cases n with
+      | none =>
+        cases hn₀
+      | some s =>
+        cases s with
+        | inl n₁ =>
+          simp [oN₂_of_N] at hn₀
+        | inr n₂ =>
+          simp [oN₂_of_N] at hn₀
+          cases hn₀
+          have htail := ih hw_tail
+          simpa [lsTN₂_of_lsTN, lsTN_of_lsTN₂] using htail
+
 -- Helper lemmas to convert derivations from combined grammar back to original grammars
 private lemma derives_g1_of_derives_combined {g₁ g₂ : CF_grammar T}
     (u' : List (symbol T (combined_grammar g₁ g₂).nt))
@@ -734,25 +795,27 @@ private lemma derives_g1_of_derives_combined {g₁ g₂ : CF_grammar T}
     ∃ u : List (symbol T g₁.nt),
       CF_derives g₁ [symbol.nonterminal g₁.initial] u ∧
       lsTN_of_lsTN₁ u = u' := by
-  induction h with
-  | refl =>
-    use [symbol.nonterminal g₁.initial]
-    tauto
-  | tail rel step ih =>
-    obtain ⟨u, h₁, h₂⟩ := ih
-    unfold CF_transforms at step
-    obtain ⟨r', u', v', h'⟩ := step
-    subst h₂
-    simp_all only [List.append_assoc, List.cons_append, List.nil_append]
-    obtain ⟨fst, snd⟩ := r'
-    obtain ⟨left, right⟩ := h'
-    obtain ⟨left_1, right⟩ := right
-    subst right
-    simp_all only
-    use lsTN₁_of_lsTN (g₁:= g₁) (g₂:= g₂) (u' ++ snd ++ v')
-    constructor
-    · sorry
-    · simp; sorry
+  let lg := g₁g g₁ g₂
+  have hgood : good_string (lg := lg) [symbol.nonterminal (some (Sum.inl g₁.initial))] := by
+    intro a ha
+    have ha' : a = symbol.nonterminal (some (Sum.inl g₁.initial)) := by
+      simpa using (List.mem_singleton.mp ha)
+    subst ha'
+    exact ⟨g₁.initial, rfl⟩
+  obtain ⟨hder, hgood'⟩ := sink_deri (lg := lg) _ _ h hgood
+  refine ⟨lsTN₁_of_lsTN (g₁ := g₁) (g₂ := g₂) u', ?_, ?_⟩
+  ·
+    have hstart :
+        sink_string lg.sink_nt [symbol.nonterminal (some (Sum.inl g₁.initial))] =
+          [symbol.nonterminal g₁.initial] := by
+      simp [sink_string, sink_symbol, lg, oN₁_of_N]
+    have hend :
+        sink_string lg.sink_nt u' =
+          lsTN₁_of_lsTN (g₁ := g₁) (g₂ := g₂) u' := by
+      simp [sink_string, sink_symbol, lsTN₁_of_lsTN, sTN₁_of_sTN, lg, oN₁_of_N]
+    simpa [hstart, hend] using hder
+  ·
+    exact lsTN_of_lsTN₁_of_good (g₁ := g₁) (g₂ := g₂) u' hgood'
 
 private lemma derives_g2_of_derives_combined {g₁ g₂ : CF_grammar T}
     (v' : List (symbol T (combined_grammar g₁ g₂).nt))
@@ -760,7 +823,27 @@ private lemma derives_g2_of_derives_combined {g₁ g₂ : CF_grammar T}
     ∃ v : List (symbol T g₂.nt),
       CF_derives g₂ [symbol.nonterminal g₂.initial] v ∧
       lsTN_of_lsTN₂ v = v' := by
-  sorry  -- TODO: Prove by induction on derivation
+  let lg := g₂g g₁ g₂
+  have hgood : good_string (lg := lg) [symbol.nonterminal (some (Sum.inr g₂.initial))] := by
+    intro a ha
+    have ha' : a = symbol.nonterminal (some (Sum.inr g₂.initial)) := by
+      simpa using (List.mem_singleton.mp ha)
+    subst ha'
+    exact ⟨g₂.initial, rfl⟩
+  obtain ⟨hder, hgood'⟩ := sink_deri (lg := lg) _ _ h hgood
+  refine ⟨lsTN₂_of_lsTN (g₁ := g₁) (g₂ := g₂) v', ?_, ?_⟩
+  ·
+    have hstart :
+        sink_string lg.sink_nt [symbol.nonterminal (some (Sum.inr g₂.initial))] =
+          [symbol.nonterminal g₂.initial] := by
+      simp [sink_string, sink_symbol, lg, oN₂_of_N]
+    have hend :
+        sink_string lg.sink_nt v' =
+          lsTN₂_of_lsTN (g₁ := g₁) (g₂ := g₂) v' := by
+      simp [sink_string, sink_symbol, lsTN₂_of_lsTN, sTN₂_of_sTN, lg, oN₂_of_N]
+    simpa [hstart, hend] using hder
+  ·
+    exact lsTN_of_lsTN₂_of_good (g₁ := g₁) (g₂ := g₂) v' hgood'
 
 -- Helper lemma: if lsTN_of_lsTN₁ maps to terminals, then original is terminals
 private lemma lsTN_of_lsTN₁_terminals {g₁ g₂ : CF_grammar T}
