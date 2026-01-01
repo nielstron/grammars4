@@ -748,7 +748,13 @@ private lemma in_language_of_derives {g : CF_grammar T}
     (u : List (symbol T g.nt))
     (hu : CF_derives g [symbol.nonterminal g.initial] u) :
     liT_of_lsTN₃ u ∈ CF_language g := by
-  sorry  -- TODO: Prove that if u derives from initial, then liT_of_lsTN₃ u is in the language
+  induction hu with
+  | refl =>
+    -- Base case: u = [symbol.nonterminal g.initial]
+    sorry
+  | tail _ trans ih =>
+    -- Inductive case: derivation extends by one step
+    sorry
 
 -- Helper lemma to show concatenation equals w
 private lemma concat_eq_w_of_split {g₁ g₂ : CF_grammar T}
@@ -757,7 +763,41 @@ private lemma concat_eq_w_of_split {g₁ g₂ : CF_grammar T}
     (w : List T)
     (hw : lsTN_of_lsTN₁ u ++ lsTN_of_lsTN₂ v = List.map symbol.terminal w) :
     liT_of_lsTN₃ u ++ liT_of_lsTN₃ v = w := by
-  sorry  -- TODO: Prove concatenation property
+  -- Apply liT_of_lsTN₃ (filtering terminals) to both sides of hw
+  have hw' := congr_arg (@liT_of_lsTN₃ T (combined_grammar g₁ g₂)) hw
+  unfold liT_of_lsTN₃ at hw'
+  rw [List.filterMap_append] at hw'
+  -- Simplify: List.filterMap oT_of_sTN₃ (List.map symbol.terminal w) = w
+  have terminals_filter :
+    List.filterMap (@oT_of_sTN₃ T (combined_grammar g₁ g₂)) (List.map symbol.terminal w) = w := by
+    rw [List.filterMap_map]
+    -- Now need: List.filterMap (oT_of_sTN₃ ∘ symbol.terminal) w = w
+    have comp_is_some :
+      (@oT_of_sTN₃ T (combined_grammar g₁ g₂)) ∘ (@symbol.terminal T (combined_grammar g₁ g₂).nt) =
+      fun (x : T) => some x := by
+      ext x
+      unfold oT_of_sTN₃
+      rfl
+    rw [comp_is_some, List.filterMap_some]
+  rw [terminals_filter] at hw'
+  -- Now need: List.filterMap oT_of_sTN₃ (lsTN_of_lsTN₁ u) = liT_of_lsTN₃ u
+  --       and: List.filterMap oT_of_sTN₃ (lsTN_of_lsTN₂ v) = liT_of_lsTN₃ v
+  have lift1_commutes :
+    List.filterMap (@oT_of_sTN₃ T (combined_grammar g₁ g₂)) (lsTN_of_lsTN₁ u) = liT_of_lsTN₃ u := by
+    unfold lsTN_of_lsTN₁ liT_of_lsTN₃
+    rw [List.filterMap_map]
+    congr 1
+    ext x
+    cases x <;> rfl
+  have lift2_commutes :
+    List.filterMap (@oT_of_sTN₃ T (combined_grammar g₁ g₂)) (lsTN_of_lsTN₂ v) = liT_of_lsTN₃ v := by
+    unfold lsTN_of_lsTN₂ liT_of_lsTN₃
+    rw [List.filterMap_map]
+    congr 1
+    ext x
+    cases x <;> rfl
+  rw [lift1_commutes, lift2_commutes] at hw'
+  exact hw'
 
 lemma concatenation_can_be_split {g: CF_grammar T} (x : List (symbol T g.nt)) (s: symbol T g.nt) (t: symbol T g.nt) (hyp: CF_derives g [s, t] x):
         ∃ u : List (symbol T g.nt), ∃ v : List (symbol T g.nt),
