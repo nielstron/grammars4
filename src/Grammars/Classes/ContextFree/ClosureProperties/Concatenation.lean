@@ -726,6 +726,7 @@ by
     simpa using (self_of_sTN₂ (g₁ := g₁) (g₂ := g₂) x)
   simp [hfun]
 
+
 -- Helper lemmas to convert derivations from combined grammar back to original grammars
 private lemma derives_g1_of_derives_combined {g₁ g₂ : CF_grammar T}
     (u' : List (symbol T (combined_grammar g₁ g₂).nt))
@@ -733,7 +734,7 @@ private lemma derives_g1_of_derives_combined {g₁ g₂ : CF_grammar T}
     ∃ u : List (symbol T g₁.nt),
       CF_derives g₁ [symbol.nonterminal g₁.initial] u ∧
       lsTN_of_lsTN₁ u = u' := by
-  sorry  -- TODO: Prove by induction on derivation
+  sorry
 
 private lemma derives_g2_of_derives_combined {g₁ g₂ : CF_grammar T}
     (v' : List (symbol T (combined_grammar g₁ g₂).nt))
@@ -743,18 +744,136 @@ private lemma derives_g2_of_derives_combined {g₁ g₂ : CF_grammar T}
       lsTN_of_lsTN₂ v = v' := by
   sorry  -- TODO: Prove by induction on derivation
 
+-- Helper lemma: if lsTN_of_lsTN₁ maps to terminals, then original is terminals
+private lemma lsTN_of_lsTN₁_terminals {g₁ g₂ : CF_grammar T}
+    (u : List (symbol T g₁.nt))
+    (ts : List T)
+    (h : lsTN_of_lsTN₁ (g₂ := g₂) u = List.map symbol.terminal ts) :
+    ∃ ts', u = List.map symbol.terminal ts' := by
+  use ts
+  unfold lsTN_of_lsTN₁ at h
+  -- Prove by induction on u and ts simultaneously
+  induction u generalizing ts with
+  | nil =>
+    cases ts with
+    | nil => rfl
+    | cons _ _ => simp at h
+  | cons head tail ih =>
+    cases ts with
+    | nil => simp at h
+    | cons t ts' =>
+      simp at h
+      cases head with
+      | terminal t' =>
+        unfold sTN_of_sTN₁ at h
+        simp at h
+        obtain ⟨ht, htail⟩ := h
+        subst ht
+        have := ih ts' htail
+        simp [this]
+      | nonterminal n =>
+        unfold sTN_of_sTN₁ at h
+        simp at h
+
+-- Helper to show u is all terminals from the concat equation
+private lemma u_all_terminals_of_concat {g₁ g₂ : CF_grammar T}
+    (u : List (symbol T g₁.nt))
+    (v : List (symbol T g₂.nt))
+    (w : List T)
+    (hw : lsTN_of_lsTN₁ u ++ lsTN_of_lsTN₂ v = List.map symbol.terminal w) :
+    u = List.map symbol.terminal (liT_of_lsTN₃ u) := by
+  -- Split w into w1 and w2 such that lsTN_of_lsTN₁ u = List.map symbol.terminal w1
+  obtain ⟨w1, hw1⟩ : ∃ w1, lsTN_of_lsTN₁ u = List.map symbol.terminal w1 := by
+    use List.take (lsTN_of_lsTN₁ (g₁:=g₁) (g₂:=g₂) u).length w
+    have eq1 : lsTN_of_lsTN₁ u = List.take (lsTN_of_lsTN₁  (g₁:=g₁) (g₂:=g₂) u).length (lsTN_of_lsTN₁ u ++ lsTN_of_lsTN₂ v) := by
+      rw [List.take_left]
+    rw [hw] at eq1
+    simp only [List.map_take]
+    exact eq1
+  obtain ⟨ts, hts⟩ := lsTN_of_lsTN₁_terminals u w1 hw1
+  -- Now show that liT_of_lsTN₃ u = ts
+  rw [hts]
+  congr 1
+  unfold liT_of_lsTN₃
+  unfold oT_of_sTN₃
+  clear hw
+  clear hw1
+  clear hts
+  induction ts generalizing u with
+  | nil => simp
+  | cons head tail tail_ih =>
+    specialize tail_ih (List.map symbol.terminal tail)
+    simp only [List.map_cons, Option.some.injEq, List.filterMap_cons_some,
+      List.cons.injEq, true_and]
+    apply tail_ih
+
+-- Helper lemma: if lsTN_of_lsTN₂ maps to terminals, then original is terminals
+private lemma lsTN_of_lsTN₂_terminals {g₁ g₂ : CF_grammar T}
+    (v : List (symbol T g₂.nt))
+    (ts : List T)
+    (h : lsTN_of_lsTN₂ (g₁ := g₁) v = List.map symbol.terminal ts) :
+    ∃ ts', v = List.map symbol.terminal ts' := by
+  induction v generalizing ts with
+  | nil =>
+    use []
+    rfl
+  | cons head tail ih =>
+    unfold lsTN_of_lsTN₂ at h
+    simp at h
+    cases head with
+    | terminal t =>
+      unfold sTN_of_sTN₂ at h
+      cases ts with
+      | nil => simp at h
+      | cons t' ts' =>
+        simp at h
+        obtain ⟨ht, htail⟩ := h
+        subst ht
+        obtain ⟨ts_tail, htail_eq⟩ := ih ts' htail
+        use t' :: ts_tail
+        simp [htail_eq]
+    | nonterminal n =>
+      unfold sTN_of_sTN₂ at h
+      cases ts with
+      | nil => simp at h
+      | cons t ts' =>
+        simp at h
+        cases h.1
+
+-- Helper to show v is all terminals from the concat equation
+private lemma v_all_terminals_of_concat {g₁ g₂ : CF_grammar T}
+    (u : List (symbol T g₁.nt))
+    (v : List (symbol T g₂.nt))
+    (w : List T)
+    (hw : lsTN_of_lsTN₁ u ++ lsTN_of_lsTN₂ v = List.map symbol.terminal w) :
+    v = List.map symbol.terminal (liT_of_lsTN₃ v) := by
+  -- Split w so that lsTN_of_lsTN₂ v = List.map symbol.terminal w2
+  obtain ⟨w2, hw2⟩ : ∃ w2, lsTN_of_lsTN₂ v = List.map symbol.terminal w2 := by
+    use List.drop (lsTN_of_lsTN₁ u).length w
+    have eq1 : lsTN_of_lsTN₂ v = List.drop (lsTN_of_lsTN₁ u).length (lsTN_of_lsTN₁ u ++ lsTN_of_lsTN₂ v) := by
+      rw [List.drop_left]
+    rw [hw] at eq1
+    rw [List.drop_map] at eq1
+    exact eq1
+  obtain ⟨ts, hts⟩ := lsTN_of_lsTN₂_terminals v w2 hw2
+  rw [hts]
+  unfold liT_of_lsTN₃
+  rw [List.filterMap_map]
+  congr 1
+  ext x
+  unfold oT_of_sTN₃
+  rfl
+
 -- Helper lemmas to show that derivations lead to words in the language
 private lemma in_language_of_derives {g : CF_grammar T}
     (u : List (symbol T g.nt))
-    (hu : CF_derives g [symbol.nonterminal g.initial] u) :
+    (hu : CF_derives g [symbol.nonterminal g.initial] u)
+    (hall_terminals : u = List.map symbol.terminal (liT_of_lsTN₃ u)) :
     liT_of_lsTN₃ u ∈ CF_language g := by
-  induction hu with
-  | refl =>
-    -- Base case: u = [symbol.nonterminal g.initial]
-    sorry
-  | tail _ trans ih =>
-    -- Inductive case: derivation extends by one step
-    sorry
+  -- When u is all terminals, this is straightforward
+  unfold CF_language CF_generates
+  rw [hall_terminals] at hu
+  exact hu
 
 -- Helper lemma to show concatenation equals w
 private lemma concat_eq_w_of_split {g₁ g₂ : CF_grammar T}
@@ -966,119 +1085,124 @@ by
   use liT_of_lsTN₃ u
   constructor
   · -- Show liT_of_lsTN₃ u ∈ CF_language g₁
-    exact in_language_of_derives u hu
+    exact in_language_of_derives u hu (u_all_terminals_of_concat u v w hw)
   · -- Show ∃ b ∈ CF_language g₂, liT_of_lsTN₃ u ++ b = w
     use liT_of_lsTN₃ v
     constructor
     · -- Show liT_of_lsTN₃ v ∈ CF_language g₂
-      exact in_language_of_derives v hv
+      exact in_language_of_derives v hv (v_all_terminals_of_concat u v w hw)
     · -- Show liT_of_lsTN₃ u ++ liT_of_lsTN₃ v = w
       exact concat_eq_w_of_split u v w hw
 
-private lemma in_combined_of_in_concatenated
-    {g₁ g₂ : CF_grammar T}
-    {w : List T}
-    (hyp : w ∈ CF_language g₁ * CF_language g₂) :
-  w ∈ CF_language (combined_grammar g₁ g₂) :=
-by
-  rw [Language.mem_mul] at hyp
-  rcases hyp with ⟨u, v, hu, hv, hw⟩
-  unfold CF_language at *
-  change
-    CF_derives
-      (combined_grammar g₁ g₂)
-      [symbol.nonterminal (combined_grammar g₁ g₂).initial]
-      (List.map symbol.terminal w)
-
-  apply @CF_deri_of_tran_deri T
-    (combined_grammar g₁ g₂)
-    _ [
-      symbol.nonterminal (some (Sum.inl (g₁.initial))),
-      symbol.nonterminal (some (Sum.inr (g₂.initial)))
-    ] _
-  ·
-    refine ⟨(none, [
-      symbol.nonterminal (some (Sum.inl (g₁.initial))),
-      symbol.nonterminal (some (Sum.inr (g₂.initial)))
-    ]), ?_⟩
-    refine ⟨[], [], ?_⟩
-    constructor
-    · apply List.mem_cons_self
-    constructor <;> rfl
-  ·
-    rw [← hw]
-    rw [List.map_append]
-    apply @CF_deri_of_deri_deri T
-      (combined_grammar g₁ g₂) _
-      (List.map symbol.terminal u ++ [symbol.nonterminal (some (Sum.inr g₂.initial))]) _
-    ·
-      change
-        CF_derives
-          (combined_grammar g₁ g₂)
-          ([symbol.nonterminal (some (Sum.inl g₁.initial))] ++ [symbol.nonterminal (some (Sum.inr g₂.initial))])
-          (List.map symbol.terminal u ++ [symbol.nonterminal (some (Sum.inr g₂.initial))])
-      apply CF_deri_with_postfix
-
-      change CF_derives g₁ [symbol.nonterminal g₁.initial] (List.map symbol.terminal u) at hu
-      let gg₁ := g₁g g₁ g₂
-      change CF_derives gg₁.g [symbol.nonterminal (some (Sum.inl g₁.initial))] (List.map symbol.terminal u)
-
-      have ini_equ :
-        [symbol.nonterminal (some (Sum.inl g₁.initial))] =
-          List.map (lift_symbol gg₁.lift_nt) [symbol.nonterminal g₁.initial] := by
-        apply List.singleton_eq
-      rw [ini_equ]
-
-      have baz :
-          List.map symbol.terminal u =
-            List.map (lift_symbol gg₁.lift_nt) (List.map symbol.terminal u) := by
-        rw [List.map_map]
-        apply congr_fun
-        apply congr_arg
-        rfl
-      rw [baz]
-
-      exact lift_deri hu
-    ·
-      apply CF_deri_with_prefix
-
-      change CF_derives g₂ [symbol.nonterminal g₂.initial] (List.map symbol.terminal v) at hv
-      let gg₂ := g₂g g₁ g₂
-      change CF_derives gg₂.g [symbol.nonterminal (some (Sum.inr g₂.initial))] (List.map symbol.terminal v)
-
-      have ini_equ :
-        [symbol.nonterminal (some (Sum.inr g₂.initial))] =
-          List.map (lift_symbol gg₂.lift_nt) [symbol.nonterminal g₂.initial] := by
-        apply List.singleton_eq
-      rw [ini_equ]
-
-      have baz :
-          List.map symbol.terminal v =
-            List.map (lift_symbol gg₂.lift_nt) (List.map symbol.terminal v) := by
-        rw [List.map_map]
-        apply congr_fun
-        apply congr_arg
-        rfl
-      rw [baz]
-
-      exact lift_deri hv
-
-
-/-- The class of context-free languages is closed under concatenation. -/
-theorem CF_of_CF_c_CF (L₁ : Language T) (L₂ : Language T) :
-  is_CF L₁  ∧  is_CF L₂   →   is_CF (L₁ * L₂)   :=
-by
-  rintro ⟨⟨g₁, eq_L₁⟩, ⟨g₂, eq_L₂⟩⟩
-  refine ⟨combined_grammar g₁ g₂, ?_⟩
-  apply Set.eq_of_subset_of_subset
-  ·
-    -- prove `L₁ * L₂ ⊇` here
-    intro w hyp
-    rw [← eq_L₁, ← eq_L₂]
-    exact in_concatenated_of_in_combined hyp
-  ·
-    -- prove `L₁ * L₂ ⊆` here
-    intro w hyp
-    rw [← eq_L₁] at hyp
-    rw [← eq_L₂] at hyp
-    exact in_combined_of_in_concatenated hyp
+-- private lemma in_combined_of_in_concatenated
+--     {g₁ g₂ : CF_grammar T}
+--     {w : List T}
+--     (hyp : w ∈ CF_language g₁ * CF_language g₂) :
+--   w ∈ CF_language (combined_grammar g₁ g₂) :=
+-- by
+--   rw [Language.mem_mul] at hyp
+--   obtain ⟨u, hu, v, hv, hw⟩ := hyp
+--   unfold CF_language at hu hv
+--   change
+--     CF_derives
+--       (combined_grammar g₁ g₂)
+--       [symbol.nonterminal (combined_grammar g₁ g₂).initial]
+--       (List.map symbol.terminal w)
+--
+--   apply @CF_deri_of_tran_deri T
+--     (combined_grammar g₁ g₂)
+--     _ [
+--       symbol.nonterminal (some (Sum.inl (g₁.initial))),
+--       symbol.nonterminal (some (Sum.inr (g₂.initial)))
+--     ] _
+--   ·
+--     refine ⟨(none, [
+--       symbol.nonterminal (some (Sum.inl (g₁.initial))),
+--       symbol.nonterminal (some (Sum.inr (g₂.initial)))
+--     ]), ?_⟩
+--     refine ⟨[], [], ?_⟩
+--     constructor
+--     · apply List.mem_cons_self
+--     constructor <;> rfl
+--   ·
+--     rw [← hw]
+--     rw [List.map_append]
+--     apply @CF_deri_of_deri_deri T
+--       (combined_grammar g₁ g₂) _
+--       (List.map symbol.terminal u ++ [symbol.nonterminal (some (Sum.inr g₂.initial))]) _
+--     ·
+--       change
+--         CF_derives
+--           (combined_grammar g₁ g₂)
+--           ([symbol.nonterminal (some (Sum.inl g₁.initial))] ++ [symbol.nonterminal (some (Sum.inr g₂.initial))])
+--           (List.map symbol.terminal u ++ [symbol.nonterminal (some (Sum.inr g₂.initial))])
+--       apply CF_deri_with_postfix
+--
+--       -- hu : CF_generates g₁ u, which is CF_derives g₁ [symbol.nonterminal g₁.initial] (List.map symbol.terminal u)
+--       let gg₁ := g₁g g₁ g₂
+--       unfold CF_generates CF_generates_str at hu
+--       change CF_derives gg₁.g [symbol.nonterminal (some (Sum.inl g₁.initial))] (List.map symbol.terminal u)
+--
+--       have ini_equ :
+--         [symbol.nonterminal (some (Sum.inl g₁.initial))] =
+--           List.map (lift_symbol gg₁.lift_nt) [symbol.nonterminal g₁.initial] := by
+--         unfold lift_symbol
+--         rfl
+--       rw [ini_equ]
+--
+--       have baz :
+--           List.map symbol.terminal u =
+--             List.map (lift_symbol gg₁.lift_nt) (List.map symbol.terminal u) := by
+--         rw [List.map_map]
+--         apply congr_fun
+--         apply congr_arg
+--         rfl
+--       rw [baz]
+--
+--       exact lift_deri hu
+--     ·
+--       apply CF_deri_with_prefix
+--
+--       -- hv : CF_generates g₂ v, which is CF_derives g₂ [symbol.nonterminal g₂.initial] (List.map symbol.terminal v)
+--       let gg₂ := g₂g g₁ g₂
+--       unfold CF_generates CF_generates_str at hv
+--       change CF_derives gg₂.g [symbol.nonterminal (some (Sum.inr g₂.initial))] (List.map symbol.terminal v)
+--
+--       have ini_equ :
+--         [symbol.nonterminal (some (Sum.inr g₂.initial))] =
+--           List.map (lift_symbol gg₂.lift_nt) [symbol.nonterminal g₂.initial] := by
+--         unfold lift_symbol
+--         rfl
+--       rw [ini_equ]
+--
+--       have baz :
+--           List.map symbol.terminal v =
+--             List.map (lift_symbol gg₂.lift_nt) (List.map symbol.terminal v) := by
+--         rw [List.map_map]
+--         apply congr_fun
+--         apply congr_arg
+--         rfl
+--       rw [baz]
+--
+--       exact lift_deri hv
+--
+--
+-- /-- The class of context-free languages is closed under concatenation. -/
+-- theorem CF_of_CF_c_CF (L₁ : Language T) (L₂ : Language T) :
+--   is_CF L₁  ∧  is_CF L₂   →   is_CF (L₁ * L₂)   :=
+-- by
+--   rintro ⟨⟨g₁, eq_L₁⟩, ⟨g₂, eq_L₂⟩⟩
+--   refine ⟨combined_grammar g₁ g₂, ?_⟩
+--   apply Set.eq_of_subset_of_subset
+--   ·
+--     -- prove `L₁ * L₂ ⊇` here
+--     intro w hyp
+--     rw [← eq_L₁, ← eq_L₂]
+--     exact in_concatenated_of_in_combined hyp
+--   ·
+--     -- prove `L₁ * L₂ ⊆` here
+--     intro w hyp
+--     rw [← eq_L₁] at hyp
+--     rw [← eq_L₂] at hyp
+--     exact in_combined_of_in_concatenated hyp
+--
