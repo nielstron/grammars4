@@ -470,13 +470,13 @@ private lemma CF_lang_aux_ab : is_CF lang_aux_ab := by
                     apply List.mem_append_right
                     apply List.mem_cons_self
                   have not_in : symbol.nonterminal r.fst ∉ List.replicate k a ++ List.replicate k b := by
-                    rw [List.mem_append_eq]
+                    rw [List.mem_append]
                     push_neg
                     constructor <;>
                       · rw [List.mem_replicate]
                         push_neg
                         intro trash
-                        apply symbol.no_confusion
+                        tauto
                   rw [bef] at not_in
                   exact not_in yes_in
               | inr ih =>
@@ -516,7 +516,7 @@ private lemma CF_lang_aux_ab : is_CF lang_aux_ab := by
                           exact List.nthLe_replicate a plength_small
                         rw [plengthth_is_a] at kth_eq
                         have S_neq_a : S ≠ a := by
-                          apply symbol.no_confusion
+                          tauto
                         rw [Option.some_inj] at kth_eq
                         exact S_neq_a kth_eq
                     | inr h =>
@@ -542,7 +542,7 @@ private lemma CF_lang_aux_ab : is_CF lang_aux_ab := by
                           exact List.nthLe_replicate b len_within_list
                         rw [plengthth_is_b] at kth_eq
                         have S_neq_b : S ≠ b := by
-                          apply symbol.no_confusion
+                          tauto
                         rw [Option.some_inj] at kth_eq
                         exact S_neq_b kth_eq
                   have ihl_len : (p ++ [symbol.nonterminal S_]).length = k + 1 := by
@@ -568,7 +568,9 @@ private lemma CF_lang_aux_ab : is_CF lang_aux_ab := by
                       rw [aft]
                       -- In head case, r = (S_, [a, S, b])
                       rw [pa, qb]
-                      simp only [List.replicate_add, List.replicate, List.append_assoc, List.cons_append]
+                      rw [List.replicate_succ_eq_append_singleton]
+                      rw [List.replicate_succ_eq_singleton_append]
+                      simp
                   | tail _ rin =>
                       cases rin with
                       | head =>
@@ -583,15 +585,17 @@ private lemma CF_lang_aux_ab : is_CF lang_aux_ab := by
         cases instantiated with
         | inl instantiated =>
             use n
-            have foo := congr_arg (List.filter_map (
+
+            have foo := congr_arg (List.filterMap (
               λ z : symbol (Fin 3) (Fin 1) =>
                 match z with
                 | symbol.terminal t => some t
                 | symbol.nonterminal _ => none
             )) instantiated
-            rw [List.filter_map_append] at foo
-            rw [List.filter_map_map] at foo
-            rw [List.filter_map_some] at foo
+            rw [List.filterMap_map] at foo
+            rw [List.filterMap_append] at foo
+
+            rw [List.filterMap_some] at foo
             rw [foo, a, b]
             clear foo
             apply congr_arg2

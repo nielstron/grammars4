@@ -465,4 +465,20 @@ theorem nth_append_right {l₁ l₂ : List α} {n : Nat} (h : l₁.length ≤ n)
             simpa [Nat.succ_le_succ_iff] using h
           simpa [List.nth, Nat.succ_sub_succ_eq_sub] using (ih (n := n) h')
 
+theorem nth_append {l₁ l₂ : List α} {n : Nat} (h : n < l₁.length) :
+    (l₁ ++ l₂).nth n = l₁.nth n := by
+  induction l₁ generalizing n with
+  | nil =>
+      exfalso
+      tauto
+  | cons head tail ih =>
+      cases n with
+      | zero =>
+          constructor
+      | succ n =>
+          have h' : n < tail.length := by
+            simp at h
+            exact h
+          simpa [List.nth, Nat.succ_sub_succ_eq_sub] using (ih (n := n) h')
+
 end List
