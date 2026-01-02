@@ -135,3 +135,36 @@ can be built on top of `head_tail_split` by inducting on the list of nonterminal
 See the original `concatenation_can_be_split` in ClosureProperties/Concatenation.lean
 for a similar pattern with two symbols.
 -/
+
+/-- Corollary: derivation from two symbols can be split.
+    This is a direct application of the more general `head_tail_split` lemma. -/
+lemma concatenation_can_be_split {g: CF_grammar T} (x : List (symbol T g.nt)) (s: symbol T g.nt) (t: symbol T g.nt) (hyp: CF_derives g [s, t] x):
+        ∃ u : List (symbol T g.nt), ∃ v : List (symbol T g.nt),
+          CF_derives g [s] u ∧
+            CF_derives g [t] v
+            ∧ (u ++ v = x) := by
+  -- Simply apply head_tail_split with s as head and [t] as tail
+  exact head_tail_split x s [t] hyp
+
+/-- Corollary: derivation from three symbols can be split.
+    This is a direct application of the more general `head_tail_split` lemma. -/
+lemma concatenation_can_be_split_2 {g: CF_grammar T} (x : List (symbol T g.nt)) (s: symbol T g.nt) (t: symbol T g.nt) (t': symbol T g.nt) (hyp: CF_derives g [s, t, t'] x):
+        ∃ u : List (symbol T g.nt), ∃ v : List (symbol T g.nt), ∃ w : List (symbol T g.nt),
+          CF_derives g [s] u ∧
+            CF_derives g [t] v ∧
+            CF_derives g [t'] w
+            ∧ (u ++ v ++ w = x) := by
+  -- Simply apply head_tail_split with s as head and [t, t'] as tail
+  apply head_tail_split x s [t, t'] at hyp
+  obtain ⟨ u', v', u'_hyp, v'_hyp ⟩ := hyp
+  have hyp2 : ∃ u v, CF_derives g [t] u ∧ CF_derives g [t'] v ∧ u ++ v = v' := by
+    refine head_tail_split v' t [t'] ?_
+    tauto
+  obtain ⟨ u'', v'', u''_hyp, v''_hyp ⟩ := hyp2
+  use u'
+  use u''
+  use v''
+  constructor; tauto
+  constructor; tauto
+  constructor; tauto
+  simp [v'_hyp, v''_hyp]

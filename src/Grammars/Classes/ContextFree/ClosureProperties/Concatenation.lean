@@ -838,16 +838,6 @@ private lemma concat_eq_w_of_split {g₁ g₂ : CF_grammar T}
   rw [lift1_commutes, lift2_commutes] at hw'
   exact hw'
 
-/-- Corollary: derivation from two symbols can be split.
-    This is a direct application of the more general `head_tail_split` lemma. -/
-lemma concatenation_can_be_split {g: CF_grammar T} (x : List (symbol T g.nt)) (s: symbol T g.nt) (t: symbol T g.nt) (hyp: CF_derives g [s, t] x):
-        ∃ u : List (symbol T g.nt), ∃ v : List (symbol T g.nt),
-          CF_derives g [s] u ∧
-            CF_derives g [t] v
-            ∧ (u ++ v = x) := by
-  -- Simply apply head_tail_split with s as head and [t] as tail
-  exact head_tail_split x s [t] hyp
-
 private lemma in_concatenated_of_in_combined
     {g₁ g₂ : CF_grammar T}
     {w : List T}
