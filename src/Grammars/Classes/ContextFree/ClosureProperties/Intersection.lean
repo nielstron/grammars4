@@ -4,7 +4,6 @@ import Grammars.Classes.ContextFree.ClosureProperties.Concatenation
 import Grammars.Classes.ContextFree.ClosureProperties.Permutation
 import Grammars.Utilities.ListUtils
 import Grammars.Utilities.LanguageOperations
-import LeanCopilot
 
 
 section defs_over_fin3
@@ -592,38 +591,26 @@ private lemma CF_lang_aux_ab : is_CF lang_aux_ab := by
                 | symbol.terminal t => some t
                 | symbol.nonterminal _ => none
             )) instantiated
-            rw [List.filterMap_map] at foo
-            rw [List.filterMap_append] at foo
+            simp only [List.filterMap_append, a, b] at foo
 
-            rw [List.filterMap_some] at foo
-            rw [foo, a, b]
-            clear foo
-            apply congr_arg2
-            all_goals
-              clear instantiated
+            have filterMap_replicate_terminal : ∀ (n : ℕ) (t : Fin 3),
+                List.filterMap (fun z : symbol (Fin 3) (Fin 1) => match z with | symbol.terminal t => some t | symbol.nonterminal _ => none)
+                  (List.replicate n (symbol.terminal t)) = List.replicate n t := by
+              intro n t
               induction n with
-              | zero =>
-                  rfl
-              | succ n ih =>
-                  rw [List.replicate_succ, List.replicate_succ, List.filter_map_cons]
-                  simp only [eq_self_iff_true, true_and, ih]
-        | inr instantiated =>
-            exfalso
-            have yes_in : S ∈ List.replicate n a ++ [S] ++ List.replicate n b := by
-              apply List.mem_append_left
-              apply List.mem_append_right
-              apply List.mem_cons_self
-            have not_in : S ∉ List.map symbol.terminal w := by
-              intro hyp
-              have S_isnt_terminal : ¬ ∃ x, S = symbol.terminal x := by
-                tauto
-              rw [List.mem_map] at hyp
-              cases hyp with
-              | intro y hypo =>
-                  push_neg at S_isnt_terminal
-                  exact S_isnt_terminal y hypo.right.symm
-            rw [instantiated] at not_in
-            exact not_in yes_in
+              | zero => rfl
+              | succ n ih => simp [List.filterMap, List.replicate, ih]
+
+            have filterMap_map_terminal : ∀ (l : List (Fin 3)),
+                List.filterMap (fun z : symbol (Fin 3) (Fin 1) => match z with | symbol.terminal t => some t | symbol.nonterminal _ => none)
+                  (List.map symbol.terminal l) = l := by
+              intro l
+              induction l with
+              | nil => rfl
+              | cons h t ih => simp [List.filterMap, List.map, ih]
+
+            rw [filterMap_map_terminal w, filterMap_replicate_terminal n a_, filterMap_replicate_terminal n b_] at foo
+            exact foo
   · intro w ass
     cases ass with n hw
     change CF_derives g [symbol.nonterminal g.initial] (List.map symbol.terminal w)
@@ -924,9 +911,10 @@ by
       have a_yes : a_ ∈ List.replicate n₂ a_ := by
         rw [List.mem_replicate]
         exact And.intro (ne_of_lt pos).symm rfl
-      simp [a_yes] at a_in_equ
-      rw [List.mem_replicate] at a_in_equ
-      exact neq_ac a_in_equ.right
+      simp [a_yes, List.mem_replicate, List.mem_append] at a_in_equ
+      obtain ⟨-, h⟩ | ⟨-, h⟩ := a_in_equ
+      · exact neq_ab h
+      · exact neq_ac h
     have hm₂ : m₂ = 0 := by
       by_contra h
       have pos := Nat.pos_of_ne_zero h
@@ -937,9 +925,10 @@ by
       have b_yes : b_ ∈ List.replicate m₂ b_ := by
         rw [List.mem_replicate]
         exact And.intro (ne_of_lt pos).symm rfl
-      simp [b_yes] at b_in_equ
-      rw [List.mem_replicate] at b_in_equ
-      exact neq_bc b_in_equ.right
+      simp [b_yes, List.mem_replicate, List.mem_append] at b_in_equ
+      obtain ⟨-, h⟩ | ⟨-, h⟩ := b_in_equ
+      · exact neq_ab h.symm
+      · exact neq_bc h
     refine ⟨0, ?_⟩
     rw [hn₂] at w_eq₂
     rw [hm₂] at w_eq₂
@@ -968,7 +957,7 @@ by
     rw [← rs_false]
     rw [← a_in_equ]
     left
-    exact And.intro hn₁ rfl
+    exact And.intro hn₁ trivial
   have m₂pos : m₂ > 0 := by
     by_contra h
     have m₂zero : m₂ = 0 := by
@@ -1001,9 +990,13 @@ by
       rw [List.mem_replicate]
       intro h
       exact neq_cb h.right
-    rw [equ] at c_not_in_a
-    simp only [List.mem_append, c_not_in_b, or_false, c_yes, or_true] at c_not_in_a
-    exact c_not_in_a
+    have c_not_in_ab : c_ ∉ List.replicate n₁ a_ ++ List.replicate n₁ b_ := by
+      rw [List.mem_append]
+      push_neg
+      exact And.intro c_not_in_a c_not_in_b
+    rw [equ] at c_not_in_ab
+    simp only [List.mem_append, c_yes, or_true, not_true_eq_false] at c_not_in_ab
+    exact c_not_in_ab
 
   have n_ge : n₁ ≥ n₂ :=
     doubled_ge_singled n₁ m₁ n₂ m₂ n₂pos a_ b_ c_ neq_ab neq_ac equ
