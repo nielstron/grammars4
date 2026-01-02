@@ -4,6 +4,7 @@ import Grammars.Classes.ContextFree.ClosureProperties.Concatenation
 import Grammars.Classes.ContextFree.ClosureProperties.Permutation
 import Grammars.Utilities.ListUtils
 import Grammars.Utilities.LanguageOperations
+import LeanCopilot
 
 
 section defs_over_fin3
@@ -255,8 +256,10 @@ private lemma notCF_lang_eq_eq : ¬ is_CF lang_eq_eq := by
                 rw [List.mem_append]
                 right
                 exact c_in_y
-          repeat
-            rw [List.append_assoc] at concatenating
+          have concat_reassoc : List.replicate (n + 1) a_ ++ List.replicate (n + 1) b_ ++ List.replicate (n + 1) c_ = u ++ v ++ x ++ y ++ z := by
+            repeat rw [List.append_assoc] at concatenating
+            simp only [List.append_assoc]
+            exact concatenating
           rcases List.nthLe_of_mem relaxed_c with ⟨m, hm, mth_is_c⟩
           have m_big : m ≥ 2 * n + 2 := by
             have orig_mth_is_c :
@@ -264,24 +267,32 @@ private lemma notCF_lang_eq_eq : ¬ is_CF lang_eq_eq := by
                   ((List.replicate (n + 1) a_ ++ List.replicate (n + 1) b_) ++ List.replicate (n + 1) c_).nthLe
                       m proofoo =
                     c_ := by
-              repeat
-                rw [← List.append_assoc] at concatenating
-              rw [concatenating]
+              rw [concat_reassoc]
               have m_small : m < (u ++ v ++ x ++ y ++ z).length := by
                 rw [List.length_append]
                 linarith
-              rw [← @List.nthLe_append _ _ z m m_small] at mth_is_c
               use m_small
+              -- mth_is_c : (u ++ v ++ x ++ y).nthLe m hm = c_
+              -- We need to show: ((List.replicate (n + 1) a_ ++ List.replicate (n + 1) b_) ++ List.replicate (n + 1) c_).nthLe m m_small = c_
+              -- After substitution concat_reassoc, we get (u ++ v ++ x ++ y ++ z).nthLe m m_small = c_
+              -- We need to relate this to (u ++ v ++ x ++ y).nthLe m hm
+              have split_uvxyz : (u ++ v ++ x ++ y ++ z) = (u ++ v ++ x ++ y) ++ z := by
+                simp only [List.append_assoc]
+              have m_small' : m < ((u ++ v ++ x ++ y) ++ z).length := by
+                rw [← split_uvxyz]; exact m_small
+              rw [List.nthLe_append]
               exact mth_is_c
             cases orig_mth_is_c with
-            | intro _ mth_is_c =>
+            | intro proof_m mth_is_c =>
                 by_contra mle
                 push_neg at mle
                 have m_lt_len :
                     m < (List.replicate (n + 1) a_ ++ List.replicate (n + 1) b_).length := by
                   simp only [List.length_append, List.length_replicate]
                   omega
-                rw [List.nthLe_append _ m_lt_len] at mth_is_c
+                have regroup_for_mth : ((List.replicate (n + 1) a_ ++ List.replicate (n + 1) b_) ++ List.replicate (n + 1) c_).nthLe m proof_m = (List.replicate (n + 1) a_ ++ List.replicate (n + 1) b_).nthLe m m_lt_len := by
+                  rw [List.nthLe_append m_lt_len]
+                rw [regroup_for_mth] at mth_is_c
                 have c_in_ra_rb :
                     c_ ∈ (List.replicate (n + 1) a_ ++ List.replicate (n + 1) b_) := by
                   rw [← mth_is_c]
@@ -942,7 +953,7 @@ by
     have a_in_equ := congr_arg (fun lis => a_ ∈ lis) equ
     clear equ
     simp only [List.mem_append, eq_iff_iff, List.mem_replicate, or_assoc] at a_in_equ
-    have rs_false : (m₂ ≠ 0 ∧ a_ = b_ ∨ m₂ ≠ 0 ∧ a_ = c_) = false := by
+    have rs_false : (m₂ ≠ 0 ∧ a_ = b_ ∨ m₂ ≠ 0 ∧ a_ = c_) = False := by
       apply eq_false_intro
       push_neg
       refine And.intro ?_ ?_
