@@ -1,6 +1,7 @@
 import Grammars.Classes.ContextFree.Basics.Definition
 import Grammars.Classes.ContextFree.Basics.Toolbox
 import Grammars.Utilities.ListUtils
+import LeanCopilot
 
 open List
 
