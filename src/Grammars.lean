@@ -3,7 +3,10 @@
 
 import Grammars.Automata.DetPushdown.Basics.DPDA
 import Grammars.Automata.DetPushdown.Basics.Decides
+import Grammars.Automata.DetPushdown.Basics.Determinism
+import Grammars.Automata.DetPushdown.Basics.EpsilonElimination
 import Grammars.Automata.DetPushdown.Basics.Inclusion
+import Grammars.Automata.DetPushdown.Basics.Totality
 import Grammars.Automata.DetPushdown.ClosureProperties.Complement
 import Grammars.Automata.LinearBounded.Basics.Inclusion
 import Grammars.Automata.LinearBounded.Basics.LBA
