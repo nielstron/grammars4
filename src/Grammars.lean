@@ -2,6 +2,7 @@
 --  Run `scripts/generate_import_hub.py --hub grammars` to regenerate.
 
 import Grammars.Automata.DetPushdown.Basics.DPDA
+import Grammars.Automata.DetPushdown.Basics.Decides
 import Grammars.Automata.DetPushdown.Basics.Inclusion
 import Grammars.Automata.DetPushdown.ClosureProperties.Complement
 import Grammars.Automata.LinearBounded.Basics.Inclusion
