@@ -388,7 +388,7 @@ Case 1: n ≤ 1 (so r.input_L = [] and r.input_R = []):
 
   The rule membership: it's in nc_simRules ri r (the first element of the list), hence in (csg_of_noncontracting g hg).rules by nc_simRule_mem.
 
-Case 2: n ≥ 2: sorry.
+Case 2: n ≥ 2:
 
 To handle both cases: split on whether r.input_L.length + 1 + r.input_R.length ≤ 1. For the n ≤ 1 case, r.input_L = [] and r.input_R = [] (since both are lists and their total length is 0). Use List.length_eq_zero to derive input_L = [] and input_R = []. Then simplify and construct the single CS step.
 -/

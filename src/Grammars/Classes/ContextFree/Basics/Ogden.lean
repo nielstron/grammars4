@@ -796,3 +796,163 @@ theorem CF_ogdens_lemma {L : Language T} (cf : is_CF L) :
           countMarkedIn P u.length (v.length + x.length + y.length) ≤ p ∧
           ∀ i : ℕ, u ++ v ^+^ i ++ x ++ y ^+^ i ++ z ∈ L := by
   exact Language.IsContextFree.ogdens_lemma (is_CF_iff_isContextFree.mp cf)
+
+
+/-! ## Counting in repeated lists -/
+
+/-
+PROBLEM
+Count of symbol s in nTimes l n equals n * count in l.
+
+PROVIDED SOLUTION
+Induction on n. Base case: nTimes l 0 = [] has count 0. Inductive case: nTimes l (n+1) = l ++ nTimes l n, use count_append and inductive hypothesis.
+-/
+lemma count_nTimes {α : Type*} [DecidableEq α] (l : List α) (n : ℕ) (s : α) :
+    List.count s (l ^+^ n) = n * List.count s l := by
+  induction' n with n ih;
+  · simp +decide [ nTimes ];
+  · simp_all +decide [ add_mul, nTimes_succ_l ];
+    ring
+
+/-
+PROBLEM
+The pumped word's count of symbol s.
+
+PROVIDED SOLUTION
+Unfold all the appends and use count_append and count_nTimes. Just simp with count_append and count_nTimes, then ring.
+-/
+lemma pumped_count {α : Type*} [DecidableEq α] (u v x y z : List α) (s : α) (i : ℕ) :
+    List.count s (u ++ v ^+^ i ++ x ++ y ^+^ i ++ z) =
+      (List.count s u + List.count s x + List.count s z) + i * (List.count s v + List.count s y) := by
+  simp +arith +decide [ count_nTimes, List.count_append ] ; ring;
+
+/-! ## Marked position counting -/
+
+/-
+PROBLEM
+countMarkedIn for the range [0, a+b+c) with P(k) = (a ≤ k < a+b) equals b.
+
+PROVIDED SOLUTION
+countMarkedIn (fun k => a ≤ k ∧ k < a + b) 0 (a + b + c) counts positions k in [0, a+b+c) with a ≤ k < a+b. These are exactly {a, a+1, ..., a+b-1}, which has cardinality b. Unfold countMarkedIn and show the filter gives {0, 1, ..., b-1} mapped to {a, a+1, ..., a+b-1}, or directly compute.
+-/
+lemma countMarkedIn_middle_range (a b c : ℕ) :
+    countMarkedIn (fun k => a ≤ k ∧ k < a + b) 0 (a + b + c) = b := by
+  unfold countMarkedIn; simp +decide [ Finset.sum_filter ] ; ring; (
+  -- The set {i ∈ Finset.range (a + b + c) | a ≤ i ∧ i < a + b} is exactly the set {a, a+1, ..., a+b-1}.
+  have h_set_eq : {i ∈ Finset.range (a + b + c) | a ≤ i ∧ i < a + b} = Finset.Ico a (a + b) := by
+    ext; simp [Finset.mem_Ico, Finset.mem_range];
+    exact fun _ _ => by linarith;
+  rw [h_set_eq]
+  simp +decide [Finset.card_range]);
+
+/-! ## Structural lemmas about sorted lists over Fin 3 -/
+
+/-
+PROBLEM
+A list of the form 0^a ++ 1^b ++ 2^c is sorted (Chain' (· ≤ ·)).
+
+PROVIDED SOLUTION
+The list 0^a ++ 1^b ++ 2^c is non-decreasing because 0 ≤ 0 within replicate 0s, 0 ≤ 1 at the boundary, 1 ≤ 1 within 1s, 1 ≤ 2 at the boundary, 2 ≤ 2 within 2s. Use Chain'_append and Chain'_replicate lemmas from Mathlib.
+-/
+lemma chain'_replicate_abc (a b c : ℕ) :
+    (List.replicate a (0 : Fin 3) ++ List.replicate b 1 ++ List.replicate c 2).Chain' (· ≤ ·) := by
+  induction' b with b hb generalizing a c <;> simp_all +arith +decide [ List.replicate ];
+  · -- The list is non-decreasing because 0 ≤ 0 within the replicate 0s and 0 ≤ 2 at the boundary.
+    apply List.isChain_append.mpr;
+    grind;
+  · rcases a with ( _ | a ) <;> simp_all +arith +decide [ List.replicate ];
+    · -- The list is 1 followed by b ones and then c twos. The first element is 1, and the next elements are all 1s. So, 1 ≤ 1, which is true. Then, the rest of the elements are all 1s, which are equal to each other. So, the chain condition holds.
+      simp [Chain'];
+      induction' b with b hb generalizing c <;> simp_all +arith +decide [ List.replicate ];
+      · induction c <;> simp_all +arith +decide [ List.isChain_iff_get ];
+        rintro ⟨ _ | i, hi ⟩ <;> simp +arith +decide [ * ];
+      · specialize hb 0 c ; aesop;
+    · specialize hb ( a + 1 ) c ; simp_all +arith +decide [ List.replicate ];
+      cases a <;> cases b <;> cases c <;> simp_all +arith +decide [ List.replicate ];
+      all_goals simp_all +arith +decide [ Chain', List.replicate ];
+      · induction ‹ℕ› <;> simp_all +arith +decide [ List.replicate ];
+      · grind +ring;
+      · grind +splitImp;
+      · grind
+
+/-
+PROBLEM
+Chain' is preserved by dropping elements from the front.
+
+PROVIDED SOLUTION
+Induction on n or use the fact that drop produces a suffix, and Chain' is preserved by taking suffixes. In Mathlib, List.Chain'.drop or similar should exist.
+-/
+lemma chain'_drop {α : Type*} {r : α → α → Prop} {l : List α} (h : l.Chain' r) (n : ℕ) :
+    (l.drop n).Chain' r := by
+  simp_all +decide [ Chain' ];
+  exact h.drop _
+
+/-
+PROBLEM
+Chain' is preserved by taking elements from the front.
+
+PROVIDED SOLUTION
+Use the fact that take produces a prefix, and Chain' is preserved by taking prefixes. Induction on n and l.
+-/
+lemma chain'_take {α : Type*} {r : α → α → Prop} {l : List α} (h : l.Chain' r) (n : ℕ) :
+    (l.take n).Chain' r := by
+  -- Apply the lemma that states the take of a chain is a chain.
+  apply List.IsChain.take; assumption
+
+/-- A contiguous substring (slice) of a Chain' list is Chain'. -/
+lemma chain'_slice {α : Type*} {r : α → α → Prop} {l : List α} (h : l.Chain' r) (s n : ℕ) :
+    ((l.drop s).take n).Chain' r :=
+  chain'_take (chain'_drop h s) n
+
+/-
+PROBLEM
+If u ++ v ++ w is Chain', then v is Chain'.
+
+PROVIDED SOLUTION
+Chain' r (u ++ v ++ w) implies Chain' r (u ++ v) (by Chain' of append), then Chain' r v (by suffix of Chain'). Use chain'_drop and chain'_take with appropriate indices, or use List.Chain'.append and its converses.
+-/
+lemma chain'_middle {α : Type*} {r : α → α → Prop} {u v w : List α}
+    (h : (u ++ v ++ w).Chain' r) : v.Chain' r := by
+  convert chain'_take ( chain'_drop h ( List.length u ) ) ( List.length v ) using 1;
+  simp +decide [ List.drop_append, List.take_append ]
+
+/-
+PROBLEM
+If a sorted list over Fin 3 has ≥ 2 distinct elements, then repeating it (n ≥ 2)
+    gives a non-sorted list.
+
+PROVIDED SOLUTION
+Since l is sorted (Chain' (· ≤ ·)) with two distinct elements a ≠ b where both a,b ∈ l, we have l.head ≤ l.getLast and l.head ≠ l.getLast (otherwise all elements equal). So l.getLast > l.head (strict inequality in Fin 3). For n ≥ 2, l^+^n = l ++ l ++ ..., and l ++ l has the last element of first l (= l.getLast) followed by first element of second l (= l.head). Since l.getLast > l.head, this is a descent, so l ++ l is not Chain' (· ≤ ·), hence l^+^n is not Chain' (· ≤ ·).
+-/
+lemma nTimes_not_chain'_of_distinct {l : List (Fin 3)} {n : ℕ}
+    (hl : l.Chain' (· ≤ ·))
+    (h_distinct : ∃ a b : Fin 3, a ≠ b ∧ a ∈ l ∧ b ∈ l)
+    (hn : 2 ≤ n) :
+    ¬ (l ^+^ n).Chain' (· ≤ ·) := by
+  rcases n with ( _ | _ | n ) <;> simp_all +decide [ List.replicate ] ;
+  rcases l with ( _ | ⟨ a, _ | ⟨ b, l ⟩ ⟩ ) <;> simp_all +decide [ nTimes ];
+  fin_cases a <;> fin_cases b <;> simp_all +decide [ Chain' ];
+  grind;
+  · grind;
+  · grind +splitIndPred;
+  · grind;
+  · grind;
+  · grind +splitImp
+
+/-! ## Pigeonhole for three symbols -/
+
+/-
+PROBLEM
+If v ++ y contains all three symbols {0,1,2} of Fin 3, then at least one of v, y
+    contains two distinct elements.
+
+PROVIDED SOLUTION
+v++y has positive counts of 0, 1, and 2. If both v and y each contain at most 1 distinct element, then the union of their element sets has at most 2 elements. But the union must contain {0,1,2} (3 elements). Contradiction. So at least one of v, y has ≥ 2 distinct elements. Use List.count_pos_iff_mem to convert counts to membership.
+-/
+lemma pigeonhole_three_symbols_fin3 {v y : List (Fin 3)}
+    (h0 : 0 < List.count 0 v + List.count 0 y)
+    (h1 : 0 < List.count 1 v + List.count 1 y)
+    (h2 : 0 < List.count 2 v + List.count 2 y) :
+    (∃ a b : Fin 3, a ≠ b ∧ a ∈ v ∧ b ∈ v) ∨ (∃ a b : Fin 3, a ≠ b ∧ a ∈ y ∧ b ∈ y) := by
+  simp_all +decide [ Fin.forall_fin_succ, List.count ];
+  grind +ring
