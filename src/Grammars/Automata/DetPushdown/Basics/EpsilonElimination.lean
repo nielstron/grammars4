@@ -242,7 +242,16 @@ lemma epsilon_chain_periodic
   generalize_proofs at *; (
   exact ⟨ q₁, β₁ ++ αi, ReachesIn.step h h_step ⟩))
 
-/-- **Pigeonhole bound**: consecutive ε-transitions are bounded by epsilonBound. -/
+/-- **Pigeonhole bound**: consecutive ε-transitions are bounded by epsilonBound.
+
+    **WARNING**: This lemma is FALSE as stated. The bound `|Q| × |S|` is insufficient
+    when ε-transitions can push stack symbols (increasing stack height). A counterexample:
+    with Q = {q₀}, S = {Z}, ε(q₀, Z) = (q₀, [Z, Z]), we have epsilonBound = 1 but can
+    take arbitrarily many ε-steps. A correct bound would need to account for stack
+    growth patterns and is generally exponential in |Q| × |S|.
+
+    The `elimEpsilonLoops` construction should be revised to use a correct bound
+    or a different loop-detection mechanism. -/
 lemma epsilon_sequence_bounded
     (q q' : Q) (γ γ' : List S)
     (n : ℕ)
